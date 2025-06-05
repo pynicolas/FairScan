@@ -36,6 +36,5 @@ class ImageRepository(appFilesDir: File) {
     fun delete(id: String) {
         val file = File(scanDir, id)
         file.delete()
-        fileNames.remove(id)
     }
 }
