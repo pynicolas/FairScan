@@ -14,6 +14,8 @@
  */
 package org.mydomain.myscan.view
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -47,24 +49,24 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import org.mydomain.myscan.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinalizeDocumentScreen(
-    viewModel: MainViewModel = viewModel(),
+    pageIds: List<String>,
+    imageLoader: (String) -> Bitmap,
     onBackPressed: () -> Unit,
     onSavePressed: () -> Unit,
     onSharePressed: () -> Unit,
+    onDeleteImage: (String) -> Unit,
 ) {
     Scaffold (
         topBar = {
@@ -96,15 +98,16 @@ fun FinalizeDocumentScreen(
                 }
             }
         }
-    ) { padding -> DocumentPreview(padding, viewModel) }
+    ) { padding -> DocumentPreview(pageIds, padding, imageLoader, onDeleteImage) }
 }
 
 @Composable
 private fun DocumentPreview(
+    pageIds: List<String>,
     padding: PaddingValues,
-    viewModel: MainViewModel
+    imageLoader: (String) -> Bitmap,
+    onDeleteImage: (String) -> Unit,
 ) {
-    val pageIds by viewModel.pageIds.collectAsStateWithLifecycle()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -129,7 +132,7 @@ private fun DocumentPreview(
                     // TODO Make it possible to zoom on an image
                     Box {
                         Image(
-                            bitmap = viewModel.getBitmap(id).asImageBitmap(),
+                            bitmap = imageLoader(id).asImageBitmap(),
                             contentDescription = "Page ${index + 1}",
                             modifier = Modifier
                                 .size(160.dp)
@@ -139,7 +142,7 @@ private fun DocumentPreview(
                         )
 
                         IconButton(
-                            onClick = { viewModel.deletePage(id) },
+                            onClick = { onDeleteImage(id) },
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .size(24.dp)
@@ -152,4 +155,22 @@ private fun DocumentPreview(
             }
         }
     }
+}
+
+@Composable
+@Preview
+fun DocumentScreenPreview() {
+    val context = LocalContext.current
+    FinalizeDocumentScreen(
+        pageIds = listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
+        imageLoader = { id ->
+            context.assets.open(id).use { input ->
+                BitmapFactory.decodeStream(input)
+            }
+        },
+        onBackPressed = {},
+        onSavePressed = {},
+        onSharePressed = {},
+        onDeleteImage = { _ -> {} }
+    )
 }

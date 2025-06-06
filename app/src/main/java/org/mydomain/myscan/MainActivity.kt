@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by viewModel.liveAnalysisState.collectAsStateWithLifecycle()
+            val pageIds by viewModel.pageIds.collectAsStateWithLifecycle()
             val context = LocalContext.current
             MyScanTheme {
                 Scaffold { innerPadding ->
@@ -64,10 +65,12 @@ class MainActivity : ComponentActivity() {
                             }
                             is Screen.FinalizeDocument -> {
                                 FinalizeDocumentScreen (
-                                    viewModel,
+                                    pageIds,
+                                    imageLoader = { id -> viewModel.getBitmap(id) },
                                     onBackPressed = { viewModel.navigateTo(Screen.Camera) },
                                     onSavePressed = savePdf(viewModel, context),
                                     onSharePressed = sharePdf(viewModel, context),
+                                    onDeleteImage =  { id -> viewModel.deletePage(id) }
                                 )
                             }
                         }
