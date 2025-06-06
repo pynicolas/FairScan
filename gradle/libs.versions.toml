@@ -1,6 +1,7 @@
 [versions]
 agp = "8.9.2"
 kotlin = "2.1.0"
+license = "0.16.1"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -50,4 +51,5 @@ assertj =  { group="org.assertj", name="assertj-core", version.ref = "assertj" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+license =  { id = "com.github.hierynomus.license", version.ref = "license" }
 
