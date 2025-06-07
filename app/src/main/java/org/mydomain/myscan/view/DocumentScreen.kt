@@ -18,11 +18,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,13 +28,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
@@ -48,10 +42,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -60,7 +54,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FinalizeDocumentScreen(
+fun DocumentScreen(
     pageIds: List<String>,
     imageLoader: (String) -> Bitmap,
     onBackPressed: () -> Unit,
@@ -71,6 +65,10 @@ fun FinalizeDocumentScreen(
     Scaffold (
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
                 title = { Text("Finalize document") },
                 navigationIcon = {
                     IconButton(onClick = onBackPressed) {
@@ -81,7 +79,7 @@ fun FinalizeDocumentScreen(
         },
         bottomBar = {
             BottomAppBar(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                containerColor = Color.Transparent
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -108,50 +106,35 @@ private fun DocumentPreview(
     imageLoader: (String) -> Bitmap,
     onDeleteImage: (String) -> Unit,
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(padding)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .padding(PaddingValues(top = padding.calculateTopPadding()))
     ) {
         Text(
-            "Pages",
-            modifier = Modifier.padding(start = 16.dp, top = 16.dp),
+            "${pageIds.size} pages",
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp).align(Alignment.TopStart),
             style = MaterialTheme.typography.titleMedium
         )
-        FlowRow(
+        LazyColumn (
+            contentPadding = PaddingValues(20.dp),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .align(Alignment.Center),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            pageIds.forEachIndexed { index, id ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // TODO Display small images rather than big ones
-                    // TODO Make it possible to zoom on an image
-                    Box {
-                        Image(
-                            bitmap = imageLoader(id).asImageBitmap(),
-                            contentDescription = "Page ${index + 1}",
-                            modifier = Modifier
-                                .size(160.dp)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, Color.DarkGray)
-                        )
-
-                        IconButton(
-                            onClick = { onDeleteImage(id) },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .size(24.dp)
-                                .background(Color.Black.copy(alpha = 0.5f), shape = CircleShape)
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
-                        }
-                    }
-                }
+            items(pageIds) { id ->
+                // TODO Display small images rather than big ones
+                // TODO Make it possible to zoom on an image
+                val bitmap = imageLoader(id).asImageBitmap()
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(200.dp)
+                        .padding(4.dp)
+                )
             }
         }
     }
@@ -161,7 +144,7 @@ private fun DocumentPreview(
 @Preview
 fun DocumentScreenPreview() {
     val context = LocalContext.current
-    FinalizeDocumentScreen(
+    DocumentScreen(
         pageIds = listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
         imageLoader = { id ->
             context.assets.open(id).use { input ->

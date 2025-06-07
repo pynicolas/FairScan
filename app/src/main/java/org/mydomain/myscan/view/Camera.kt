@@ -84,7 +84,8 @@ fun CameraScreen(
     viewModel: MainViewModel,
     liveAnalysisState: LiveAnalysisState,
     onImageAnalyzed: (ImageProxy) -> Unit,
-    onFinalizePressed: () -> Unit
+    onFinalizePressed: () -> Unit,
+    modifier: Modifier,
 ) {
     // TODO pause the live analysis when displaying the PageValidationDialogs
     val showPageDialog = rememberSaveable { mutableStateOf(false) }
@@ -112,7 +113,7 @@ fun CameraScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         CameraPreviewWithOverlay(onImageAnalyzed, captureController, liveAnalysisState)
         MessageBox(liveAnalysisState.inferenceTime)
         Button(

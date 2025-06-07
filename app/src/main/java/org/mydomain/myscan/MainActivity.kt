@@ -35,7 +35,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mydomain.myscan.ui.theme.MyScanTheme
 import org.mydomain.myscan.view.CameraScreen
-import org.mydomain.myscan.view.FinalizeDocumentScreen
+import org.mydomain.myscan.view.DocumentScreen
 import org.opencv.android.OpenCVLoader
 import java.io.File
 import java.io.FileOutputStream
@@ -54,17 +54,21 @@ class MainActivity : ComponentActivity() {
             val pageIds by viewModel.pageIds.collectAsStateWithLifecycle()
             val context = LocalContext.current
             MyScanTheme {
-                Scaffold { innerPadding ->
-                    Column (modifier = Modifier.padding(innerPadding)) {
+
+                    Column {
                         when (currentScreen) {
                             is Screen.Camera -> {
-                                CameraScreen(viewModel, liveAnalysisState,
-                                    onImageAnalyzed = { image -> viewModel.segment(image) },
-                                    onFinalizePressed = { viewModel.navigateTo(Screen.FinalizeDocument) }
-                                )
+                                Scaffold { innerPadding->
+                                    CameraScreen(
+                                        viewModel, liveAnalysisState,
+                                        onImageAnalyzed = { image -> viewModel.segment(image) },
+                                        onFinalizePressed = { viewModel.navigateTo(Screen.FinalizeDocument) },
+                                        modifier = Modifier.padding(innerPadding)
+                                    )
+                                }
                             }
                             is Screen.FinalizeDocument -> {
-                                FinalizeDocumentScreen (
+                                DocumentScreen (
                                     pageIds,
                                     imageLoader = { id -> viewModel.getBitmap(id) },
                                     onBackPressed = { viewModel.navigateTo(Screen.Camera) },
@@ -75,7 +79,6 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                }
             }
         }
     }
