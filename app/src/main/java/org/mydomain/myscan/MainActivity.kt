@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                                 DocumentScreen (
                                     pageIds,
                                     imageLoader = { id -> viewModel.getBitmap(id) },
-                                    onBackPressed = { viewModel.navigateTo(Screen.Camera) },
+                                    toCameraScreen = { viewModel.navigateTo(Screen.Camera) },
                                     onSavePressed = savePdf(viewModel, context),
                                     onSharePressed = sharePdf(viewModel, context),
                                     onDeleteImage =  { id -> viewModel.deletePage(id) }

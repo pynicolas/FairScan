@@ -18,11 +18,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,15 +30,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,9 +51,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -65,11 +67,19 @@ import androidx.compose.ui.unit.dp
 fun DocumentScreen(
     pageIds: List<String>,
     imageLoader: (String) -> Bitmap,
-    onBackPressed: () -> Unit,
+    toCameraScreen: () -> Unit,
     onSavePressed: () -> Unit,
     onSharePressed: () -> Unit,
     onDeleteImage: (String) -> Unit,
 ) {
+    val currentPageIndex = rememberSaveable { mutableIntStateOf(0) }
+    if (currentPageIndex.intValue >= pageIds.size) {
+        currentPageIndex.intValue = pageIds.size - 1
+    }
+    if (currentPageIndex.intValue < 0) {
+        toCameraScreen()
+        return
+    }
     Scaffold (
         topBar = {
             TopAppBar(
@@ -79,7 +89,7 @@ fun DocumentScreen(
                 ),
                 title = { Text("Finalize document") },
                 navigationIcon = {
-                    IconButton(onClick = onBackPressed) {
+                    IconButton(onClick = toCameraScreen) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -87,7 +97,7 @@ fun DocumentScreen(
         },
         bottomBar = {
             Column {
-                PageList(pageIds, imageLoader)
+                PageList(pageIds, imageLoader, currentPageIndex, toCameraScreen)
                 BottomAppBar(
                     actions = {
                         Button(onClick = onSharePressed) {
@@ -101,42 +111,49 @@ fun DocumentScreen(
                         }
                     },
                     floatingActionButton = {
-                        FloatingActionButton(onClick = onBackPressed) {
+                        FloatingActionButton(onClick = toCameraScreen) {
                             Icon(Icons.Default.Close, contentDescription = "Close")
                         }
                     }
                 )
             }
         }
-    ) { padding -> DocumentPreview(pageIds, padding, imageLoader, onDeleteImage) }
+    ) { padding -> DocumentPreview(pageIds, imageLoader, currentPageIndex, onDeleteImage, padding) }
 }
 
 @Composable
 private fun DocumentPreview(
     pageIds: List<String>,
-    padding: PaddingValues,
     imageLoader: (String) -> Bitmap,
+    currentPageIndex: MutableIntState,
     onDeleteImage: (String) -> Unit,
+    padding: PaddingValues,
 ) {
+    val imageId = pageIds[currentPageIndex.intValue]
     Column (
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(padding)
     ) {
-
         Box (
             modifier = Modifier.fillMaxSize()
         ) {
             // TODO Make it possible to zoom on the image
             Image(
-                bitmap = imageLoader(pageIds[0]).asImageBitmap(),
+                bitmap = imageLoader(imageId).asImageBitmap(),
                 contentDescription = null,
                 modifier = Modifier
                     .padding(4.dp)
                     .align(Alignment.Center)
             )
-            Text("1 / ${pageIds.size}",
+            IconButton(
+                onClick = { onDeleteImage(imageId) },
+                modifier = Modifier.align(Alignment.TopEnd)
+            ) {
+                Icon(imageVector = Icons.Outlined.Delete, contentDescription = "Delete page")
+            }
+            Text("${currentPageIndex.value + 1} / ${pageIds.size}",
                 color = MaterialTheme.colorScheme.inverseOnSurface,
                 modifier = Modifier.align(Alignment.BottomEnd)
                     .padding(all = 8.dp)
@@ -150,7 +167,9 @@ private fun DocumentPreview(
 @Composable
 private fun PageList(
     pageIds: List<String>,
-    imageLoader: (String) -> Bitmap
+    imageLoader: (String) -> Bitmap,
+    currentPageIndex: MutableState<Int>,
+    toCameraScreen: () -> Unit
 ) {
     Box {
         LazyRow(
@@ -161,7 +180,7 @@ private fun PageList(
                 .background(MaterialTheme.colorScheme.secondaryContainer),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(pageIds) { id ->
+            itemsIndexed (pageIds) { index, id ->
                 // TODO Use small images rather than big ones
                 val bitmap = imageLoader(id).asImageBitmap()
                 Image(
@@ -170,11 +189,12 @@ private fun PageList(
                     modifier = Modifier
                         .height(120.dp)
                         .padding(4.dp)
+                        .clickable { currentPageIndex.value = index }
                 )
             }
         }
         SmallFloatingActionButton(
-            onClick = {},
+            onClick = toCameraScreen,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(8.dp)
@@ -195,7 +215,7 @@ fun DocumentScreenPreview() {
                 BitmapFactory.decodeStream(input)
             }
         },
-        onBackPressed = {},
+        toCameraScreen = {},
         onSavePressed = {},
         onSharePressed = {},
         onDeleteImage = { _ -> {} }
