@@ -20,26 +20,34 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -78,22 +86,26 @@ fun DocumentScreen(
             )
         },
         bottomBar = {
-            BottomAppBar(
-                containerColor = Color.Transparent
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Button(onClick = onSharePressed) {
-                        Icon(Icons.Default.Share, contentDescription = "Share")
-                        Spacer(Modifier.width(8.dp))
-                        Text("Share")
+            Column {
+                PageList(pageIds, imageLoader)
+                BottomAppBar(
+                    actions = {
+                        Button(onClick = onSharePressed) {
+                            Icon(Icons.Default.Share, contentDescription = "Share")
+                            Spacer(Modifier.width(8.dp))
+                            Text("Share")
+                        }
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Button(onClick = onSavePressed) {
+                            Text("Save")
+                        }
+                    },
+                    floatingActionButton = {
+                        FloatingActionButton(onClick = onBackPressed) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
                     }
-                    Button(onClick = onSavePressed) {
-                        Text("Save")
-                    }
-                }
+                )
             }
         }
     ) { padding -> DocumentPreview(pageIds, padding, imageLoader, onDeleteImage) }
@@ -106,36 +118,68 @@ private fun DocumentPreview(
     imageLoader: (String) -> Bitmap,
     onDeleteImage: (String) -> Unit,
 ) {
-    Box(
+    Column (
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceContainer)
-            .padding(PaddingValues(top = padding.calculateTopPadding()))
+            .padding(padding)
     ) {
-        Text(
-            "${pageIds.size} pages",
-            modifier = Modifier.padding(start = 16.dp, top = 16.dp).align(Alignment.TopStart),
-            style = MaterialTheme.typography.titleMedium
-        )
-        LazyColumn (
-            contentPadding = PaddingValues(20.dp),
+
+        Box (
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // TODO Make it possible to zoom on the image
+            Image(
+                bitmap = imageLoader(pageIds[0]).asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(4.dp)
+                    .align(Alignment.Center)
+            )
+            Text("1 / ${pageIds.size}",
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+                modifier = Modifier.align(Alignment.BottomEnd)
+                    .padding(all = 8.dp)
+                    .background(MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.5f))
+                    .padding(all = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun PageList(
+    pageIds: List<String>,
+    imageLoader: (String) -> Bitmap
+) {
+    Box {
+        LazyRow(
+            contentPadding = PaddingValues(8.dp),
             modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .align(Alignment.Center),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(pageIds) { id ->
-                // TODO Display small images rather than big ones
-                // TODO Make it possible to zoom on an image
+                // TODO Use small images rather than big ones
                 val bitmap = imageLoader(id).asImageBitmap()
                 Image(
                     bitmap = bitmap,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(200.dp)
+                        .height(120.dp)
                         .padding(4.dp)
                 )
             }
+        }
+        SmallFloatingActionButton(
+            onClick = {},
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(8.dp)
+        ) {
+            Icon(imageVector = Icons.Default.Add, contentDescription = "Add page")
         }
     }
 }
