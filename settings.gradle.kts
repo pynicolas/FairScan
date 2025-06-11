@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "MyScan"
 include(":app")
- 
+include(":postprocessing")
