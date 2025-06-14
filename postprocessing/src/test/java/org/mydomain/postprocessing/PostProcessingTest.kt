@@ -58,6 +58,31 @@ class PostProcessingTest {
     }
 
     @Test
+    fun `correctBackgroundWithBlur should flatten gradient`() {
+        // Image 5x1 with gradient (50 → 90)
+        val width = 5
+        val height = 1
+        val originalPixels = intArrayOf(
+            0x323232, // 50
+            0x3C3C3C, // 60
+            0x464646, // 70
+            0x505050, // 80
+            0x5A5A5A  // 90
+        )
+        val image = RawImage(width, height, originalPixels)
+        val corrected = image.correctBackgroundWithBlur(radius = 1)
+        val grays = corrected.pixels.map { it and 0xFF }
+
+        val min = grays.minOrNull() ?: error("Empty result")
+        val max = grays.maxOrNull() ?: error("Empty result")
+        println("Corrected grayscale values: $grays")
+
+        assertThat(max - min).isLessThan(15)
+        assertThat(grays.average()).isGreaterThan(120.0).isLessThan(135.0)
+    }
+
+
+    @Test
     fun `run post processing on sample files`() {
         val inputDir = File("src/test/resources/cropped")
         val outputDir = File("build/processed_images")

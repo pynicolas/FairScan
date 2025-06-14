@@ -68,7 +68,7 @@ data class RawImage(
         return RawImage(width, height, grayPixels)
     }
 
-    fun isColorImage(saturationThreshold: Double = 0.1): Boolean {
+    fun isColorImage(saturationThreshold: Double = 0.2): Boolean {
         var totalSaturation = 0.0
         for (rgb in pixels) {
             val r = (rgb shr 16) and 0xFF
@@ -86,8 +86,54 @@ data class RawImage(
         println(avgSaturation)
         return avgSaturation > saturationThreshold
     }
+
+    fun correctBackgroundWithBlur(radius: Int = 15): RawImage {
+        val blurred = this.boxBlur(radius)
+
+        // Subtraction for each pixel
+        val correctedPixels = IntArray(pixels.size)
+        for (i in pixels.indices) {
+            val originalGray = pixels[i] and 0xFF
+            val blurredGray = blurred.pixels[i] and 0xFF
+            var diff = originalGray - blurredGray + 128
+            diff = diff.coerceIn(0, 255)
+            correctedPixels[i] = (diff shl 16) or (diff shl 8) or diff
+        }
+
+        return RawImage(width, height, correctedPixels)
+    }
+
+
+    fun boxBlur(radius: Int): RawImage {
+        val newPixels = IntArray(pixels.size)
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                var sum = 0
+                var count = 0
+                for (dy in -radius..radius) {
+                    for (dx in -radius..radius) {
+                        val nx = x + dx
+                        val ny = y + dy
+                        if (nx in 0 until width && ny in 0 until height) {
+                            val index = ny * width + nx
+                            val gray = pixels[index] and 0xFF
+                            sum += gray
+                            count++
+                        }
+                    }
+                }
+                val avg = (sum / count).coerceIn(0, 255)
+                val i = y * width + x
+                newPixels[i] = (avg shl 16) or (avg shl 8) or avg
+            }
+        }
+        return RawImage(width, height, newPixels)
+    }
 }
 
 fun postProcessDocument(original: RawImage): RawImage {
-    return if (original.isColorImage()) original else original.toGrayscale()
+    return if (original.isColorImage())
+        original
+    else
+        original.toGrayscale().correctBackgroundWithBlur()
 }
