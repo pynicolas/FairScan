@@ -131,6 +131,7 @@ fun CameraScreen(
         pageCount = viewModel.pageCount(),
         liveAnalysisState,
         onCapture = {
+            viewModel.liveAnalysisEnabled = false
             showPageDialog.value = true
             isProcessing.value = true
             captureController.takePicture(
@@ -138,6 +139,7 @@ fun CameraScreen(
                     if (imageProxy != null) {
                         viewModel.processCapturedImageThen(imageProxy) {
                             isProcessing.value = false
+                            viewModel.liveAnalysisEnabled = true
                         }
                     } else {
                         Log.e("MyScan", "Error during image capture")

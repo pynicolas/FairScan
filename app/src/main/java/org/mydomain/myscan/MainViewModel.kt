@@ -60,6 +60,8 @@ class MainViewModel(
     private var _pageToValidate = MutableStateFlow<Bitmap?>(null)
     val pageToValidate: StateFlow<Bitmap?> = _pageToValidate.asStateFlow()
 
+    var liveAnalysisEnabled = true
+
     init {
         viewModelScope.launch {
             imageSegmentationService.initialize()
@@ -80,6 +82,11 @@ class MainViewModel(
     }
 
     fun segment(imageProxy: ImageProxy) {
+        if (!liveAnalysisEnabled) {
+            imageProxy.close()
+            return
+        }
+
         viewModelScope.launch {
             imageSegmentationService.runSegmentationAndEmit(
                 imageProxy.toBitmap(),
