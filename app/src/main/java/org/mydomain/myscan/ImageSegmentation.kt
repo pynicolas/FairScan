@@ -53,7 +53,7 @@ class ImageSegmentationService(private val context: Context) {
 
     fun initialize() {
         interpreter = try {
-            val litertBuffer = FileUtil.loadMappedFile(context, "timm_efficientnet_lite0_quantized.tflite")
+            val litertBuffer = FileUtil.loadMappedFile(context, "document-segmentation-model.tflite")
             Log.i(TAG, "Loaded LiteRT model")
             val options = Interpreter.Options().apply {
                 numThreads = 2

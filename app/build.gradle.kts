@@ -7,6 +7,7 @@ plugins {
 android {
     namespace = "org.mydomain.myscan"
     compileSdk = 35
+    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/assets"))
 
     defaultConfig {
         applicationId = "org.mydomain.myscan"
@@ -42,6 +43,8 @@ android {
         compose = true
     }
 }
+
+apply(from = "download-tflite.gradle.kts")
 
 dependencies {
 
