@@ -58,7 +58,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -75,7 +74,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.common.util.concurrent.ListenableFuture
 import org.mydomain.myscan.LiveAnalysisState
 import org.mydomain.myscan.MainViewModel
@@ -93,12 +91,9 @@ fun CameraScreen(
     liveAnalysisState: LiveAnalysisState,
     onImageAnalyzed: (ImageProxy) -> Unit,
     onFinalizePressed: () -> Unit,
+    onCapture: (ImageProxy) -> Unit,
     modifier: Modifier,
 ) {
-    val showPageDialog = rememberSaveable { mutableStateOf(false) }
-    val isProcessing = rememberSaveable { mutableStateOf(false) }
-    val pageToValidate by viewModel.pageToValidate.collectAsStateWithLifecycle()
-
     val context = LocalContext.current
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -128,47 +123,20 @@ fun CameraScreen(
                 captureController = captureController
             ) },
         pageCount = viewModel.pageCount(),
-        liveAnalysisState = if (showPageDialog.value) LiveAnalysisState() else liveAnalysisState,
+        liveAnalysisState = liveAnalysisState,
         onCapture = {
             Log.i("MyScan", "Pressed <Capture>")
-            viewModel.liveAnalysisEnabled = false
-            showPageDialog.value = true
-            isProcessing.value = true
             captureController.takePicture(
                 onImageCaptured = { imageProxy ->
                     if (imageProxy != null) {
-                        viewModel.processCapturedImageThen(imageProxy) {
-                            isProcessing.value = false
-                            viewModel.liveAnalysisEnabled = true
-                            Log.i("MyScan", "Capture process finished")
-                        }
+                        onCapture(imageProxy)
                     } else {
                         Log.e("MyScan", "Error during image capture")
-                        isProcessing.value = false
-                        viewModel.liveAnalysisEnabled = true
                     }
                 }
-            )
-        },
+            )},
         onFinalizePressed = onFinalizePressed
     )
-
-    if (showPageDialog.value) {
-        PageValidationDialog(
-            isProcessing = isProcessing.value,
-            pageBitmap = pageToValidate,
-            onConfirm = {
-                pageToValidate?.let { viewModel.addPage(it) }
-                showPageDialog.value = false
-            },
-            onReject = {
-                showPageDialog.value = false
-            },
-            onDismiss = {
-                showPageDialog.value = false
-            }
-        )
-    }
 }
 
 @Composable

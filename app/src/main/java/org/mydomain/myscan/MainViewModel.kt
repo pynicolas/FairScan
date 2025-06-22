@@ -17,6 +17,7 @@ package org.mydomain.myscan
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.camera.core.ImageProxy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -56,11 +57,6 @@ class MainViewModel(
     private val _pageIds = MutableStateFlow<List<String>>(imageRepository.imageIds())
     val pageIds: StateFlow<List<String>> = _pageIds
 
-    private var _pageToValidate = MutableStateFlow<Bitmap?>(null)
-    val pageToValidate: StateFlow<Bitmap?> = _pageToValidate.asStateFlow()
-
-    var liveAnalysisEnabled = true
-
     init {
         viewModelScope.launch {
             imageSegmentationService.initialize()
@@ -81,10 +77,7 @@ class MainViewModel(
     }
 
     fun segment(imageProxy: ImageProxy) {
-        if (!liveAnalysisEnabled) {
-            imageProxy.close()
-            return
-        }
+        Log.i("MyScan", "live analysis triggered: start")
 
         viewModelScope.launch {
             imageSegmentationService.runSegmentationAndEmit(
@@ -93,6 +86,7 @@ class MainViewModel(
             )
             imageProxy.close()
         }
+        Log.i("MyScan", "live analysis triggered: end")
     }
 
     fun navigateTo(screen: Screen) {
@@ -100,10 +94,12 @@ class MainViewModel(
     }
 
     fun processCapturedImageThen(imageProxy: ImageProxy, onResult: (Bitmap?) -> Unit) {
+        Log.i("MyScan", "processCapturedImageThen")
         viewModelScope.launch {
-            _pageToValidate.value = processCapturedImage(imageProxy)
+            val processed = processCapturedImage(imageProxy)
             imageProxy.close()
-            onResult(_pageToValidate.value)
+            onResult(processed)
+            Log.i("MyScan", "End of processing for captured image")
         }
     }
 

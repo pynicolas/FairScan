@@ -35,6 +35,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mydomain.myscan.ui.theme.MyScanTheme
 import org.mydomain.myscan.view.CameraScreen
+import org.mydomain.myscan.view.CaptureValidationScreen
 import org.mydomain.myscan.view.DocumentScreen
 import org.opencv.android.OpenCVLoader
 import java.io.File
@@ -56,16 +57,33 @@ class MainActivity : ComponentActivity() {
             MyScanTheme {
 
                     Column {
-                        when (currentScreen) {
+                        when (val screen = currentScreen) {
                             is Screen.Camera -> {
                                 Scaffold { innerPadding->
                                     CameraScreen(
                                         viewModel, liveAnalysisState,
                                         onImageAnalyzed = { image -> viewModel.segment(image) },
                                         onFinalizePressed = { viewModel.navigateTo(Screen.FinalizeDocument) },
+                                        onCapture = { imageProxy -> viewModel.navigateTo(Screen.CaptureValidation(imageProxy)) },
                                         modifier = Modifier.padding(innerPadding)
                                     )
                                 }
+                            }
+                            is Screen.CaptureValidation -> {
+                                CaptureValidationScreen(
+                                    imageProxy = screen.imageProxy,
+                                    viewModel = viewModel,
+                                    onConfirm = { image ->
+                                        viewModel.addPage(image)
+                                        viewModel.navigateTo(Screen.Camera)
+                                    },
+                                    onReject = {
+                                        viewModel.navigateTo(Screen.Camera)
+                                    },
+                                    onError = {
+                                        viewModel.navigateTo(Screen.Camera)
+                                    }
+                                )
                             }
                             is Screen.FinalizeDocument -> {
                                 DocumentScreen (

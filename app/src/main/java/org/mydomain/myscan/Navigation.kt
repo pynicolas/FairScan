@@ -14,7 +14,10 @@
  */
 package org.mydomain.myscan
 
+import androidx.camera.core.ImageProxy
+
 sealed class Screen {
     object Camera : Screen()
     object FinalizeDocument : Screen()
+    data class CaptureValidation(val imageProxy: ImageProxy) : Screen()
 }
