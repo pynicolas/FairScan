@@ -44,10 +44,28 @@ data class Quad(
             Line(bottomRight, bottomLeft),
             Line(bottomLeft, topLeft))
     }
+
+    fun rotate90(iterations: Int, imageWidth: Int, imageHeight: Int): Quad {
+        val rotatedPoints = listOf(
+            rotate90(topLeft, imageWidth, imageHeight, iterations),
+            rotate90(topRight, imageWidth, imageHeight, iterations),
+            rotate90(bottomRight, imageWidth, imageHeight, iterations),
+            rotate90(bottomLeft, imageWidth, imageHeight, iterations)
+        )
+        return createQuad(rotatedPoints)
+    }
+    private fun rotate90(p: Point, width: Int, height: Int, iterations: Int): Point {
+        return when (iterations % 4) {
+            1 -> Point(height - p.y, p.x)         // 90°
+            2 -> Point(width - p.x, height - p.y) // 180°
+            3 -> Point(p.y, width - p.x)          // 270°
+            else -> p                                      // 0°
+        }
+    }
 }
 
-fun createQuad(vertices: List<Point>?): Quad? {
-    if (vertices == null || vertices.size != 4) return null
+fun createQuad(vertices: List<Point>): Quad {
+    require(vertices.size == 4)
 
     // Centroid of the points
     val cx = vertices.map { it.x }.average()
