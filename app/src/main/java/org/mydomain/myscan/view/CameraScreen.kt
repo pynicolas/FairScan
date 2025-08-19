@@ -18,6 +18,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloat
@@ -77,6 +78,7 @@ import kotlinx.coroutines.delay
 import org.mydomain.myscan.LiveAnalysisState
 import org.mydomain.myscan.MainViewModel
 import org.mydomain.myscan.MainViewModel.CaptureState
+import org.mydomain.myscan.Navigation
 import org.mydomain.myscan.R
 import org.mydomain.myscan.Screen
 import org.mydomain.myscan.ui.theme.MyScanTheme
@@ -96,6 +98,7 @@ const val ANIMATION_DURATION = 200
 @Composable
 fun CameraScreen(
     viewModel: MainViewModel,
+    navigation: Navigation,
     liveAnalysisState: LiveAnalysisState,
     onImageAnalyzed: (ImageProxy) -> Unit,
     onFinalizePressed: () -> Unit,
@@ -104,6 +107,8 @@ fun CameraScreen(
     val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
     val thumbnailCoords = remember { mutableStateOf(Offset.Zero) }
     var isDebugMode by remember { mutableStateOf(false) }
+
+    BackHandler { navigation.back() }
 
     val captureController = remember { CameraCaptureController() }
     DisposableEffect(Unit) {
@@ -169,7 +174,7 @@ fun CameraScreen(
         onFinalizePressed = onFinalizePressed,
         onDebugModeSwitched = { isDebugMode = !isDebugMode },
         thumbnailCoords = thumbnailCoords,
-        toAboutScreen = { viewModel.navigateTo(Screen.About) }
+        navigation = navigation
     )
 }
 
@@ -182,7 +187,7 @@ private fun CameraScreenScaffold(
     onFinalizePressed: () -> Unit,
     onDebugModeSwitched: () -> Unit,
     thumbnailCoords: MutableState<Offset>,
-    toAboutScreen: () -> Unit,
+    navigation: Navigation,
 ) {
     var tapCount by remember { mutableStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
@@ -203,8 +208,9 @@ private fun CameraScreenScaffold(
 
     Box {
         MyScaffold(
-            toAboutScreen = toAboutScreen,
+            toAboutScreen = navigation.toAboutScreen,
             pageListState = pageListState,
+            onBack = navigation.back,
             bottomBar = { Bar(cameraUiState.pageCount, onPageCountClick, onFinalizePressed) }
         ) {
             modifier -> CameraPreviewBox(cameraPreview, cameraUiState, onCapture, modifier)
@@ -436,7 +442,6 @@ fun CameraScreenPreviewInLandscapeMode() {
 
 @Composable
 private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0f) {
-    val context = LocalContext.current
     MyScanTheme {
         val thumbnailCoords = remember { mutableStateOf(Offset.Zero) }
         CameraScreenScaffold(
@@ -456,13 +461,9 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
             },
             pageListState =
                 CommonPageListState(
-                    document = DocumentUiModel(
-                        pageIds = listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
-                        imageLoader = { id ->
-                            context.assets.open(id).use { input ->
-                                BitmapFactory.decodeStream(input)
-                            }
-                        }),
+                    document = fakeDocument(
+                        listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
+                        LocalContext.current),
                     onPageClick = {},
                     listState = LazyListState(),
                 ),
@@ -472,7 +473,7 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
             onFinalizePressed = {},
             onDebugModeSwitched = {},
             thumbnailCoords = thumbnailCoords,
-            toAboutScreen = {}
+            navigation = dummyNavigation()
         )
     }
 }

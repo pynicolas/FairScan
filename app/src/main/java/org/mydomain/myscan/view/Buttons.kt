@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -38,13 +38,15 @@ import org.mydomain.myscan.R
 fun MainActionButton(
     onClick: () -> Unit,
     text: String,
-    icon: ImageVector,
+    icon: ImageVector? = null,
     modifier: Modifier = Modifier,
     iconDescription: String? = null,
     enabled: Boolean = true,
     ) {
     Button(onClick = onClick, enabled = enabled, modifier = modifier) {
-        Icon(icon, contentDescription = iconDescription)
+        icon?.let {
+            Icon(icon, contentDescription = iconDescription)
+        }
         Spacer(Modifier.width(8.dp))
         Text(text)
     }
@@ -93,7 +95,7 @@ fun AboutScreenNavButton(
         modifier = modifier
     ) {
         Icon(
-            imageVector = Icons.Outlined.Info,
+            imageVector = Icons.Default.Info,
             contentDescription = stringResource(R.string.about),
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
     }

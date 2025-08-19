@@ -7,6 +7,7 @@
     <string name="camera_permission_denied">L\'autorisation d\'accès à la caméra a été refusée</string>
     <string name="cancel">Annuler</string>
     <string name="close">Fermer</string>
+    <string name="close_document">Fermer le document</string>
     <string name="delete_page">Supprimer la page</string>
     <string name="document">Document</string>
     <string name="error">Erreur : %1$s</string>

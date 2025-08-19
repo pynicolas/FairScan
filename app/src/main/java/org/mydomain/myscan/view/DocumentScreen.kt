@@ -14,7 +14,6 @@
  */
 package org.mydomain.myscan.view
 
-import android.graphics.BitmapFactory
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,8 +30,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -114,7 +113,7 @@ fun DocumentScreen(
     ) { modifier ->
         DocumentPreview(document, currentPageIndex, onDeleteImage, modifier)
         if (showNewDocDialog.value) {
-            NewDocumentDialog(onConfirm = onStartNew, showNewDocDialog)
+            NewDocumentDialog(onConfirm = onStartNew, showNewDocDialog, stringResource(R.string.close_document))
         }
         if (showPdfDialog.value) {
             PdfGenerationBottomSheetWrapper(
@@ -203,7 +202,7 @@ private fun BottomBar(
         )
         Spacer(modifier = Modifier.width(8.dp))
         SecondaryActionButton(
-            icon = Icons.Default.RestartAlt,
+            icon = Icons.Default.Close,
             contentDescription = stringResource(R.string.restart),
             onClick = { showNewDocDialog.value = true },
             modifier = Modifier.padding(vertical = 8.dp)
@@ -212,9 +211,9 @@ private fun BottomBar(
 }
 
 @Composable
-fun NewDocumentDialog(onConfirm: () -> Unit, showDialog: MutableState<Boolean>) {
+fun NewDocumentDialog(onConfirm: () -> Unit, showDialog: MutableState<Boolean>, title: String) {
     AlertDialog(
-        title = { Text(stringResource(R.string.new_document)) },
+        title = { Text(title) },
         text = { Text(stringResource(R.string.new_document_warning)) },
         confirmButton = {
             TextButton (onClick = {
@@ -236,20 +235,13 @@ fun NewDocumentDialog(onConfirm: () -> Unit, showDialog: MutableState<Boolean>) 
 @Composable
 @Preview
 fun DocumentScreenPreview() {
-    val context = LocalContext.current
     MyScanTheme {
         DocumentScreen(
-            DocumentUiModel(
+            fakeDocument(
                 listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
-                { id ->
-                    context.assets.open(id).use { input ->
-                        BitmapFactory.decodeStream(input)
-                    }
-                }
-            ),
+                LocalContext.current),
             initialPage = 1,
-            navigation = Navigation(
-                {}, {}, {}, {}, {}),
+            navigation = dummyNavigation(),
             pdfActions = PdfGenerationActions(
                 {}, {}, {},
                 MutableStateFlow(PdfGenerationUiState()),

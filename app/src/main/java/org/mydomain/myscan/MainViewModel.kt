@@ -68,9 +68,9 @@ class MainViewModel(
     val liveAnalysisState: StateFlow<LiveAnalysisState> = _liveAnalysisState.asStateFlow()
     private var lastSuccessfulLiveAnalysisState: LiveAnalysisState? = null
 
-    private val _screenStack = MutableStateFlow<List<Screen>>(listOf(Screen.Camera))
+    private val _screenStack = MutableStateFlow<List<Screen>>(listOf(Screen.Home))
     val currentScreen: StateFlow<Screen> = _screenStack.map { it.last() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, Screen.Camera)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _screenStack.value.last())
 
     private val _pageIds = MutableStateFlow(imageRepository.imageIds())
     val documentUiModel: StateFlow<DocumentUiModel> =

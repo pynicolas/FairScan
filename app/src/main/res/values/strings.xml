@@ -7,6 +7,7 @@
     <string name="camera_permission_denied">Camera permission was denied</string>
     <string name="cancel">Cancel</string>
     <string name="close">Close</string>
+    <string name="close_document">Close document</string>
     <string name="delete_page">Delete page</string>
     <string name="document">Document</string>
     <string name="error">Error: %1$s</string>

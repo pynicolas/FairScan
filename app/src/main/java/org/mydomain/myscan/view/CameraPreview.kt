@@ -14,14 +14,10 @@
  */
 package org.mydomain.myscan.view
 
-import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.graphics.Bitmap
 import android.util.Log
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
@@ -58,7 +54,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 import org.mydomain.myscan.LiveAnalysisState
 import org.mydomain.myscan.Point
-import org.mydomain.myscan.R
+import org.mydomain.myscan.hasCameraPermission
+import org.mydomain.myscan.rememberCameraPermissionLauncher
 import org.mydomain.myscan.scaledTo
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -71,18 +68,10 @@ fun CameraPreview(
     onPreviewViewReady: (PreviewView) -> Unit,
 ) {
     val context = LocalContext.current
-    val requestPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (!isGranted) {
-            Toast.makeText(context,
-                context.getString(R.string.camera_permission_denied), Toast.LENGTH_SHORT).show()
-        }
-    }
-
+    val requestPermissionLauncher = rememberCameraPermissionLauncher(onGranted = {}, onDenied = {})
     LaunchedEffect(Unit) {
         val camera = android.Manifest.permission.CAMERA
-        if (ContextCompat.checkSelfPermission(context, camera) != PERMISSION_GRANTED) {
+        if (!hasCameraPermission(context)) {
             requestPermissionLauncher.launch(camera)
         }
     }

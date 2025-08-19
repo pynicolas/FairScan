@@ -12,21 +12,20 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.mydomain.myscan
+package org.mydomain.myscan.view
 
-sealed class Screen {
-    object Home : Screen()
-    object Camera : Screen()
-    data class Document(val initialPage: Int = 0) : Screen()
-    object About : Screen()
-    object Libraries : Screen()
+import android.content.Context
+import android.graphics.BitmapFactory
+import org.mydomain.myscan.Navigation
+
+fun dummyNavigation(): Navigation {
+    return Navigation({}, {}, {}, {}, {}, {})
 }
 
-data class Navigation(
-    val toHomeScreen: () -> Unit,
-    val toCameraScreen: () -> Unit,
-    val toDocumentScreen: () -> Unit,
-    val toAboutScreen: () -> Unit,
-    val toLibrariesScreen: () -> Unit,
-    val back: () -> Unit,
-)
+fun fakeDocument(pageIds: List<String>, context: Context): DocumentUiModel {
+    return DocumentUiModel(pageIds) { id ->
+        context.assets.open(id).use { input ->
+            BitmapFactory.decodeStream(input)
+        }
+    }
+}

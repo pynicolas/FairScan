@@ -40,6 +40,7 @@ import org.mydomain.myscan.ui.theme.MyScanTheme
 import org.mydomain.myscan.view.AboutScreen
 import org.mydomain.myscan.view.CameraScreen
 import org.mydomain.myscan.view.DocumentScreen
+import org.mydomain.myscan.view.HomeScreen
 import org.mydomain.myscan.view.LibrariesScreen
 import org.opencv.android.OpenCVLoader
 
@@ -61,6 +62,7 @@ class MainActivity : ComponentActivity() {
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             MyScanTheme {
                 val navigation = Navigation(
+                    toHomeScreen = { viewModel.navigateTo(Screen.Home) },
                     toCameraScreen = { viewModel.navigateTo(Screen.Camera) },
                     toDocumentScreen = { viewModel.navigateTo(Screen.Document()) },
                     toAboutScreen = { viewModel.navigateTo(Screen.About) },
@@ -68,9 +70,18 @@ class MainActivity : ComponentActivity() {
                     back = { viewModel.navigateBack() }
                 )
                 when (val screen = currentScreen) {
+                    is Screen.Home -> {
+                        HomeScreen(
+                            hasCameraPermission = hasCameraPermission(this),
+                            currentDocument = document,
+                            navigation = navigation,
+                            onStartNewScan = navigation.toCameraScreen,
+                        )
+                    }
                     is Screen.Camera -> {
                         CameraScreen(
                             viewModel,
+                            navigation,
                             liveAnalysisState,
                             onImageAnalyzed = { image -> viewModel.liveAnalysis(image) },
                             onFinalizePressed = { viewModel.navigateTo(Screen.Document()) },
@@ -92,7 +103,7 @@ class MainActivity : ComponentActivity() {
                             ),
                             onStartNew = {
                                 viewModel.startNewDocument()
-                                viewModel.navigateTo(Screen.Camera) },
+                                viewModel.navigateTo(Screen.Home) },
                             onDeleteImage =  { id -> viewModel.deletePage(id) }
                         )
                     }
