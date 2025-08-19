@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.mydomain.myscan.ui.PdfGenerationUiState
+import org.mydomain.myscan.view.DocumentUiModel
 import java.io.ByteArrayOutputStream
 import java.io.File
 
@@ -71,8 +72,18 @@ class MainViewModel(
     val currentScreen: StateFlow<Screen> = _screenStack.map { it.last() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Screen.Camera)
 
-    private val _pageIds = MutableStateFlow<List<String>>(imageRepository.imageIds())
-    val pageIds: StateFlow<List<String>> = _pageIds
+    private val _pageIds = MutableStateFlow(imageRepository.imageIds())
+    val documentUiModel: StateFlow<DocumentUiModel> =
+        _pageIds.map { ids ->
+            DocumentUiModel(
+                pageIds = ids,
+                imageLoader = ::getBitmap
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = DocumentUiModel(emptyList(), ::getBitmap)
+        )
 
     private val _captureState = MutableStateFlow<CaptureState>(CaptureState.Idle)
     val captureState: StateFlow<CaptureState> = _captureState

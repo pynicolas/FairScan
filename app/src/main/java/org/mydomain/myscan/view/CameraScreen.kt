@@ -101,7 +101,7 @@ fun CameraScreen(
     onFinalizePressed: () -> Unit,
 ) {
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
-    val pageIds by viewModel.pageIds.collectAsStateWithLifecycle()
+    val documentUiModel by viewModel.documentUiModel.collectAsStateWithLifecycle()
     val thumbnailCoords = remember { mutableStateOf(Offset.Zero) }
     var isDebugMode by remember { mutableStateOf(false) }
 
@@ -129,9 +129,9 @@ fun CameraScreen(
     }
 
     val listState = rememberLazyListState()
-    LaunchedEffect(pageIds.size) {
-        if (pageIds.isNotEmpty()) {
-            listState.animateScrollToItem(pageIds.lastIndex)
+    LaunchedEffect(documentUiModel.pageCount()) {
+        if (!documentUiModel.isEmpty()) {
+            listState.animateScrollToItem(documentUiModel.lastIndex())
         }
     }
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -145,13 +145,13 @@ fun CameraScreen(
         },
         pageListState =
             CommonPageListState(
-                documentUiModel = DocumentUiModel(pageIds) { id -> viewModel.getBitmap(id) },
+                documentUiModel = documentUiModel,
                 onPageClick = { index -> viewModel.navigateTo(Screen.Document(index)) },
                 listState = listState,
                 onLastItemPosition = { offset -> thumbnailCoords.value = offset },
             ),
         cameraUiState = CameraUiState(
-            pageIds.size,
+            documentUiModel.pageCount(),
             liveAnalysisState,
             captureState,
             showDetectionError,

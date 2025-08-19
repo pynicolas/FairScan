@@ -40,7 +40,6 @@ import org.mydomain.myscan.ui.theme.MyScanTheme
 import org.mydomain.myscan.view.AboutScreen
 import org.mydomain.myscan.view.CameraScreen
 import org.mydomain.myscan.view.DocumentScreen
-import org.mydomain.myscan.view.DocumentUiModel
 import org.mydomain.myscan.view.LibrariesScreen
 import org.opencv.android.OpenCVLoader
 
@@ -59,8 +58,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by viewModel.liveAnalysisState.collectAsStateWithLifecycle()
-            val pageIds by viewModel.pageIds.collectAsStateWithLifecycle()
-            val documentUiModel = DocumentUiModel(pageIds) { id -> viewModel.getBitmap(id) }
+            val documentUiModel by viewModel.documentUiModel.collectAsStateWithLifecycle()
             MyScanTheme {
                 val navigation = Navigation(
                     toCameraScreen = { viewModel.navigateTo(Screen.Camera) },
