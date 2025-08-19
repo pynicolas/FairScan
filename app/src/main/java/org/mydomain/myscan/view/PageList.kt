@@ -89,7 +89,7 @@ fun CommonPageList(
             content = content,
         )
     }
-    if (state.documentUiModel.pageIds.isEmpty()) {
+    if (state.documentUiModel.isEmpty()) {
         Box(
             modifier = Modifier
                 .height(120.dp)
@@ -114,7 +114,7 @@ private fun PageThumbnail(
             Modifier.height(maxImageSize)
         else
             Modifier.width(maxImageSize)
-    if (index == state.documentUiModel.pageIds.lastIndex) {
+    if (index == state.documentUiModel.lastIndex()) {
         val density = LocalDensity.current
         modifier = modifier.addPositionCallback(state.onLastItemPosition, density, 1.0f)
     }

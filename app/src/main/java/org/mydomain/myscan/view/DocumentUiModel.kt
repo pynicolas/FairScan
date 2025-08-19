@@ -17,11 +17,20 @@ package org.mydomain.myscan.view
 import android.graphics.Bitmap
 
 data class DocumentUiModel(
-    val pageIds: List<String>,
+    private val pageIds: List<String>,
     private val imageLoader: (String) -> Bitmap?
 ) {
     fun pageCount(): Int {
         return pageIds.size
+    }
+    fun pageId(index: Int): String {
+        return pageIds[index]
+    }
+    fun isEmpty(): Boolean {
+        return pageIds.isEmpty()
+    }
+    fun lastIndex(): Int {
+        return pageIds.lastIndex
     }
     fun load(index: Int): Bitmap? {
         return imageLoader(pageIds[index])

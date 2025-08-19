@@ -132,7 +132,7 @@ private fun DocumentPreview(
     onDeleteImage: (String) -> Unit,
     modifier: Modifier,
 ) {
-    val imageId = documentUiModel.pageIds[currentPageIndex.intValue]
+    val imageId = documentUiModel.pageId(currentPageIndex.intValue)
     Column (
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
@@ -171,7 +171,7 @@ private fun DocumentPreview(
                     .align(Alignment.BottomEnd)
                     .padding(8.dp)
             )
-            Text("${currentPageIndex.intValue + 1} / ${documentUiModel.pageIds.size}",
+            Text("${currentPageIndex.intValue + 1} / ${documentUiModel.pageCount()}",
                 color = MaterialTheme.colorScheme.inverseOnSurface,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
