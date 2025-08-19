@@ -18,9 +18,12 @@ import android.graphics.Bitmap
 
 data class DocumentUiModel(
     val pageIds: List<String>,
-    val imageLoader: (String) -> Bitmap?
+    private val imageLoader: (String) -> Bitmap?
 ) {
     fun pageCount(): Int {
         return pageIds.size
+    }
+    fun load(index: Int): Bitmap? {
+        return imageLoader(pageIds[index])
     }
 }

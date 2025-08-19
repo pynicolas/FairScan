@@ -28,9 +28,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -64,35 +64,30 @@ fun CommonPageList(
     modifier: Modifier = Modifier,
 ) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val content: LazyListScope.() -> Unit = {
+        items(state.documentUiModel.pageCount()) { index ->
+            // TODO Use small images rather than big ones
+            val image = state.documentUiModel.load(index)
+            if (image != null) {
+                PageThumbnail(image, index, state)
+            }
+        }
+    }
     if (isLandscape) {
         LazyColumn (
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier
-        ) {
-            itemsIndexed(state.documentUiModel.pageIds) { index, id ->
-                // TODO Use small images rather than big ones
-                val image = state.documentUiModel.imageLoader(id)
-                if (image != null) {
-                    PageThumbnail(image, index, state)
-                }
-            }
-        }
+            modifier = modifier,
+            content = content,
+        )
     } else {
         LazyRow (
             state = state.listState,
             contentPadding = PaddingValues(4.dp),
             modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainer),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            itemsIndexed(state.documentUiModel.pageIds) { index, id ->
-                // TODO Use small images rather than big ones
-                val image = state.documentUiModel.imageLoader(id)
-                if (image != null) {
-                    PageThumbnail(image, index, state)
-                }
-            }
-        }
+            verticalAlignment = Alignment.CenterVertically,
+            content = content,
+        )
     }
     if (state.documentUiModel.pageIds.isEmpty()) {
         Box(

@@ -140,7 +140,7 @@ private fun DocumentPreview(
         Box (
             modifier = Modifier.fillMaxSize()
         ) {
-            val bitmap = documentUiModel.imageLoader(imageId)
+            val bitmap = documentUiModel.load(currentPageIndex.intValue)
             if (bitmap != null) {
                 val imageBitmap = bitmap.asImageBitmap()
                 val zoomState = rememberZoomState(
