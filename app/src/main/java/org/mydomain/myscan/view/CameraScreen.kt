@@ -145,8 +145,7 @@ fun CameraScreen(
         },
         pageListState =
             CommonPageListState(
-                pageIds = pageIds,
-                imageLoader = { id -> viewModel.getBitmap(id) },
+                documentUiModel = DocumentUiModel(pageIds) { id -> viewModel.getBitmap(id) },
                 onPageClick = { index -> viewModel.navigateTo(Screen.Document(index)) },
                 listState = listState,
                 onLastItemPosition = { offset -> thumbnailCoords.value = offset },
@@ -457,12 +456,13 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
             },
             pageListState =
                 CommonPageListState(
-                    pageIds = listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
-                    imageLoader = { id ->
-                        context.assets.open(id).use { input ->
-                            BitmapFactory.decodeStream(input)
-                        }
-                    },
+                    documentUiModel = DocumentUiModel(
+                        pageIds = listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
+                        imageLoader = { id ->
+                            context.assets.open(id).use { input ->
+                                BitmapFactory.decodeStream(input)
+                            }
+                        }),
                     onPageClick = {},
                     listState = LazyListState(),
                 ),

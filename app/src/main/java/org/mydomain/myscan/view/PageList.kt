@@ -51,8 +51,7 @@ import androidx.compose.ui.unit.sp
 const val PAGE_LIST_ELEMENT_SIZE_DP = 120
 
 data class CommonPageListState(
-    val pageIds: List<String>,
-    val imageLoader: (String) -> Bitmap?,
+    val documentUiModel: DocumentUiModel,
     val onPageClick: (Int) -> Unit,
     val listState: LazyListState,
     val currentPageIndex: Int? = null,
@@ -70,9 +69,9 @@ fun CommonPageList(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
         ) {
-            itemsIndexed(state.pageIds) { index, id ->
+            itemsIndexed(state.documentUiModel.pageIds) { index, id ->
                 // TODO Use small images rather than big ones
-                val image = state.imageLoader(id)
+                val image = state.documentUiModel.imageLoader(id)
                 if (image != null) {
                     PageThumbnail(image, index, state)
                 }
@@ -86,16 +85,16 @@ fun CommonPageList(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            itemsIndexed(state.pageIds) { index, id ->
+            itemsIndexed(state.documentUiModel.pageIds) { index, id ->
                 // TODO Use small images rather than big ones
-                val image = state.imageLoader(id)
+                val image = state.documentUiModel.imageLoader(id)
                 if (image != null) {
                     PageThumbnail(image, index, state)
                 }
             }
         }
     }
-    if (state.pageIds.isEmpty()) {
+    if (state.documentUiModel.pageIds.isEmpty()) {
         Box(
             modifier = Modifier
                 .height(120.dp)
@@ -120,7 +119,7 @@ private fun PageThumbnail(
             Modifier.height(maxImageSize)
         else
             Modifier.width(maxImageSize)
-    if (index == state.pageIds.lastIndex) {
+    if (index == state.documentUiModel.pageIds.lastIndex) {
         val density = LocalDensity.current
         modifier = modifier.addPositionCallback(state.onLastItemPosition, density, 1.0f)
     }

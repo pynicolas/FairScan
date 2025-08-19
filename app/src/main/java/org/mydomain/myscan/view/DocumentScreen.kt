@@ -14,7 +14,6 @@
  */
 package org.mydomain.myscan.view
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -68,9 +67,8 @@ import org.mydomain.myscan.ui.theme.MyScanTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentScreen(
-    pageIds: List<String>,
+    documentUiModel: DocumentUiModel,
     initialPage: Int,
-    imageLoader: (String) -> Bitmap?,
     navigation: Navigation,
     pdfActions: PdfGenerationActions,
     onStartNew: () -> Unit,
@@ -80,8 +78,8 @@ fun DocumentScreen(
     val showNewDocDialog = rememberSaveable { mutableStateOf(false) }
     val showPdfDialog = rememberSaveable { mutableStateOf(false) }
     val currentPageIndex = rememberSaveable { mutableIntStateOf(initialPage) }
-    if (currentPageIndex.intValue >= pageIds.size) {
-        currentPageIndex.intValue = pageIds.size - 1
+    if (currentPageIndex.intValue >= documentUiModel.pageCount()) {
+        currentPageIndex.intValue = documentUiModel.pageCount() - 1
     }
     if (currentPageIndex.intValue < 0) {
         navigation.toCameraScreen()
@@ -97,8 +95,7 @@ fun DocumentScreen(
     MyScaffold(
         toAboutScreen = navigation.toAboutScreen,
         pageListState = CommonPageListState(
-            pageIds,
-            imageLoader,
+            documentUiModel,
             onPageClick = { index -> currentPageIndex.intValue = index },
             currentPageIndex = currentPageIndex.intValue,
             listState = listState,
@@ -115,7 +112,7 @@ fun DocumentScreen(
             )
         },
     ) { modifier ->
-        DocumentPreview(pageIds, imageLoader, currentPageIndex, onDeleteImage, modifier)
+        DocumentPreview(documentUiModel, currentPageIndex, onDeleteImage, modifier)
         if (showNewDocDialog.value) {
             NewDocumentDialog(onConfirm = onStartNew, showNewDocDialog)
         }
@@ -130,13 +127,12 @@ fun DocumentScreen(
 
 @Composable
 private fun DocumentPreview(
-    pageIds: List<String>,
-    imageLoader: (String) -> Bitmap?,
+    documentUiModel: DocumentUiModel,
     currentPageIndex: MutableIntState,
     onDeleteImage: (String) -> Unit,
     modifier: Modifier,
 ) {
-    val imageId = pageIds[currentPageIndex.intValue]
+    val imageId = documentUiModel.pageIds[currentPageIndex.intValue]
     Column (
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
@@ -144,7 +140,7 @@ private fun DocumentPreview(
         Box (
             modifier = Modifier.fillMaxSize()
         ) {
-            val bitmap = imageLoader(imageId)
+            val bitmap = documentUiModel.imageLoader(imageId)
             if (bitmap != null) {
                 val imageBitmap = bitmap.asImageBitmap()
                 val zoomState = rememberZoomState(
@@ -175,7 +171,7 @@ private fun DocumentPreview(
                     .align(Alignment.BottomEnd)
                     .padding(8.dp)
             )
-            Text("${currentPageIndex.intValue + 1} / ${pageIds.size}",
+            Text("${currentPageIndex.intValue + 1} / ${documentUiModel.pageIds.size}",
                 color = MaterialTheme.colorScheme.inverseOnSurface,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -243,13 +239,15 @@ fun DocumentScreenPreview() {
     val context = LocalContext.current
     MyScanTheme {
         DocumentScreen(
-            pageIds = listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
-            initialPage = 1,
-            imageLoader = { id ->
-                context.assets.open(id).use { input ->
-                    BitmapFactory.decodeStream(input)
+            DocumentUiModel(
+                listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
+                { id ->
+                    context.assets.open(id).use { input ->
+                        BitmapFactory.decodeStream(input)
+                    }
                 }
-            },
+            ),
+            initialPage = 1,
             navigation = Navigation(
                 {}, {}, {}, {}, {}),
             pdfActions = PdfGenerationActions(
