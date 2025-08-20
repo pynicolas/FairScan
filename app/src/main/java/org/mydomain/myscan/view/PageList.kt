@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.sp
 const val PAGE_LIST_ELEMENT_SIZE_DP = 120
 
 data class CommonPageListState(
-    val documentUiModel: DocumentUiModel,
+    val document: DocumentUiModel,
     val onPageClick: (Int) -> Unit,
     val listState: LazyListState,
     val currentPageIndex: Int? = null,
@@ -65,9 +65,9 @@ fun CommonPageList(
 ) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val content: LazyListScope.() -> Unit = {
-        items(state.documentUiModel.pageCount()) { index ->
+        items(state.document.pageCount()) { index ->
             // TODO Use small images rather than big ones
-            val image = state.documentUiModel.load(index)
+            val image = state.document.load(index)
             if (image != null) {
                 PageThumbnail(image, index, state)
             }
@@ -89,7 +89,7 @@ fun CommonPageList(
             content = content,
         )
     }
-    if (state.documentUiModel.isEmpty()) {
+    if (state.document.isEmpty()) {
         Box(
             modifier = Modifier
                 .height(120.dp)
@@ -114,7 +114,7 @@ private fun PageThumbnail(
             Modifier.height(maxImageSize)
         else
             Modifier.width(maxImageSize)
-    if (index == state.documentUiModel.lastIndex()) {
+    if (index == state.document.lastIndex()) {
         val density = LocalDensity.current
         modifier = modifier.addPositionCallback(state.onLastItemPosition, density, 1.0f)
     }

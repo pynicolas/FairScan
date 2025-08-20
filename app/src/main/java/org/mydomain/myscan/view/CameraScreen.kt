@@ -101,7 +101,7 @@ fun CameraScreen(
     onFinalizePressed: () -> Unit,
 ) {
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
-    val documentUiModel by viewModel.documentUiModel.collectAsStateWithLifecycle()
+    val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
     val thumbnailCoords = remember { mutableStateOf(Offset.Zero) }
     var isDebugMode by remember { mutableStateOf(false) }
 
@@ -129,9 +129,9 @@ fun CameraScreen(
     }
 
     val listState = rememberLazyListState()
-    LaunchedEffect(documentUiModel.pageCount()) {
-        if (!documentUiModel.isEmpty()) {
-            listState.animateScrollToItem(documentUiModel.lastIndex())
+    LaunchedEffect(document.pageCount()) {
+        if (!document.isEmpty()) {
+            listState.animateScrollToItem(document.lastIndex())
         }
     }
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -145,13 +145,13 @@ fun CameraScreen(
         },
         pageListState =
             CommonPageListState(
-                documentUiModel = documentUiModel,
+                document = document,
                 onPageClick = { index -> viewModel.navigateTo(Screen.Document(index)) },
                 listState = listState,
                 onLastItemPosition = { offset -> thumbnailCoords.value = offset },
             ),
         cameraUiState = CameraUiState(
-            documentUiModel.pageCount(),
+            document.pageCount(),
             liveAnalysisState,
             captureState,
             showDetectionError,
@@ -456,7 +456,7 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
             },
             pageListState =
                 CommonPageListState(
-                    documentUiModel = DocumentUiModel(
+                    document = DocumentUiModel(
                         pageIds = listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
                         imageLoader = { id ->
                             context.assets.open(id).use { input ->

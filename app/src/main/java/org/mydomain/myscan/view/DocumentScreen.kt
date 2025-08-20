@@ -67,7 +67,7 @@ import org.mydomain.myscan.ui.theme.MyScanTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentScreen(
-    documentUiModel: DocumentUiModel,
+    document: DocumentUiModel,
     initialPage: Int,
     navigation: Navigation,
     pdfActions: PdfGenerationActions,
@@ -78,8 +78,8 @@ fun DocumentScreen(
     val showNewDocDialog = rememberSaveable { mutableStateOf(false) }
     val showPdfDialog = rememberSaveable { mutableStateOf(false) }
     val currentPageIndex = rememberSaveable { mutableIntStateOf(initialPage) }
-    if (currentPageIndex.intValue >= documentUiModel.pageCount()) {
-        currentPageIndex.intValue = documentUiModel.pageCount() - 1
+    if (currentPageIndex.intValue >= document.pageCount()) {
+        currentPageIndex.intValue = document.pageCount() - 1
     }
     if (currentPageIndex.intValue < 0) {
         navigation.toCameraScreen()
@@ -95,7 +95,7 @@ fun DocumentScreen(
     MyScaffold(
         toAboutScreen = navigation.toAboutScreen,
         pageListState = CommonPageListState(
-            documentUiModel,
+            document,
             onPageClick = { index -> currentPageIndex.intValue = index },
             currentPageIndex = currentPageIndex.intValue,
             listState = listState,
@@ -112,7 +112,7 @@ fun DocumentScreen(
             )
         },
     ) { modifier ->
-        DocumentPreview(documentUiModel, currentPageIndex, onDeleteImage, modifier)
+        DocumentPreview(document, currentPageIndex, onDeleteImage, modifier)
         if (showNewDocDialog.value) {
             NewDocumentDialog(onConfirm = onStartNew, showNewDocDialog)
         }
@@ -127,12 +127,12 @@ fun DocumentScreen(
 
 @Composable
 private fun DocumentPreview(
-    documentUiModel: DocumentUiModel,
+    document: DocumentUiModel,
     currentPageIndex: MutableIntState,
     onDeleteImage: (String) -> Unit,
     modifier: Modifier,
 ) {
-    val imageId = documentUiModel.pageId(currentPageIndex.intValue)
+    val imageId = document.pageId(currentPageIndex.intValue)
     Column (
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
@@ -140,7 +140,7 @@ private fun DocumentPreview(
         Box (
             modifier = Modifier.fillMaxSize()
         ) {
-            val bitmap = documentUiModel.load(currentPageIndex.intValue)
+            val bitmap = document.load(currentPageIndex.intValue)
             if (bitmap != null) {
                 val imageBitmap = bitmap.asImageBitmap()
                 val zoomState = rememberZoomState(
@@ -171,7 +171,7 @@ private fun DocumentPreview(
                     .align(Alignment.BottomEnd)
                     .padding(8.dp)
             )
-            Text("${currentPageIndex.intValue + 1} / ${documentUiModel.pageCount()}",
+            Text("${currentPageIndex.intValue + 1} / ${document.pageCount()}",
                 color = MaterialTheme.colorScheme.inverseOnSurface,
                 modifier = Modifier
                     .align(Alignment.BottomStart)

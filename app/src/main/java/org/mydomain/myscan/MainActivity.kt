@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by viewModel.liveAnalysisState.collectAsStateWithLifecycle()
-            val documentUiModel by viewModel.documentUiModel.collectAsStateWithLifecycle()
+            val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             MyScanTheme {
                 val navigation = Navigation(
                     toCameraScreen = { viewModel.navigateTo(Screen.Camera) },
@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
                     }
                     is Screen.Document -> {
                         DocumentScreen (
-                            documentUiModel = documentUiModel,
+                            document = document,
                             initialPage = screen.initialPage,
                             navigation = navigation,
                             pdfActions = PdfGenerationActions(
