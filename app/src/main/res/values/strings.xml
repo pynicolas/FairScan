@@ -5,9 +5,11 @@
     <string name="app_tagline">A simple and respectful application to scan your documents.</string>
     <string name="back">Back</string>
     <string name="camera_permission_denied">Camera permission was denied</string>
+    <string name="camera_permission_rationale">The app requires camera access to scan documents. Captured images are stored only on this device and will be deleted when you close the current document.</string>
     <string name="cancel">Cancel</string>
     <string name="close">Close</string>
     <string name="close_document">Close document</string>
+    <string name="current_document">Current document</string>
     <string name="delete_page">Delete page</string>
     <string name="document">Document</string>
     <string name="error">Error: %1$s</string>
@@ -16,6 +18,7 @@
     <string name="error_save">Failed to save PDF</string>
     <string name="export_pdf">Export PDF</string>
     <string name="filename">Filename</string>
+    <string name="grant_permission">Grant permission</string>
     <string name="libraries">Libraries</string>
     <string name="libraries_intro">This application uses several open-source libraries, including:</string>
     <string name="libraries_open_source">Open-source libraries</string>
@@ -30,6 +33,7 @@
     <string name="save">Save</string>
     <string name="share">Share</string>
     <string name="share_pdf">Share PDF</string>
+    <string name="start_a_new_scan">Start a new scan</string>
     <string name="unknown_size">Unknown size</string>
     <string name="version">Version</string>
     <string name="view_the_full_license">View the full license</string>

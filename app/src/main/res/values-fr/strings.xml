@@ -5,9 +5,11 @@
     <string name="app_tagline">Une application simple et respectueuse pour scanner vos documents.</string>
     <string name="back">Retour</string>
     <string name="camera_permission_denied">L\'autorisation d\'accès à la caméra a été refusée</string>
+    <string name="camera_permission_rationale">L’application a besoin d’accéder à l’appareil photo pour scanner des documents. Les images capturées sont enregistrées uniquement sur cet appareil et seront supprimées lorsque vous fermerez le document en cours.</string>
     <string name="cancel">Annuler</string>
     <string name="close">Fermer</string>
     <string name="close_document">Fermer le document</string>
+    <string name="current_document">Document en cours</string>
     <string name="delete_page">Supprimer la page</string>
     <string name="document">Document</string>
     <string name="error">Erreur : %1$s</string>
@@ -16,6 +18,7 @@
     <string name="error_save">Échec de l\'enregistrement du PDF</string>
     <string name="export_pdf">Exporter en PDF</string>
     <string name="filename">Nom de fichier</string>
+    <string name="grant_permission">Autoriser</string>
     <string name="libraries">Bibliothèques</string>
     <string name="libraries_intro">Cette application utilise plusieurs bibliothèques open source, notamment :</string>
     <string name="libraries_open_source">Bibliothèques open source</string>
@@ -30,6 +33,7 @@
     <string name="save">Enregistrer</string>
     <string name="share">Partager</string>
     <string name="share_pdf">Partager le PDF</string>
+    <string name="start_a_new_scan">Nouveau scan</string>
     <string name="unknown_size">Taille inconnue</string>
     <string name="version">Version</string>
     <string name="view_the_full_license">Voir la licence complète</string>

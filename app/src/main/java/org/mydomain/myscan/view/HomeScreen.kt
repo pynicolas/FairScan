@@ -53,7 +53,6 @@ import org.mydomain.myscan.ui.theme.MyScanTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-// FIXME Extract strings
 fun HomeScreen(
     hasCameraPermission: Boolean,
     currentDocument: DocumentUiModel,
@@ -82,7 +81,7 @@ fun HomeScreen(
                         }
                     },
                     icon = Icons.Default.PhotoCamera,
-                    text = "Start a new scan",
+                    text = stringResource(R.string.start_a_new_scan),
                     modifier = Modifier
                         .padding(12.dp)
                         .height(48.dp),
@@ -101,7 +100,7 @@ fun HomeScreen(
             }
 
             if (!currentDocument.isEmpty()) {
-                SectionTitle("Current document")
+                SectionTitle(stringResource(R.string.current_document))
                 CurrentDocumentCard(currentDocument, navigation)
             }
 
@@ -125,16 +124,14 @@ private fun CameraPermissionRationale() {
     ) {
         Column(Modifier.padding(16.dp)) {
             Text(
-                "The app requires camera access to scan documents. " +
-                        "Captured images are stored only on this device and will be deleted " +
-                        "when you close the current document.",
+                stringResource(R.string.camera_permission_rationale),
                 style = MaterialTheme.typography.bodyMedium
             )
             Spacer(Modifier.height(8.dp))
             Button(onClick = {
                 requestPermissionLauncher.launch(Manifest.permission.CAMERA)
             }) {
-                Text("Grant permission")
+                Text(stringResource(R.string.grant_permission))
             }
         }
     }
@@ -167,7 +164,7 @@ private fun CurrentDocumentCard(
             Column(Modifier.weight(1f)) {
                 Text(pageCountText(currentDocument.pageCount()))
             }
-            MainActionButton(navigation.toDocumentScreen, "Open")
+            MainActionButton(navigation.toDocumentScreen, stringResource(R.string.open))
         }
     }
 }
