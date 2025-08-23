@@ -14,7 +14,6 @@
  */
 package org.mydomain.myscan.view
 
-import android.Manifest
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,15 +45,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.mydomain.myscan.CameraPermissionState
 import org.mydomain.myscan.Navigation
 import org.mydomain.myscan.R
-import org.mydomain.myscan.rememberCameraPermissionLauncher
+import org.mydomain.myscan.rememberCameraPermissionState
 import org.mydomain.myscan.ui.theme.MyScanTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    hasCameraPermission: Boolean,
+    cameraPermission: CameraPermissionState,
     currentDocument: DocumentUiModel,
     navigation: Navigation,
     onStartNewScan: () -> Unit
@@ -95,8 +95,8 @@ fun HomeScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            if (!hasCameraPermission) {
-                CameraPermissionRationale()
+            if (!cameraPermission.isGranted) {
+                CameraPermissionRationale(cameraPermission)
             }
 
             if (!currentDocument.isEmpty()) {
@@ -115,8 +115,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun CameraPermissionRationale() {
-    val requestPermissionLauncher = rememberCameraPermissionLauncher(onGranted = {}, onDenied = {})
+private fun CameraPermissionRationale(cameraPermission: CameraPermissionState) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -128,9 +127,7 @@ private fun CameraPermissionRationale() {
                 style = MaterialTheme.typography.bodyMedium
             )
             Spacer(Modifier.height(8.dp))
-            Button(onClick = {
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }) {
+            Button(onClick = { cameraPermission.request() }) {
                 Text(stringResource(R.string.grant_permission))
             }
         }
@@ -183,7 +180,7 @@ private fun SectionTitle(text: String) {
 fun HomeScreenPreviewOnFirstLaunch() {
     MyScanTheme {
         HomeScreen(
-            hasCameraPermission = false,
+            cameraPermission = rememberCameraPermissionState(),
             currentDocument = DocumentUiModel(listOf()) { _ -> null },
             navigation = dummyNavigation(),
             onStartNewScan = {}
@@ -196,7 +193,7 @@ fun HomeScreenPreviewOnFirstLaunch() {
 fun HomeScreenPreviewWithCurrentDocument() {
     MyScanTheme {
         HomeScreen(
-            hasCameraPermission = true,
+            cameraPermission = rememberCameraPermissionState(),
             currentDocument = fakeDocument(
                 listOf("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
                 LocalContext.current),

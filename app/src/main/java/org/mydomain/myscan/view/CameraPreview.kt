@@ -52,10 +52,9 @@ import androidx.core.graphics.scale
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
+import org.mydomain.myscan.CameraPermissionState
 import org.mydomain.myscan.LiveAnalysisState
 import org.mydomain.myscan.Point
-import org.mydomain.myscan.hasCameraPermission
-import org.mydomain.myscan.rememberCameraPermissionLauncher
 import org.mydomain.myscan.scaledTo
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -66,13 +65,12 @@ fun CameraPreview(
     onImageAnalyzed: (ImageProxy) -> Unit,
     captureController: CameraCaptureController,
     onPreviewViewReady: (PreviewView) -> Unit,
+    cameraPermission: CameraPermissionState,
 ) {
     val context = LocalContext.current
-    val requestPermissionLauncher = rememberCameraPermissionLauncher(onGranted = {}, onDenied = {})
     LaunchedEffect(Unit) {
-        val camera = android.Manifest.permission.CAMERA
-        if (!hasCameraPermission(context)) {
-            requestPermissionLauncher.launch(camera)
+        if (!cameraPermission.isGranted) {
+            cameraPermission.request()
         }
     }
 

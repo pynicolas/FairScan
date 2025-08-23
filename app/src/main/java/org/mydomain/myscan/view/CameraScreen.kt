@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import org.mydomain.myscan.CameraPermissionState
 import org.mydomain.myscan.LiveAnalysisState
 import org.mydomain.myscan.MainViewModel
 import org.mydomain.myscan.MainViewModel.CaptureState
@@ -102,6 +103,7 @@ fun CameraScreen(
     liveAnalysisState: LiveAnalysisState,
     onImageAnalyzed: (ImageProxy) -> Unit,
     onFinalizePressed: () -> Unit,
+    cameraPermission: CameraPermissionState,
 ) {
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
@@ -145,7 +147,8 @@ fun CameraScreen(
             CameraPreview(
                 onImageAnalyzed = onImageAnalyzed,
                 captureController = captureController,
-                onPreviewViewReady = { view -> previewView = view }
+                onPreviewViewReady = { view -> previewView = view },
+                cameraPermission = cameraPermission,
             )
         },
         pageListState =

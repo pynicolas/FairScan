@@ -22,27 +22,34 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 
-fun hasCameraPermission(context: Context): Boolean {
+private fun hasCameraPermission(context: Context): Boolean {
     val camera = Manifest.permission.CAMERA
     return ContextCompat.checkSelfPermission(context, camera) == PackageManager.PERMISSION_GRANTED
 }
 
-@Composable
-fun rememberCameraPermissionLauncher(
-    onGranted: () -> Unit = {},
-    onDenied: () -> Unit = {}
-): ManagedActivityResultLauncher<String, Boolean> {
-    val context = LocalContext.current
-    return rememberLauncherForActivityResult (
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            onGranted()
-        } else {
-            onDenied()
+@Stable
+class CameraPermissionState internal constructor(
+    private val context: Context,
+    private val launcher: ManagedActivityResultLauncher<String, Boolean>
+) {
+    var isGranted by mutableStateOf(hasCameraPermission(context))
+        private set
+
+    fun request() {
+        launcher.launch(Manifest.permission.CAMERA)
+    }
+
+    internal fun update(granted: Boolean) {
+        isGranted = granted
+        if (!granted) {
             Toast.makeText(
                 context,
                 context.getString(R.string.camera_permission_denied),
@@ -50,4 +57,22 @@ fun rememberCameraPermissionLauncher(
             ).show()
         }
     }
+}
+
+@Composable
+fun rememberCameraPermissionState(): CameraPermissionState {
+    val context = LocalContext.current
+    lateinit var state: CameraPermissionState
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        state.update(granted)
+    }
+
+    state = remember {
+        CameraPermissionState(context, launcher)
+    }
+
+    return state
 }

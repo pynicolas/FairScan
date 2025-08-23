@@ -60,6 +60,7 @@ class MainActivity : ComponentActivity() {
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by viewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
+            val cameraPermission = rememberCameraPermissionState()
             MyScanTheme {
                 val navigation = Navigation(
                     toHomeScreen = { viewModel.navigateTo(Screen.Home) },
@@ -72,7 +73,7 @@ class MainActivity : ComponentActivity() {
                 when (val screen = currentScreen) {
                     is Screen.Home -> {
                         HomeScreen(
-                            hasCameraPermission = hasCameraPermission(this),
+                            cameraPermission = cameraPermission,
                             currentDocument = document,
                             navigation = navigation,
                             onStartNewScan = navigation.toCameraScreen,
@@ -85,6 +86,7 @@ class MainActivity : ComponentActivity() {
                             liveAnalysisState,
                             onImageAnalyzed = { image -> viewModel.liveAnalysis(image) },
                             onFinalizePressed = { viewModel.navigateTo(Screen.Document()) },
+                            cameraPermission = cameraPermission
                         )
                     }
                     is Screen.Document -> {
