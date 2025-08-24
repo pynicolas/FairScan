@@ -21,6 +21,7 @@ import android.os.Environment
 import android.util.Log
 import androidx.camera.core.ImageProxy
 import androidx.core.net.toUri
+import androidx.datastore.core.DataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -37,7 +38,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.mydomain.myscan.data.recentDocumentsDataStore
 import org.mydomain.myscan.ui.PdfGenerationUiState
+import org.mydomain.myscan.ui.RecentDocumentUiState
 import org.mydomain.myscan.view.DocumentUiModel
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -46,6 +49,7 @@ class MainViewModel(
     private val imageSegmentationService: ImageSegmentationService,
     private val imageRepository: ImageRepository,
     private val pdfFileManager: PdfFileManager,
+    private val recentDocumentsDataStore: DataStore<RecentDocuments>,
 ): ViewModel() {
 
     companion object {
@@ -59,6 +63,7 @@ class MainViewModel(
                         File(context.cacheDir, "pdfs"),
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                         AndroidPdfWriter()),
+                    context.recentDocumentsDataStore,
                 ) as T
             }
         }
@@ -313,6 +318,42 @@ class MainViewModel(
 
     fun cleanUpOldPdfs(thresholdInMillis: Int) {
         pdfFileManager.cleanUpOldFiles(thresholdInMillis)
+    }
+
+
+    val recentDocuments: StateFlow<List<RecentDocumentUiState>> =
+        recentDocumentsDataStore.data.map {
+            it.documentsList.map {
+                doc ->
+                    RecentDocumentUiState(
+                        file = File(doc.filePath),
+                        saveTimestamp = doc.createdAt,
+                        pageCount = doc.pageCount,
+                    )
+            }.filter { doc -> doc.file.exists() }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+    fun addRecentDocument(filePath: String, pageCount: Int) {
+        viewModelScope.launch {
+            recentDocumentsDataStore.updateData { current ->
+                val newDoc = RecentDocument.newBuilder()
+                    .setFilePath(filePath)
+                    .setPageCount(pageCount)
+                    .setCreatedAt(System.currentTimeMillis())
+                    .build()
+                current.toBuilder()
+                    .addDocuments(0, newDoc)
+                    .also { builder ->
+                        while (builder.documentsCount > 10) {
+                            builder.removeDocuments(builder.documentsCount - 1)
+                        }
+                    }
+                    .build()
+            }
+        }
     }
 }
 

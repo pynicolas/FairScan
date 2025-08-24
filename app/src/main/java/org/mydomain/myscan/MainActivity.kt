@@ -29,6 +29,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
@@ -72,11 +73,14 @@ class MainActivity : ComponentActivity() {
                 )
                 when (val screen = currentScreen) {
                     is Screen.Home -> {
+                        val recentDocs by viewModel.recentDocuments.collectAsStateWithLifecycle()
                         HomeScreen(
                             cameraPermission = cameraPermission,
                             currentDocument = document,
                             navigation = navigation,
                             onStartNewScan = navigation.toCameraScreen,
+                            recentDocuments = recentDocs,
+                            onOpenPdf = { file -> openPdf(file.toUri()) }
                         )
                     }
                     is Screen.Camera -> {
@@ -149,6 +153,7 @@ class MainActivity : ComponentActivity() {
         appScope.launch {
             try {
                 val targetFile = viewModel.saveFile(generatedPdf.file)
+                viewModel.addRecentDocument(targetFile.absolutePath, generatedPdf.pageCount)
 
                 suspendCancellableCoroutine { continuation ->
                     MediaScannerConnection.scanFile(

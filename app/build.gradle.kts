@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.aboutLibraries)
+    alias(libs.plugins.protobuf)
 }
 
 android {
@@ -85,6 +86,8 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.datastore)
+    implementation(libs.protobuf.javalite)
     implementation(libs.litert)
     implementation(libs.litert.support)
     implementation(libs.litert.metadata)
@@ -107,3 +110,19 @@ dependencies {
 aboutLibraries {
     android.registerAndroidTasks = true
 }
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.32.0"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+            }
+        }
+    }
+}
+

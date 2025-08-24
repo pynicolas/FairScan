@@ -19,6 +19,7 @@
     <string name="export_pdf">Export PDF</string>
     <string name="filename">Filename</string>
     <string name="grant_permission">Grant permission</string>
+    <string name="last_saved_documents">Last saved documents</string>
     <string name="libraries">Libraries</string>
     <string name="libraries_intro">This application uses several open-source libraries, including:</string>
     <string name="libraries_open_source">Open-source libraries</string>

@@ -16,6 +16,7 @@ package org.mydomain.myscan.ui
 
 import android.net.Uri
 import org.mydomain.myscan.GeneratedPdf
+import java.io.File
 
 data class PdfGenerationUiState(
     val isGenerating: Boolean = false,
@@ -24,4 +25,10 @@ data class PdfGenerationUiState(
     val savedFileUri: Uri? = null,
     val saveDirectoryName: String? = null,
     val errorMessage: String? = null
+)
+
+data class RecentDocumentUiState(
+    val file: File,
+    val saveTimestamp: Long,
+    val pageCount: Int,
 )

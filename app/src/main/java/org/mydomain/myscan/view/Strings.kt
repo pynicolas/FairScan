@@ -14,12 +14,21 @@
  */
 package org.mydomain.myscan.view
 
+import android.content.Context
+import android.text.format.DateFormat
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import org.mydomain.myscan.R
+import java.util.Date
 
 @Composable
 fun pageCountText(quantity: Int): String {
     val context = LocalContext.current
     return context.resources.getQuantityString(R.plurals.page_count, quantity, quantity)
+}
+
+fun formatDate(timestamp: Long, context: Context): String {
+    val date = Date(timestamp)
+    return DateFormat.getMediumDateFormat(context).format(date) + " " +
+            DateFormat.getTimeFormat(context).format(date)
 }

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_package = "org.mydomain.myscan";
+option java_multiple_files = true;
+
+message RecentDocument {
+  string file_path = 1;
+  int64 created_at = 2; // timestamp in ms
+  int32 page_count = 3;
+}
+
+message RecentDocuments {
+  repeated RecentDocument documents = 1;
+}

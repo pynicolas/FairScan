@@ -15,6 +15,7 @@
 package org.mydomain.myscan.view
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,10 +28,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,7 +54,10 @@ import org.mydomain.myscan.CameraPermissionState
 import org.mydomain.myscan.Navigation
 import org.mydomain.myscan.R
 import org.mydomain.myscan.rememberCameraPermissionState
+import org.mydomain.myscan.ui.RecentDocumentUiState
 import org.mydomain.myscan.ui.theme.MyScanTheme
+import java.io.File
+import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +65,9 @@ fun HomeScreen(
     cameraPermission: CameraPermissionState,
     currentDocument: DocumentUiModel,
     navigation: Navigation,
-    onStartNewScan: () -> Unit
+    onStartNewScan: () -> Unit,
+    recentDocuments: List<RecentDocumentUiState>,
+    onOpenPdf: (File) -> Unit,
 ) {
     val showCloseDocDialog = rememberSaveable { mutableStateOf(false) }
     Scaffold (
@@ -102,6 +112,11 @@ fun HomeScreen(
             if (!currentDocument.isEmpty()) {
                 SectionTitle(stringResource(R.string.current_document))
                 CurrentDocumentCard(currentDocument, navigation)
+            }
+
+            if (recentDocuments.isNotEmpty()) {
+                SectionTitle(stringResource(R.string.last_saved_documents))
+                RecentDocumentList(recentDocuments, onOpenPdf)
             }
 
             if (showCloseDocDialog.value) {
@@ -167,6 +182,32 @@ private fun CurrentDocumentCard(
 }
 
 @Composable
+private fun RecentDocumentList(
+    recentDocuments: List<RecentDocumentUiState>,
+    onOpenPdf: (File) -> Unit
+) {
+    Column {
+        val maxListSize = 5
+        recentDocuments.subList(0, min(maxListSize, recentDocuments.size)).forEach { doc ->
+            ListItem(
+                headlineContent = { Text(doc.file.name) },
+                supportingContent = {
+                    Text(
+                        text = pageCountText(doc.pageCount) + " • " +
+                                formatDate(doc.saveTimestamp, LocalContext.current)
+                    )
+                },
+                leadingContent = {
+                    Icon(Icons.Default.PictureAsPdf, contentDescription = null)
+                },
+                modifier = Modifier.clickable { onOpenPdf(doc.file) }
+            )
+            HorizontalDivider()
+        }
+    }
+}
+
+@Composable
 private fun SectionTitle(text: String) {
     Text(
         text,
@@ -183,7 +224,9 @@ fun HomeScreenPreviewOnFirstLaunch() {
             cameraPermission = rememberCameraPermissionState(),
             currentDocument = DocumentUiModel(listOf()) { _ -> null },
             navigation = dummyNavigation(),
-            onStartNewScan = {}
+            onStartNewScan = {},
+            recentDocuments = listOf(),
+            onOpenPdf = {},
         )
     }
 }
@@ -198,7 +241,12 @@ fun HomeScreenPreviewWithCurrentDocument() {
                 listOf("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
                 LocalContext.current),
             navigation = dummyNavigation(),
-            onStartNewScan = {}
+            onStartNewScan = {},
+            recentDocuments = listOf(
+                RecentDocumentUiState(File("/path/my_file.pdf"), 1755971180000, 3),
+                RecentDocumentUiState(File("/path/scan2.pdf"), 1755000500000, 1)
+            ),
+            onOpenPdf = {},
         )
     }
 }
