@@ -12,7 +12,7 @@ android {
     sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/assets"))
 
     defaultConfig {
-        applicationId = "org.mydomain.myscan"
+        applicationId = "org.fairscan.app"
         minSdk = 24
         targetSdk = 35
         versionCode = 6
