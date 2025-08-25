@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "org.mydomain.myscan"
+    namespace = "org.fairscan.app"
     compileSdk = 35
     sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/assets"))
 

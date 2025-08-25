@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "org.mydomain.myscan";
+option java_package = "org.fairscan.app";
 option java_multiple_files = true;
 
 message RecentDocument {
