@@ -1,7 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="about">À propos</string>
     <string name="add_page">Ajouter une page</string>
-    <string name="app_name">MyScan</string>
     <string name="app_tagline">Une application simple et respectueuse pour scanner vos documents.</string>
     <string name="back">Retour</string>
     <string name="camera_permission_denied">L\'autorisation d\'accès à la caméra a été refusée</string>
