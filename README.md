@@ -19,11 +19,10 @@ FairScan aims to be a simple, efficient and respectful alternative.
 
 The app does not collect or share any personal data.
 
-- Camera access is used only for local document detection.
+- Camera access is used only to create a PDF for the user.
+- Captured images are stored only on the user's device.
 - No data is sent to any server.
 - No analytics, no ads, no tracking.
-
-See [privacy.md](./privacy.md)
 
 ## Build instructions
 
