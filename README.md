@@ -7,10 +7,12 @@ FairScan is an Android app to scan documents. It aims to be simple and respectfu
 - The scanning process should be obvious.
 - The app should automatically handle all image processing and PDF generation tasks.
 
-[Google Play](https://play.google.com/store/apps/details?id=org.fairscan.app)
-[GitHub releases](releases)
-[fairscan.org](https://fairscan.org)
+## Get FairScan
+- [Google Play](https://play.google.com/store/apps/details?id=org.fairscan.app)
+- [GitHub releases](releases)
+- Website: [fairscan.org](https://fairscan.org)
 
+## Screenshots
 <p>
   <img src="screenshots/step-1.webp" width="30%">
   <img src="screenshots/step-2.webp" width="30%">
@@ -39,13 +41,13 @@ FairScan should be compatible with all devices that:
 
 ## Main dependencies
 
-- Jetpack Compose for the user interface
-- CameraX to capture images from the camera
-- LiteRT to run the segmentation model for automatic document detection
-- OpenCV for:
+- [Jetpack Compose](https://developer.android.com/compose) for the user interface
+- [CameraX](https://developer.android.com/media/camera/camerax) to capture images from the camera
+- [LiteRT](https://ai.google.dev/edge/litert) to run the segmentation model for automatic document detection
+- [OpenCV](https://opencv.org/) for:
   - perspective correction
   - image enhancement
-- PDFBox for PDF generation
+- [PDFBox-Android](https://github.com/TomRoush/PdfBox-Android) for PDF generation
 
 Kudos to the developers of those projects!
 
