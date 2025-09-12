@@ -1,6 +1,21 @@
 # FairScan
 
-**FairScan** is a free and open source Android app for scanning documents quickly and privately.
+FairScan is an Android app to scan documents. It aims to be simple and respectful.
+
+"Simple" means that users should get a clean PDF in seconds and without thinking:
+- The user interface should be super clear, with no distraction.
+- The scanning process should be obvious.
+- The app should automatically handle all image processing and PDF generation tasks.
+
+[![Google Play]][https://play.google.com/store/apps/details?id=org.fairscan.app]
+[![GitHub releases]][releases]
+[![fairscan.org]][https://fairscan.org]
+
+<p>
+  <img src="screenshots/step-1.webp" width="30%" style="margin:1%">
+  <img src="screenshots/step-2.webp" width="30%" style="margin:1%">
+  <img src="screenshots/step-3.webp" width="30%" style="margin:1%">
+</p>
 
 ## Features
 
@@ -15,14 +30,6 @@
 Most document scanner apps are cluttered, invasive, or frustrating to use.  
 FairScan aims to be a simple, efficient and respectful alternative.
 
-## Privacy Policy
-
-The app does not collect or share any personal data.
-
-- Camera access is used only to create a PDF for the user.
-- Captured images are stored only on the user's device.
-- No data is sent to any server.
-- No analytics, no ads, no tracking.
 
 ## Build instructions
 
