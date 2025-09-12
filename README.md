@@ -9,15 +9,14 @@ FairScan is an Android app to scan documents. It aims to be simple and respectfu
 
 ## Get FairScan
 - [Google Play](https://play.google.com/store/apps/details?id=org.fairscan.app)
-- [GitHub releases](releases)
-- Website: [fairscan.org](https://fairscan.org)
+- [GitHub releases](https://github.com/pynicolas/FairScan/releases)
+
+See also the website: [fairscan.org](https://fairscan.org)
 
 ## Screenshots
-<p>
-  <img src="screenshots/step-1.webp" width="30%">
-  <img src="screenshots/step-2.webp" width="30%">
-  <img src="screenshots/step-3.webp" width="30%">
-</p>
+| 1. Scan                      | 2. Preview                   | 3. Save & Share              |
+|------------------------------|------------------------------|------------------------------|
+| ![](screenshots/step-1.webp) | ![](screenshots/step-2.webp) | ![](screenshots/step-3.webp) |
 
 ## Features
 
@@ -60,7 +59,7 @@ To build an APK:
 
 To build an Android App Bundle:
 ```bash
-`./gradlew clean check :app:bundleRelease
+./gradlew clean check :app:bundleRelease
 ```
 
 ## License
