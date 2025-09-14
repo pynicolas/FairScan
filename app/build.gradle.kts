@@ -6,6 +6,11 @@ plugins {
     alias(libs.plugins.protobuf)
 }
 
+val abiCodes = mapOf(
+    "armeabi-v7a" to 1,
+    "arm64-v8a" to 2
+)
+
 android {
     namespace = "org.fairscan.app"
     compileSdk = 35
@@ -19,7 +24,7 @@ android {
         // https://ai.google.dev/edge/litert/android/index
         minSdk = 26
         targetSdk = 35
-        versionCode = 17
+        versionCode = 17 // increment by 10 so that ABI-specific APKs can use versionCode +1 and +2
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -45,9 +50,6 @@ android {
 
     buildTypes {
         release {
-            ndk {
-                abiFilters += listOf("armeabi-v7a", "arm64-v8a")
-            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -59,6 +61,19 @@ android {
             }
         }
     }
+
+    // See https://developer.android.com/build/configure-apk-splits
+    val isBuildingBundle = gradle.startParameter.taskNames.any { it.lowercase().contains("bundle") }
+    splits {
+        abi {
+            // Disable split ABIs when building appBundle: https://issuetracker.google.com/issues/402800800
+            isEnable = !isBuildingBundle
+            reset()
+            include(*abiCodes.keys.toTypedArray())
+            isUniversalApk = false
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -130,3 +145,15 @@ protobuf {
     }
 }
 
+// See https://developer.android.com/build/configure-apk-splits
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val name = output.filters.find { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }?.identifier
+            val baseAbiCode = abiCodes[name]
+            if (baseAbiCode != null) {
+                output.versionCode.set(output.versionCode.get() + baseAbiCode)
+            }
+        }
+    }
+}
