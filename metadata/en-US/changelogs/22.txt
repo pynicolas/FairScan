@@ -1,0 +1,2 @@
+- Add contact information to the "About" screen
+- Reduce app download size

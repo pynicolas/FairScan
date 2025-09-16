@@ -14,9 +14,9 @@ FairScan is an Android app to scan documents. It aims to be simple and respectfu
 See also the website: [fairscan.org](https://fairscan.org)
 
 ## Screenshots
-| 1. Scan                      | 2. Preview                   | 3. Save & Share              |
-|------------------------------|------------------------------|------------------------------|
-| ![](screenshots/step-1.webp) | ![](screenshots/step-2.webp) | ![](screenshots/step-3.webp) |
+| 1. Scan                                           | 2. Preview                                        | 3. Save & Share                                   |
+|---------------------------------------------------|---------------------------------------------------|---------------------------------------------------|
+| ![](metadata/en-US/images/phoneScreenshots/1.jpg) | ![](metadata/en-US/images/phoneScreenshots/2.jpg) | ![](metadata/en-US/images/phoneScreenshots/3.jpg) |
 
 ## Features
 
