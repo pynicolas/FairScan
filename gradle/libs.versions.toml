@@ -19,6 +19,7 @@ zoomable = "2.8.1"
 aboutLibraries = "12.2.4"
 protobuf = "0.9.5"
 protobufJavaLite = "4.32.0"
+kotlinSerialization = "1.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +53,7 @@ opencv = { group="org.opencv", name="opencv", version.ref = "opencv" }
 pdfbox = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
 zoomable = { group = "net.engawapg.lib", name = "zoomable", version.ref = "zoomable" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 
 assertj =  { group="org.assertj", name="assertj-core", version.ref = "assertj" }
 
@@ -59,7 +61,7 @@ assertj =  { group="org.assertj", name="assertj-core", version.ref = "assertj" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 license =  { id = "com.github.hierynomus.license", version.ref = "license" }
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }
-

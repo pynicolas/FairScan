@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.aboutLibraries)
     alias(libs.plugins.protobuf)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val abiCodes = mapOf(
@@ -127,6 +128,7 @@ dependencies {
     implementation(libs.icons.extended)
     implementation(libs.zoomable)
     implementation(libs.aboutlibraries.compose.m3)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     testImplementation(libs.assertj)

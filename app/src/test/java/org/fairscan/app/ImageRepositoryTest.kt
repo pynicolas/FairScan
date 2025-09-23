@@ -117,4 +117,18 @@ class ImageRepositoryTest {
         val id5 = repo.imageIds().last()
         assertThat(id5).isEqualTo("$baseId-270.jpg")
     }
+
+    @Test
+    fun movePage() {
+        val repo = repo()
+        repo.add(byteArrayOf(101))
+        repo.add(byteArrayOf(110))
+        val id0 = repo.imageIds().first()
+        val id1 = repo.imageIds().last()
+        repo.movePage(id1, 0)
+        assertThat(repo.imageIds()).containsExactly(id1, id0)
+
+        val repo2 = repo()
+        assertThat(repo2.imageIds()).containsExactly(id1, id0)
+    }
 }
