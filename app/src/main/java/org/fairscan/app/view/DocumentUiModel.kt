@@ -15,9 +15,10 @@
 package org.fairscan.app.view
 
 import android.graphics.Bitmap
+import kotlinx.collections.immutable.ImmutableList
 
 data class DocumentUiModel(
-    private val pageIds: List<String>,
+    val pageIds: ImmutableList<String>,
     private val imageLoader: (String) -> Bitmap?
 ) {
     fun pageCount(): Int {

@@ -122,7 +122,8 @@ class MainActivity : ComponentActivity() {
                             initialPage = screen.initialPage,
                             navigation = navigation,
                             onDeleteImage =  { id -> viewModel.deletePage(id) },
-                            onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) }
+                            onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) },
+                            onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
                         )
                     }
                     is Screen.Main.Export -> {

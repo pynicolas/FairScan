@@ -14,6 +14,8 @@
  */
 package org.fairscan.app
 
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import org.fairscan.app.data.DocumentMetadata
 import org.fairscan.app.data.Page
 import java.io.File
@@ -50,7 +52,7 @@ class ImageRepository(appFilesDir: File, val transformations: ImageTransformatio
         metadataFile.writeText(Json.encodeToString(metadata))
     }
 
-    fun imageIds(): List<String> = fileNames
+    fun imageIds(): ImmutableList<String> = fileNames.toImmutableList()
 
     fun add(bytes: ByteArray) {
         val fileName = "${System.currentTimeMillis()}.jpg"

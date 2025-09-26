@@ -76,6 +76,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import org.fairscan.app.CameraPermissionState
 import org.fairscan.app.LiveAnalysisState
@@ -157,6 +158,7 @@ fun CameraScreen(
             CommonPageListState(
                 document = document,
                 onPageClick = { index -> viewModel.navigateTo(Screen.Main.Document(index)) },
+                onPageReorder = { id, index -> viewModel.movePage(id, index) },
                 listState = listState,
                 onLastItemPosition = { offset -> thumbnailCoords.value = offset },
             ),
@@ -468,9 +470,12 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
             pageListState =
                 CommonPageListState(
                     document = fakeDocument(
-                        listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
+                        listOf(1, 2)
+                            .map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" }
+                            .toImmutableList(),
                         LocalContext.current),
                     onPageClick = {},
+                    onPageReorder = { _,_ -> },
                     listState = LazyListState(),
                 ),
             cameraUiState = CameraUiState(pageCount = 4, LiveAnalysisState(), captureState,

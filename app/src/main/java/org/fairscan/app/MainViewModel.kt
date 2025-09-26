@@ -26,6 +26,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -87,7 +88,7 @@ class MainViewModel(
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = DocumentUiModel(emptyList(), ::getBitmap)
+            initialValue = DocumentUiModel(persistentListOf(), ::getBitmap)
         )
 
     private val _captureState = MutableStateFlow<CaptureState>(CaptureState.Idle)
@@ -228,6 +229,11 @@ class MainViewModel(
         }
     }
 
+    fun movePage(id: String, newIndex: Int) {
+        imageRepository.movePage(id, newIndex)
+        _pageIds.value = imageRepository.imageIds()
+    }
+
     fun afterCaptureError() {
         _captureState.value = CaptureState.Idle
     }
@@ -238,7 +244,7 @@ class MainViewModel(
     }
 
     fun startNewDocument() {
-        _pageIds.value = listOf()
+        _pageIds.value = persistentListOf()
         viewModelScope.launch {
             imageRepository.clear()
         }

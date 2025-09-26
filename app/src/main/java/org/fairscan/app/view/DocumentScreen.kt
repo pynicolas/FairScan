@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.toImmutableList
 import net.engawapg.lib.zoomable.ZoomState
 import net.engawapg.lib.zoomable.zoomable
 import org.fairscan.app.Navigation
@@ -66,6 +67,7 @@ fun DocumentScreen(
     navigation: Navigation,
     onDeleteImage: (String) -> Unit,
     onRotateImage: (String, Boolean) -> Unit,
+    onPageReorder: (String, Int) -> Unit,
 ) {
     // TODO Check how often images are loaded
     val showDeletePageDialog = rememberSaveable { mutableStateOf(false) }
@@ -81,7 +83,7 @@ fun DocumentScreen(
 
     val listState = rememberLazyListState()
     LaunchedEffect(currentPageIndex.intValue) {
-        listState.animateScrollToItem(currentPageIndex.intValue)
+        listState.scrollToItem(currentPageIndex.intValue)
     }
 
     MyScaffold(
@@ -89,6 +91,7 @@ fun DocumentScreen(
         pageListState = CommonPageListState(
             document,
             onPageClick = { index -> currentPageIndex.intValue = index },
+            onPageReorder = onPageReorder,
             currentPageIndex = currentPageIndex.intValue,
             listState = listState,
         ),
@@ -226,12 +229,13 @@ fun DocumentScreenPreview() {
     FairScanTheme {
         DocumentScreen(
             fakeDocument(
-                listOf(1, 2, 2, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" },
+                listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" }.toImmutableList(),
                 LocalContext.current),
             initialPage = 1,
             navigation = dummyNavigation(),
             onDeleteImage = { _ -> },
             onRotateImage = { _,_ -> },
+            onPageReorder = { _,_ -> },
         )
     }
 }

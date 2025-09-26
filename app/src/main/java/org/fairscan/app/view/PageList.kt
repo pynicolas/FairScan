@@ -14,6 +14,7 @@
  */
 package org.fairscan.app.view
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
@@ -31,6 +32,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,12 +49,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 const val PAGE_LIST_ELEMENT_SIZE_DP = 120
 
 data class CommonPageListState(
     val document: DocumentUiModel,
     val onPageClick: (Int) -> Unit,
+    val onPageReorder: (String, Int) -> Unit,
     val listState: LazyListState,
     val currentPageIndex: Int? = null,
     val onLastItemPosition: ((Offset) -> Unit)? = null,
@@ -64,12 +69,18 @@ fun CommonPageList(
     modifier: Modifier = Modifier,
 ) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    val reorderableLazyListState = rememberReorderableLazyListState(state.listState) { from, to ->
+        state.onPageReorder(from.key as String, to.index)
+    }
     val content: LazyListScope.() -> Unit = {
-        items(state.document.pageCount()) { index ->
-            // TODO Use small images rather than big ones
-            val image = state.document.load(index)
-            if (image != null) {
-                PageThumbnail(image, index, state)
+        itemsIndexed(state.document.pageIds, key = { _, item -> item}) { index, item ->
+            ReorderableItem(reorderableLazyListState, key = item) { _ ->
+                // TODO Use small images rather than big ones
+                val image = state.document.load(index)
+                if (image != null) {
+                    PageThumbnail(image, index, state, Modifier.draggableHandle())
+                }
             }
         }
     }
@@ -103,33 +114,34 @@ private fun PageThumbnail(
     image: Bitmap,
     index: Int,
     state: CommonPageListState,
+    @SuppressLint("ModifierParameter") draggableModifier: Modifier,
 ) {
     val bitmap = image.asImageBitmap()
     val isSelected = index == state.currentPageIndex
     val borderColor =
         if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent
     val maxImageSize = PAGE_LIST_ELEMENT_SIZE_DP.dp
-    var modifier =
+    var imageModifier =
         if (bitmap.height > bitmap.width)
             Modifier.height(maxImageSize)
         else
             Modifier.width(maxImageSize)
     if (index == state.document.lastIndex()) {
         val density = LocalDensity.current
-        modifier = modifier.addPositionCallback(state.onLastItemPosition, density, 1.0f)
+        imageModifier = imageModifier.addPositionCallback(state.onLastItemPosition, density, 1.0f)
     }
     Box (modifier = Modifier.height(PAGE_LIST_ELEMENT_SIZE_DP.dp)) {
         Image(
             bitmap = bitmap,
             contentDescription = null,
-            modifier = modifier
+            modifier = imageModifier
                 .align(Alignment.Center)
                 .padding(4.dp)
                 .border(2.dp, borderColor)
                 .clickable { state.onPageClick(index) }
         )
         Box(
-            modifier = Modifier
+            modifier = draggableModifier
                 .padding(8.dp)
                 .align(Alignment.BottomCenter)
                 .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(4.dp))

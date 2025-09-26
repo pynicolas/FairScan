@@ -127,6 +127,7 @@ dependencies {
     }
     implementation(libs.icons.extended)
     implementation(libs.zoomable)
+    implementation(libs.reorderable)
     implementation(libs.aboutlibraries.compose.m3)
     implementation(libs.kotlinx.serialization.json)
 

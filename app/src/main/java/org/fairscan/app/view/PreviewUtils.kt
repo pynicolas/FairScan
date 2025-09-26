@@ -16,6 +16,8 @@ package org.fairscan.app.view
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import org.fairscan.app.Navigation
 
 fun dummyNavigation(): Navigation {
@@ -23,10 +25,10 @@ fun dummyNavigation(): Navigation {
 }
 
 fun fakeDocument(): DocumentUiModel {
-    return DocumentUiModel(listOf()) { _ -> null }
+    return DocumentUiModel(persistentListOf()) { _ -> null }
 }
 
-fun fakeDocument(pageIds: List<String>, context: Context): DocumentUiModel {
+fun fakeDocument(pageIds: ImmutableList<String>, context: Context): DocumentUiModel {
     return DocumentUiModel(pageIds) { id ->
         context.assets.open(id).use { input ->
             BitmapFactory.decodeStream(input)

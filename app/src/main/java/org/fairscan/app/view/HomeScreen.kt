@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.persistentListOf
 import org.fairscan.app.CameraPermissionState
 import org.fairscan.app.Navigation
 import org.fairscan.app.R
@@ -284,7 +285,7 @@ fun HomeScreenPreviewWithCurrentDocument() {
         HomeScreen(
             cameraPermission = rememberCameraPermissionState(),
             currentDocument = fakeDocument(
-                listOf("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
+                persistentListOf("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
                 LocalContext.current),
             navigation = dummyNavigation(),
             onClearScan = {},

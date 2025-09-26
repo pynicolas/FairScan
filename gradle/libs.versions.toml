@@ -20,6 +20,7 @@ aboutLibraries = "12.2.4"
 protobuf = "0.9.5"
 protobufJavaLite = "4.32.0"
 kotlinSerialization = "1.9.0"
+reorderable = "3.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +53,7 @@ litert-metadata = { group = "com.google.ai.edge.litert", name = "litert-metadata
 opencv = { group="org.opencv", name="opencv", version.ref = "opencv" }
 pdfbox = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfbox" }
 zoomable = { group = "net.engawapg.lib", name = "zoomable", version.ref = "zoomable" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 
