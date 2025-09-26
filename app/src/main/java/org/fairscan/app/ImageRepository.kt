@@ -16,10 +16,10 @@ package org.fairscan.app
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.serialization.json.Json
 import org.fairscan.app.data.DocumentMetadata
 import org.fairscan.app.data.Page
 import java.io.File
-import kotlinx.serialization.json.Json
 
 const val SCAN_DIR_NAME = "scanned_pages"
 
@@ -32,13 +32,28 @@ class ImageRepository(appFilesDir: File, val transformations: ImageTransformatio
     private val metadataFile = File(scanDir, "document.json")
 
     private var fileNames: MutableList<String> =
-        loadMetadata()?.pages?.map { p ->  p.file }?.toMutableList()
-            ?: scanDir.listFiles()
-                ?.map { it.name }
-                ?.filter { it.endsWith(".jpg") }
-                ?.sorted()
-                ?.toMutableList()
-            ?: mutableListOf()
+        loadFileNames()
+
+    private fun loadFileNames(): MutableList<String> {
+        val filesOnDisk: Set<String> = scanDir.listFiles()
+            ?.filter { it.extension == "jpg" }
+            ?.map { it.name }
+            ?.toSet()
+            ?: emptySet()
+
+        val metadataFiles: List<String>? = loadMetadata()
+            ?.pages
+            ?.map { it.file }
+
+        return when {
+            metadataFiles != null -> metadataFiles
+                .filter { it in filesOnDisk }
+                .toMutableList()
+            else -> filesOnDisk
+                .sorted()
+                .toMutableList()
+        }
+    }
 
     private fun loadMetadata(): DocumentMetadata? =
         if (metadataFile.exists()) {
@@ -88,8 +103,8 @@ class ImageRepository(appFilesDir: File, val transformations: ImageTransformatio
     }
 
     fun getContent(id: String): ByteArray? {
-        if (fileNames.contains(id)) {
-            val file = File(scanDir, id)
+        val file = File(scanDir, id)
+        if (file.exists()) {
             return file.readBytes()
         }
         return null
