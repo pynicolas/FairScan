@@ -25,13 +25,14 @@ fun dummyNavigation(): Navigation {
 }
 
 fun fakeDocument(): DocumentUiModel {
-    return DocumentUiModel(persistentListOf()) { _ -> null }
+    return DocumentUiModel(persistentListOf(), { _ -> null }, { _ -> null })
 }
 
 fun fakeDocument(pageIds: ImmutableList<String>, context: Context): DocumentUiModel {
-    return DocumentUiModel(pageIds) { id ->
+    val loader = { id:String ->
         context.assets.open(id).use { input ->
             BitmapFactory.decodeStream(input)
         }
     }
+    return DocumentUiModel(pageIds, loader, loader)
 }

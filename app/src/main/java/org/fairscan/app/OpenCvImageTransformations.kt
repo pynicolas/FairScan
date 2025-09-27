@@ -14,10 +14,14 @@
  */
 package org.fairscan.app
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import org.opencv.core.Core
 import org.opencv.core.Mat
 import org.opencv.imgcodecs.Imgcodecs
 import java.io.File
+import kotlin.math.min
+import androidx.core.graphics.scale
 
 class OpenCvTransformations : ImageTransformations {
     override fun rotate(inputFile: File, outputFile: File, clockwise: Boolean) {
@@ -36,5 +40,16 @@ class OpenCvTransformations : ImageTransformations {
 
         src.release()
         dst.release()
+    }
+
+    override fun resize(inputFile: File, outputFile: File, maxSize: Int) {
+        val bitmap = BitmapFactory.decodeFile(inputFile.absolutePath)
+        val ratio = min(maxSize.toFloat() / bitmap.width, maxSize.toFloat() / bitmap.height)
+        val newW = (bitmap.width * ratio).toInt()
+        val newH = (bitmap.height * ratio).toInt()
+        val scaled = bitmap.scale(newW, newH)
+        outputFile.outputStream().use {
+            scaled.compress(Bitmap.CompressFormat.JPEG, 85, it)
+        }
     }
 }

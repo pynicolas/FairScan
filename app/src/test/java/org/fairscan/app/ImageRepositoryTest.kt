@@ -35,7 +35,15 @@ class ImageRepositoryTest {
     }
 
     fun repo(): ImageRepository {
-        return ImageRepository(getFilesDir(), {f1,f2,_->f1.copyTo(f2)})
+        val transformations = object : ImageTransformations {
+            override fun rotate(inputFile: File, outputFile: File, clockwise: Boolean) {
+                inputFile.copyTo(outputFile)
+            }
+            override fun resize(inputFile: File, outputFile: File, maxSize: Int) {
+                outputFile.writeBytes(byteArrayOf(inputFile.readBytes()[0]))
+            }
+        }
+        return ImageRepository(getFilesDir(), transformations, 200)
     }
 
     @Test
@@ -46,6 +54,7 @@ class ImageRepositoryTest {
         repo.add(bytes)
         assertThat(repo.imageIds()).hasSize(1)
         assertThat(repo.getContent(repo.imageIds()[0])).isEqualTo(bytes)
+        assertThat(repo.getThumbnail(repo.imageIds()[0])).isEqualTo(byteArrayOf(101))
     }
 
     @Test
@@ -58,6 +67,13 @@ class ImageRepositoryTest {
         assertThat(repo.imageIds()).isEmpty()
         val repo2 = repo()
         assertThat(repo2.imageIds()).isEmpty()
+    }
+
+    @Test
+    fun delete_unknown_id() {
+        val repo = repo()
+        repo.delete("x")
+        assertThat(repo.imageIds()).isEmpty()
     }
 
     @Test
@@ -93,6 +109,12 @@ class ImageRepositoryTest {
         assertThat(repo1.imageIds()).isNotEmpty()
         repo1.clear()
         assertThat(repo1.imageIds()).isEmpty()
+        assertThat(File(getFilesDir(), SCAN_DIR_NAME)
+            .listFiles { f -> f.name.endsWith(".jpg") })
+            .isEmpty()
+        assertThat(File(getFilesDir(), THUMBNAIL_DIR_NAME)
+            .listFiles { f -> f.name.endsWith(".jpg") })
+            .isEmpty()
         val repo2 = repo()
         assertThat(repo2.imageIds()).isEmpty()
     }
@@ -129,6 +151,7 @@ class ImageRepositoryTest {
     fun movePage() {
         val repo = repo()
         repo.add(byteArrayOf(101))
+        Thread.sleep(1L) // to avoid file name clashes
         repo.add(byteArrayOf(110))
         val id0 = repo.imageIds().first()
         val id1 = repo.imageIds().last()

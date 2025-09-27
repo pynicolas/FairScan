@@ -16,8 +16,10 @@ package org.fairscan.app
 
 import java.io.File
 
-fun interface ImageTransformations {
+interface ImageTransformations {
 
     fun rotate(inputFile: File, outputFile: File, clockwise: Boolean)
+
+    fun resize(inputFile: File, outputFile: File, maxSize: Int)
 
 }

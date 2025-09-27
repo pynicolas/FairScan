@@ -22,10 +22,19 @@ import org.fairscan.app.data.Page
 import java.io.File
 
 const val SCAN_DIR_NAME = "scanned_pages"
+const val THUMBNAIL_DIR_NAME = "thumbnails"
 
-class ImageRepository(appFilesDir: File, val transformations: ImageTransformations) {
+class ImageRepository(
+    appFilesDir: File,
+    val transformations: ImageTransformations,
+    private val thumbnailSizePx: Int,
+) {
 
     private val scanDir: File = File(appFilesDir, SCAN_DIR_NAME).apply {
+        if (!exists()) mkdirs()
+    }
+
+    private val thumbnailDir: File = File(appFilesDir, THUMBNAIL_DIR_NAME).apply {
         if (!exists()) mkdirs()
     }
 
@@ -73,6 +82,7 @@ class ImageRepository(appFilesDir: File, val transformations: ImageTransformatio
         val fileName = "${System.currentTimeMillis()}.jpg"
         val file = File(scanDir, fileName)
         file.writeBytes(bytes)
+        writeThumbnail(file)
         fileNames.add(fileName)
         saveMetadata()
     }
@@ -110,6 +120,23 @@ class ImageRepository(appFilesDir: File, val transformations: ImageTransformatio
         return null
     }
 
+    fun getThumbnail(id: String): ByteArray? {
+        val thumbFile = getThumbnailFile(id)
+        if (!thumbFile.exists()) {
+            val originalFile = File(scanDir, id)
+            if (!originalFile.exists()) return null
+            writeThumbnail(originalFile)
+        }
+        return if (thumbFile.exists()) thumbFile.readBytes() else null
+    }
+
+    private fun writeThumbnail(originalFile: File) {
+        val thumbFile = getThumbnailFile(originalFile.name)
+        transformations.resize(originalFile, thumbFile, thumbnailSizePx)
+    }
+
+    private fun getThumbnailFile(id: String): File = File(thumbnailDir, id)
+
     fun movePage(id: String, newIndex: Int) {
         if (!fileNames.remove(id)) return
         val safeIndex = newIndex.coerceIn(0, fileNames.size)
@@ -118,17 +145,20 @@ class ImageRepository(appFilesDir: File, val transformations: ImageTransformatio
     }
 
     fun delete(id: String) {
-        val file = File(scanDir, id)
-        file.delete()
+        File(scanDir, id).delete()
+        getThumbnailFile(id).delete()
         fileNames.remove(id)
         saveMetadata()
     }
 
     fun clear() {
         fileNames.clear()
+        thumbnailDir.listFiles()?.forEach {
+            file -> file.delete()
+        }
         scanDir.listFiles()?.forEach {
             file -> file.delete()
         }
-        saveMetadata()
+        saveMetadata() // "empty" json file
     }
 }

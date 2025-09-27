@@ -49,10 +49,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.fairscan.app.THUMBNAIL_SIZE_DP
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
-const val PAGE_LIST_ELEMENT_SIZE_DP = 120
+const val PAGE_LIST_ELEMENT_SIZE_DP = THUMBNAIL_SIZE_DP
 
 data class CommonPageListState(
     val document: DocumentUiModel,
@@ -76,8 +77,7 @@ fun CommonPageList(
     val content: LazyListScope.() -> Unit = {
         itemsIndexed(state.document.pageIds, key = { _, item -> item}) { index, item ->
             ReorderableItem(reorderableLazyListState, key = item) { _ ->
-                // TODO Use small images rather than big ones
-                val image = state.document.load(index)
+                val image = state.document.loadThumbnail(index)
                 if (image != null) {
                     PageThumbnail(image, index, state, Modifier.draggableHandle())
                 }
@@ -103,7 +103,7 @@ fun CommonPageList(
     if (state.document.isEmpty()) {
         Box(
             modifier = Modifier
-                .height(120.dp)
+                .height(THUMBNAIL_SIZE_DP.dp)
                 .addPositionCallback(state.onLastItemPosition, LocalDensity.current, 0.5f)
         ) {}
     }

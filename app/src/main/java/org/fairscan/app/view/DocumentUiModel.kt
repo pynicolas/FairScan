@@ -19,7 +19,8 @@ import kotlinx.collections.immutable.ImmutableList
 
 data class DocumentUiModel(
     val pageIds: ImmutableList<String>,
-    private val imageLoader: (String) -> Bitmap?
+    private val imageLoader: (String) -> Bitmap?,
+    private val thumbnailLoader: (String) -> Bitmap?
 ) {
     fun pageCount(): Int {
         return pageIds.size
@@ -35,5 +36,8 @@ data class DocumentUiModel(
     }
     fun load(index: Int): Bitmap? {
         return imageLoader(pageIds[index])
+    }
+    fun loadThumbnail(index: Int): Bitmap? {
+        return thumbnailLoader(pageIds[index])
     }
 }

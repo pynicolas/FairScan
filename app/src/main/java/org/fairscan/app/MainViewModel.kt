@@ -46,6 +46,8 @@ import org.fairscan.app.view.DocumentUiModel
 import java.io.ByteArrayOutputStream
 import java.io.File
 
+const val THUMBNAIL_SIZE_DP = 120
+
 class MainViewModel(
     private val imageSegmentationService: ImageSegmentationService,
     private val imageRepository: ImageRepository,
@@ -57,9 +59,11 @@ class MainViewModel(
         fun getFactory(context: Context) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+                val density = context.resources.displayMetrics.density
+                val thumbnailSizePx = (THUMBNAIL_SIZE_DP * density).toInt()
                 return MainViewModel(
                     ImageSegmentationService(context),
-                    ImageRepository(context.filesDir, OpenCvTransformations()),
+                    ImageRepository(context.filesDir, OpenCvTransformations(), thumbnailSizePx),
                     PdfFileManager(
                         File(context.cacheDir, "pdfs"),
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
@@ -83,12 +87,13 @@ class MainViewModel(
         _pageIds.map { ids ->
             DocumentUiModel(
                 pageIds = ids,
-                imageLoader = ::getBitmap
+                imageLoader = ::getBitmap,
+                thumbnailLoader = ::getThumbnail,
             )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = DocumentUiModel(persistentListOf(), ::getBitmap)
+            initialValue = DocumentUiModel(persistentListOf(), ::getBitmap, ::getThumbnail)
         )
 
     private val _captureState = MutableStateFlow<CaptureState>(CaptureState.Idle)
@@ -252,6 +257,11 @@ class MainViewModel(
 
     fun getBitmap(id: String): Bitmap? {
         val bytes = imageRepository.getContent(id)
+        return bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
+    }
+
+    fun getThumbnail(id: String): Bitmap? {
+        val bytes = imageRepository.getThumbnail(id)
         return bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
     }
 
