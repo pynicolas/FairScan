@@ -54,12 +54,10 @@ fun detectDocumentQuad(mask: Bitmap, minQuadAreaRatio: Double = 0.02): Quad? {
         val approx = MatOfPoint2f()
         Imgproc.approxPolyDP(contour2f, approx, 0.02 * peri, true)
 
-        if (approx.total() == 4L) {
-            val area = abs(Imgproc.contourArea(approx))
-            if (area > maxArea) {
-                maxArea = area
-                biggest = approx
-            }
+        val area = abs(Imgproc.contourArea(approx))
+        if (area > maxArea) {
+            maxArea = area
+            biggest = approx
         }
     }
 
@@ -67,7 +65,9 @@ fun detectDocumentQuad(mask: Bitmap, minQuadAreaRatio: Double = 0.02): Quad? {
         return null
     }
 
-    val vertices = biggest?.toList()?.map { Point(it.x, it.y) }
+    val vertices = biggest?.toList()
+        ?.map { Point(it.x, it.y) }
+        ?.let { simplifyPolygonToQuad(it) }
     return if (vertices?.size == 4) createQuad(vertices) else null
 }
 

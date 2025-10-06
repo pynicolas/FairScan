@@ -27,6 +27,16 @@ class GeometryTest {
     }
 
     @Test
+    fun intersection() {
+        assertThat(Line(Point(2, 1), Point(4, 3)).intersection(
+            Line(Point(1, 3), Point(5, 1))))
+            .isEqualTo(Point(3, 2))
+        assertThat(Line(Point(2, 1), Point(4, 1)).intersection(
+            Line(Point(0, 2), Point(1, 2))))
+            .isNull()
+    }
+
+    @Test
     fun createQuad() {
         val quad = createQuad(listOf(
             Point(3, 9), Point(1,2), Point(11,12), Point(10, 3)))
@@ -56,5 +66,14 @@ class GeometryTest {
         assertThat(quad.rotate90(5, 100, 50)).isEqualTo(
             quad.rotate90(1, 100, 50)
         )
+    }
+
+    @Test
+    fun test_simplifyPolygonToQuad() {
+        assertThat(
+            simplifyPolygonToQuad(listOf(
+                Point(0,0), Point(10,0), Point(10,10), Point(1,10), Point(0,9))))
+            .isEqualTo(listOf(
+                Point(0,0), Point(10,0), Point(10,10), Point(0,10)))
     }
 }

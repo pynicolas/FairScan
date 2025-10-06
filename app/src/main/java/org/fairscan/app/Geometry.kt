@@ -21,6 +21,28 @@ data class Point(val x: Double, val y: Double) {
 }
 
 data class Line(val from: Point, val to: Point) {
+
+    fun intersection(other: Line, eps: Double = 1e-9): Point? {
+        val x1 = from.x
+        val y1 = from.y
+        val x2 = to.x
+        val y2 = to.y
+        val x3 = other.from.x
+        val y3 = other.from.y
+        val x4 = other.to.x
+        val y4 = other.to.y
+
+        val denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        if (kotlin.math.abs(denom) < eps) {
+            return null // lines are parallel or coincident
+        }
+
+        val px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denom
+        val py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denom
+
+        return if (px.isFinite() && py.isFinite()) Point(px, py) else null
+    }
+
     fun norm(): Double {
         return norm(from, to)
     }
@@ -93,4 +115,50 @@ fun Quad.scaledTo(fromWidth: Int, fromHeight: Int, toWidth: Int, toHeight: Int):
 
 fun Point.scaled(scaleX: Float, scaleY: Float): Point {
     return Point((x * scaleX), (y * scaleY))
+}
+
+fun polygonArea(pts: List<Point>): Double {
+    var area = 0.0
+    for (i in pts.indices) {
+        val j = (i + 1) % pts.size
+        area += pts[i].x * pts[j].y - pts[j].x * pts[i].y
+    }
+    return kotlin.math.abs(area) / 2.0
+}
+
+fun simplifyPolygonToQuad(ptsInput: List<Point>): List<Point> {
+    var pts = ptsInput.toList()
+    while (pts.size > 4) {
+        var bestArea = Double.MAX_VALUE
+        var bestPts: List<Point>? = null
+        val n = pts.size
+        for (i in 0 until n) {
+            val prev = pts[(i - 1 + n) % n]
+            val curr = pts[i]
+            val next = pts[(i + 1) % n]
+            val next2 = pts[(i + 2) % n]
+
+            val l1 = Line(prev, curr)
+            val l2 = Line(next, next2)
+            val inter = l1.intersection(l2) ?: continue
+
+            // Remove curr and next, insert intersection
+            val newPts = mutableListOf<Point>()
+            for (j in 0 until n) {
+                if (j == i || j == (i + 1) % n) continue
+                newPts.add(pts[j])
+                if (j == (i - 1 + n) % n) newPts.add(inter)
+            }
+
+            val area = polygonArea(newPts)
+            if (area < bestArea) {
+                bestArea = area
+                bestPts = newPts
+            }
+        }
+
+        if (bestPts == null) break
+        pts = bestPts
+    }
+    return pts
 }
