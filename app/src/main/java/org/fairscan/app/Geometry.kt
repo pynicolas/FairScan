@@ -15,9 +15,10 @@
 package org.fairscan.app
 
 import kotlin.math.atan2
-import kotlin.math.sqrt
 
-data class Point(val x: Int, val y: Int)
+data class Point(val x: Double, val y: Double) {
+    constructor(x: Int, y: Int) : this (x.toDouble(), y.toDouble())
+}
 
 data class Line(val from: Point, val to: Point) {
     fun norm(): Double {
@@ -28,7 +29,7 @@ data class Line(val from: Point, val to: Point) {
 fun norm(p1: Point, p2: Point): Double {
     val dx = (p2.x - p1.x)
     val dy = (p2.y - p1.y)
-    return sqrt(dx.toDouble() * dx + dy * dy)
+    return kotlin.math.hypot(dx, dy)
 }
 
 data class Quad(
@@ -72,8 +73,8 @@ fun createQuad(vertices: List<Point>): Quad {
     val cy = vertices.map { it.y }.average()
 
     // Sort by angle from centroid (clockwise)
-    val sorted = vertices.sortedWith(compareBy<Point> {
-        atan2((it.y - cy).toDouble(), (it.x - cx).toDouble())
+    val sorted = vertices.sortedWith(compareBy {
+        atan2(it.y - cy, it.x - cx)
     })
 
     return Quad(sorted[0], sorted[1], sorted[2], sorted[3])
@@ -91,5 +92,5 @@ fun Quad.scaledTo(fromWidth: Int, fromHeight: Int, toWidth: Int, toHeight: Int):
 }
 
 fun Point.scaled(scaleX: Float, scaleY: Float): Point {
-    return Point((x * scaleX).toInt(), (y * scaleY).toInt())
+    return Point((x * scaleX), (y * scaleY))
 }

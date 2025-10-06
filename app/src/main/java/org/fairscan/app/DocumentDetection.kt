@@ -67,7 +67,7 @@ fun detectDocumentQuad(mask: Bitmap, minQuadAreaRatio: Double = 0.02): Quad? {
         return null
     }
 
-    val vertices = biggest?.toList()?.map { Point(it.x.toInt(), it.y.toInt()) }
+    val vertices = biggest?.toList()?.map { Point(it.x, it.y) }
     return if (vertices?.size == 4) createQuad(vertices) else null
 }
 
