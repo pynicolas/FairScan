@@ -1,0 +1,52 @@
+<resources>
+    <string name="about">关于</string>
+    <string name="add_page">添加页面</string>
+    <string name="app_name" translatable="false">FairScan</string>
+    <string name="app_tagline">一个简单且克制的文档扫描应用</string>
+    <string name="back">返回</string>
+    <string name="camera_permission_denied">相机权限被拒绝</string>
+    <string name="camera_permission_rationale">应用请求相机权限访问扫描文档。捕获的图像仅存储在此设备上，并且在关闭当前文档时将被删除。</string>
+    <string name="cancel">取消</string>
+    <string name="clear_text">清除文字</string>
+    <string name="contact">联系人</string>
+    <string name="creating_pdf">正在创建 PDF…</string>
+    <string name="delete_page">删除页面</string>
+    <string name="delete_page_warning">是否要删除此页面?</string>
+    <string name="developer">开发者</string>
+    <string name="discard_scan">放弃扫描</string>
+    <string name="end_scan">结束扫描</string>
+    <string name="error">错误: %1$s</string>
+    <string name="error_no_document">未检测到任何文档</string>
+    <string name="error_no_pdf_app">未找到可打开PDF的应用</string>
+    <string name="error_save">保存PDF失败</string>
+    <string name="export_pdf">导出PDF</string>
+    <string name="filename">文件名字</string>
+    <string name="file_size">文件大小: %1$s</string>
+    <string name="grant_permission">授予权限</string>
+    <string name="last_saved_pdf_files">最近保存的PDF:</string>
+    <string name="libraries">库</string>
+    <string name="libraries_intro">本应用使用的开源库:</string>
+    <string name="libraries_open_source">开源库</string>
+    <string name="license">许可证</string>
+    <string name="licensed_under">本应用根据GNU General Public License v3.0获得许可。</string>
+    <string name="new_document_warning">当前扫描将丢失。是否继续？</string>
+    <string name="open">打开</string>
+    <string name="open_pdf">打开 PDF</string>
+    <string name="pdf_saved_to">PDF 保存到</string>
+    <string name="resume">恢复</string>
+    <string name="save">保存</string>
+    <string name="scan_button">新建扫描</string>
+    <string name="scan_in_progress">正在进行扫描</string>
+    <string name="share">共享</string>
+    <string name="share_pdf">共享 PDF</string>
+    <string name="storage_permission_denied">无法保存PDF文件：权限被拒绝</string>
+    <string name="unknown_size">未知大小</string>
+    <string name="version">版本</string>
+    <string name="view_the_full_license">查看完整许可证</string>
+    <string name="view_full_list">查看完整列表</string>
+    <string name="yes">是</string>
+    <plurals name="page_count">
+        <item quantity="one">%d 页</item>
+        <item quantity="other">%d 页</item>
+    </plurals>
+</resources>
