@@ -1,0 +1,52 @@
+<resources>
+    <string name="about">O aplikaci</string>
+    <string name="add_page">Přidat stránku</string>
+    <string name="app_name" translatable="false">FairScan</string>
+    <string name="app_tagline">Jednoduchá a respektující aplikace pro skenování vašich dokumentů</string>
+    <string name="back">Zpět</string>
+    <string name="camera_permission_denied">Byl odepřen přístup k fotoaparátu</string>
+    <string name="camera_permission_rationale">Aby bylo možné skenovat dokumenty, tato aplikace potřebuje přístup k fotoaparátu. Nasnímané obrázky jsou ukládány pouze do tohoto zařízení a budou smazány, když zavřete stávající dokument.</string>
+    <string name="cancel">Zrušit</string>
+    <string name="clear_text">Smazat text</string>
+    <string name="contact">Kontakt</string>
+    <string name="creating_pdf">Vytváření PDF…</string>
+    <string name="delete_page">Smazat stránku</string>
+    <string name="delete_page_warning">Chcete smazat tuto stránku?</string>
+    <string name="developer">Vývojář</string>
+    <string name="discard_scan">Zrušit skenování</string>
+    <string name="end_scan">Ukončit skenování</string>
+    <string name="error">Chyba: %1$s</string>
+    <string name="error_no_document">Nebyl rozpoznán žádná dokument</string>
+    <string name="error_no_pdf_app">Nebyla nazelena žádná aplikace pro otevření PDF</string>
+    <string name="error_save">Chyba při ukládání PDF</string>
+    <string name="export_pdf">Exportovat PDF</string>
+    <string name="filename">Název souboru</string>
+    <string name="file_size">Velikost souboru: %1$s</string>
+    <string name="grant_permission">Povolit přístup</string>
+    <string name="last_saved_pdf_files">Poslední PDF uložené do stažených:</string>
+    <string name="libraries">Kníhovny</string>
+    <string name="libraries_intro">Tato aplikace využívá několik open-source knihoven včetně:</string>
+    <string name="libraries_open_source">Open-source knihovny</string>
+    <string name="license">Licence</string>
+    <string name="licensed_under">Tato aplikace je licencována pod GNU General Public License v3.0.</string>
+    <string name="new_document_warning">Toto skenování bude ztraceno. Chcete pokračovat?</string>
+    <string name="open">Otevřít</string>
+    <string name="open_pdf">Otevřít PDF</string>
+    <string name="pdf_saved_to">PDF bylo uloženo do stažených</string>
+    <string name="resume">Obnovit</string>
+    <string name="save">Uložit</string>
+    <string name="scan_button">Nové skenování</string>
+    <string name="scan_in_progress">Probíhá skenování</string>
+    <string name="share">Sdílet</string>
+    <string name="share_pdf">Sdílet PDF</string>
+    <string name="storage_permission_denied">Nelze uložit PDF: přístup zakázán</string>
+    <string name="unknown_size">Neznámá velikost</string>
+    <string name="version">Verze</string>
+    <string name="view_the_full_license">Zobrazit úplnou licenci</string>
+    <string name="view_full_list">Zobrazit úplný seznam</string>
+    <string name="yes">Ano</string>
+    <plurals name="page_count">
+        <item quantity="one">%d stránka</item>
+        <item quantity="other">%d stránek</item>
+    </plurals>
+</resources>
