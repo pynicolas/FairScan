@@ -46,7 +46,9 @@
     <string name="view_full_list">Zobrazit úplný seznam</string>
     <string name="yes">Ano</string>
     <plurals name="page_count">
-        <item quantity="one">%d stránka</item>
-        <item quantity="other">%d stránek</item>
-    </plurals>
+        <item quantity="one">%d stránka</item>     <!-- 1 -->
+        <item quantity="few">%d stránky</item>     <!-- 2–4 -->
+        <item quantity="many">%d stránek</item>    <!-- 0, 5–... -->
+        <item quantity="other">%d stránky</item>   <!-- fallback -->
+     </plurals>
 </resources>
