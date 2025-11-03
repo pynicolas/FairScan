@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.Copy
 import java.net.URL
 
-val modelVersion = "v1.0.0"
+val modelVersion = "v1.1.0"
 val modelFileName = "fairscan-segmentation-model.tflite"
 val modelUrl = "https://github.com/pynicolas/fairscan-segmentation-model/releases/download/$modelVersion/$modelFileName"
 
