@@ -18,6 +18,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Environment
+import android.os.SystemClock
 import android.util.Log
 import androidx.camera.core.ImageProxy
 import androidx.core.net.toUri
@@ -50,6 +51,7 @@ const val THUMBNAIL_SIZE_DP = 120
 
 class MainViewModel(
     private val imageSegmentationService: ImageSegmentationService,
+    private val quadDetectionService: QuadDetectionService,
     private val imageRepository: ImageRepository,
     private val pdfFileManager: PdfFileManager,
     private val recentDocumentsDataStore: DataStore<RecentDocuments>,
@@ -63,6 +65,7 @@ class MainViewModel(
                 val thumbnailSizePx = (THUMBNAIL_SIZE_DP * density).toInt()
                 return MainViewModel(
                     ImageSegmentationService(context),
+                    QuadDetectionService(context),
                     ImageRepository(context.filesDir, OpenCvTransformations(), thumbnailSizePx),
                     PdfFileManager(
                         File(context.cacheDir, "pdfs"),
@@ -186,11 +189,17 @@ class MainViewModel(
         val segmentation = imageSegmentationService.runSegmentationAndReturn(bitmap, 0)
         if (segmentation != null) {
             val mask = segmentation.segmentation.toBinaryMask()
-            val quad = detectDocumentQuad(mask)
-            if (quad != null) {
-                val resizedQuad = quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
-                corrected = extractDocument(bitmap, resizedQuad, imageProxy.imageInfo.rotationDegrees)
+            var quad = detectDocumentQuad(mask)
+            if (quad == null) {
+                val startTime = SystemClock.uptimeMillis()
+                quad = quadDetectionService.detectQuadrilateral(mask)
+                val inferenceTime = SystemClock.uptimeMillis() - startTime
+                Log.i("Quad", "Inferred quad in $inferenceTime ms")
             }
+            // TODO maybe we shouldn't use the inferred quad
+            //  if we are almost sure it's not a document
+            val resizedQuad = quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
+            corrected = extractDocument(bitmap, resizedQuad, imageProxy.imageInfo.rotationDegrees)
         }
         return@withContext corrected
     }
