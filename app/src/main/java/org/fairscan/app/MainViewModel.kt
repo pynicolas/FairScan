@@ -76,7 +76,6 @@ class MainViewModel(
 
     private var _liveAnalysisState = MutableStateFlow(LiveAnalysisState())
     val liveAnalysisState: StateFlow<LiveAnalysisState> = _liveAnalysisState.asStateFlow()
-    private var lastSuccessfulLiveAnalysisState: LiveAnalysisState? = null
 
     private val _navigationState = MutableStateFlow(NavigationState.initial())
     val currentScreen: StateFlow<Screen> = _navigationState.map { it.current }
@@ -110,14 +109,10 @@ class MainViewModel(
                         inferenceTime = it.inferenceTime,
                         binaryMask = binaryMask,
                         documentQuad = detectDocumentQuad(binaryMask),
-                        timestamp = System.currentTimeMillis(),
                     )
                 }
                 .collect {
                     _liveAnalysisState.value = it
-                    if (it.documentQuad != null) {
-                        lastSuccessfulLiveAnalysisState = it
-                    }
                 }
         }
     }
@@ -191,22 +186,7 @@ class MainViewModel(
         val segmentation = imageSegmentationService.runSegmentationAndReturn(bitmap, 0)
         if (segmentation != null) {
             val mask = segmentation.segmentation.toBinaryMask()
-            var quad = detectDocumentQuad(mask)
-            if (quad == null) {
-                val now = System.currentTimeMillis()
-                lastSuccessfulLiveAnalysisState?.timestamp?.let {
-                    val offset = now - it
-                    Log.i("Quad", "Last successful live analysis was $offset ms ago")
-                }
-                val recentLive = lastSuccessfulLiveAnalysisState?.takeIf {
-                    now - it.timestamp <= 1500
-                }
-                val rotations = (-imageProxy.imageInfo.rotationDegrees / 90) + 4
-                quad = recentLive?.documentQuad?.rotate90(rotations, mask.width, mask.height)
-                if (quad != null) {
-                    Log.i("Quad", "Using quad taken in live analysis; rotations=$rotations")
-                }
-            }
+            val quad = detectDocumentQuad(mask)
             if (quad != null) {
                 val resizedQuad = quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
                 corrected = extractDocument(bitmap, resizedQuad, imageProxy.imageInfo.rotationDegrees)
