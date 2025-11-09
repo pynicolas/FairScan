@@ -16,8 +16,13 @@ package org.fairscan.app
 
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
+import org.fairscan.app.ImageSegmentationService.Segmentation
+import org.fairscan.app.quad.detectDocumentQuadFromProbmap
+import org.fairscan.app.quad.findQuadFromRightAngles
+import org.fairscan.app.quad.minAreaRect
 import org.opencv.android.Utils
 import org.opencv.core.Core
+import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.MatOfPoint
 import org.opencv.core.MatOfPoint2f
@@ -26,14 +31,39 @@ import org.opencv.imgproc.Imgproc
 import kotlin.math.abs
 import kotlin.math.max
 
-fun detectDocumentQuad(mask: Bitmap, minQuadAreaRatio: Double = 0.02): Quad? {
-    val mat = Mat()
-    Utils.bitmapToMat(mask, mat)
+fun detectDocumentQuad(mask: Segmentation, isLiveAnalysis: Boolean, minQuadAreaRatio: Double = 0.02): Quad? {
+    val mat = mask.toMat()
+    val (biggest: MatOfPoint2f?, area) = biggestContour(mat)
+    var vertices: List<Point>?
+    if (biggest != null && biggest.total() == 4L && area > mask.width * mask.height * minQuadAreaRatio) {
+        vertices = biggest.toList()?.map { Point(it.x, it.y) }
+    } else {
 
-    val gray = Mat()
-    Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY)
+        // Fallback 1: adjust threshold
+        val thresholds =
+            if (isLiveAnalysis) listOf(25.0, 50.0, 75.0) else (0..12).map { 0.2 + it * 0.05 }
+        vertices = detectDocumentQuadFromProbmap(mat, thresholds)
+            ?.map { Point(it.x, it.y) }
+        if (vertices == null && biggest != null && biggest.total() > 4) {
 
-    val refinedMask = refineMask(gray)
+            // Fallback 2: look for right angles
+            val polygon = biggest.toList().map { Point(it.x, it.y) }
+            vertices = findQuadFromRightAngles(polygon, mask.width, mask.height)
+            if (vertices == null && !isLiveAnalysis) {
+
+                // Fallback 3: bounding rectangle
+                vertices = minAreaRect(polygon, mask.width, mask.height)
+            }
+        }
+    }
+    return if (vertices?.size == 4) createQuad(vertices) else null
+}
+
+private fun biggestContour(mat: Mat): Pair<MatOfPoint2f?, Double> {
+    val mat8u = Mat()
+    mat.convertTo(mat8u, CvType.CV_8UC1, 255.0)
+
+    val refinedMask = refineMask(mat8u)
 
     val blurred = Mat()
     Imgproc.GaussianBlur(refinedMask, blurred, Size(5.0, 5.0), 0.0)
@@ -54,21 +84,13 @@ fun detectDocumentQuad(mask: Bitmap, minQuadAreaRatio: Double = 0.02): Quad? {
         val approx = MatOfPoint2f()
         Imgproc.approxPolyDP(contour2f, approx, 0.02 * peri, true)
 
-        if (approx.total() == 4L) {
-            val area = abs(Imgproc.contourArea(approx))
-            if (area > maxArea) {
-                maxArea = area
-                biggest = approx
-            }
+        val area = abs(Imgproc.contourArea(approx))
+        if (area > maxArea) {
+            maxArea = area
+            biggest = approx
         }
     }
-
-    if (maxArea < mask.width * mask.height * minQuadAreaRatio) {
-        return null
-    }
-
-    val vertices = biggest?.toList()?.map { Point(it.x, it.y) }
-    return if (vertices?.size == 4) createQuad(vertices) else null
+    return Pair(biggest, maxArea)
 }
 
 /**
@@ -77,7 +99,7 @@ fun detectDocumentQuad(mask: Bitmap, minQuadAreaRatio: Double = 0.02): Quad? {
 fun refineMask(original: Mat): Mat {
     // Step 0: Ensure the mask is binary (just in case)
     val binaryMask = Mat()
-    Imgproc.threshold(original, binaryMask, 0.0, 255.0, Imgproc.THRESH_BINARY)
+    Imgproc.threshold(original, binaryMask, 128.0, 255.0, Imgproc.THRESH_BINARY)
 
     // Step 1: Closing (fills small holes)
     val kernelClose = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(5.0, 5.0))

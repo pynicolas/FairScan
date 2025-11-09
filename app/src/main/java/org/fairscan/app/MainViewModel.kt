@@ -105,11 +105,12 @@ class MainViewModel(
             imageSegmentationService.segmentation
                 .filterNotNull()
                 .map {
+                    // TODO Should we really call toBinaryMask if it's used only in debug mode?
                     val binaryMask = it.segmentation.toBinaryMask()
                     LiveAnalysisState(
                         inferenceTime = it.inferenceTime,
                         binaryMask = binaryMask,
-                        documentQuad = detectDocumentQuad(binaryMask),
+                        documentQuad = detectDocumentQuad(it.segmentation, isLiveAnalysis = true),
                         timestamp = System.currentTimeMillis(),
                     )
                 }
@@ -190,8 +191,8 @@ class MainViewModel(
         val bitmap = imageProxy.toBitmap()
         val segmentation = imageSegmentationService.runSegmentationAndReturn(bitmap, 0)
         if (segmentation != null) {
-            val mask = segmentation.segmentation.toBinaryMask()
-            var quad = detectDocumentQuad(mask)
+            val mask = segmentation.segmentation
+            var quad = detectDocumentQuad(mask, isLiveAnalysis = false)
             if (quad == null) {
                 val now = System.currentTimeMillis()
                 lastSuccessfulLiveAnalysisState?.timestamp?.let {
