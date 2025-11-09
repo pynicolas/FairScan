@@ -192,7 +192,8 @@ class MainViewModel(
             var quad = detectDocumentQuad(mask)
             if (quad == null) {
                 val startTime = SystemClock.uptimeMillis()
-                quad = quadDetectionService.detectQuadrilateral(mask)
+                val inputMask = segmentation.segmentation.quadModelInput
+                quad = quadDetectionService.detectQuadrilateral(inputMask)
                 val inferenceTime = SystemClock.uptimeMillis() - startTime
                 Log.i("Quad", "Inferred quad in $inferenceTime ms")
             }

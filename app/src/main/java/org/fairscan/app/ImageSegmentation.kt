@@ -117,7 +117,7 @@ class ImageSegmentationService(private val context: Context) {
         interpreter.run(tensorImage.tensorBuffer.buffer, outputBuffer)
         outputBuffer.rewind()
         val mask = generateMaskFromOutputBuffer(outputBuffer, w, h)
-        return Segmentation(mask)
+        return Segmentation(mask, createQuadModelInputFromMask(outputBuffer, w, h))
     }
 
     private fun generateMaskFromOutputBuffer(outputBuffer: ByteBuffer, width: Int, height: Int): Bitmap {
@@ -137,8 +137,36 @@ class ImageSegmentationService(private val context: Context) {
         return bitmap
     }
 
-    data class Segmentation(val mask: Bitmap) {
+    private fun createQuadModelInputFromMask(outputBuffer: ByteBuffer, width: Int, height: Int): FloatArray {
+        outputBuffer.rewind()
+        val maskFloats = FloatArray(width * height)
+        outputBuffer.asFloatBuffer()[maskFloats]
+        for (i in maskFloats.indices) {
+            maskFloats[i] = maskFloats[i].coerceIn(0f, 1f)
+        }
+        return maskFloats
+    }
+
+    data class Segmentation(val mask: Bitmap, val quadModelInput: FloatArray) {
         fun toBinaryMask(): Bitmap = mask
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Segmentation
+
+            if (mask != other.mask) return false
+            if (!quadModelInput.contentEquals(other.quadModelInput)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = mask.hashCode()
+            result = 31 * result + quadModelInput.contentHashCode()
+            return result
+        }
     }
 
     data class SegmentationResult(
