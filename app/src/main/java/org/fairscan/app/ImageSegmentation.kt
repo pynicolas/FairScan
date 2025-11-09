@@ -28,6 +28,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.opencv.core.CvType
+import org.opencv.core.Mat
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.support.common.FileUtil
@@ -116,29 +118,36 @@ class ImageSegmentationService(private val context: Context) {
         outputBuffer.rewind()
         interpreter.run(tensorImage.tensorBuffer.buffer, outputBuffer)
         outputBuffer.rewind()
-        val mask = generateMaskFromOutputBuffer(outputBuffer, w, h)
-        return Segmentation(mask)
+        return Segmentation(outputToArray(outputBuffer, w, h), w, h)
     }
 
-    private fun generateMaskFromOutputBuffer(outputBuffer: ByteBuffer, width: Int, height: Int): Bitmap {
+    private fun outputToArray(outputBuffer: ByteBuffer, width: Int, height: Int): FloatArray {
         outputBuffer.rewind()
-        val floatArray = FloatArray(width * height)
-        outputBuffer.asFloatBuffer()[floatArray]
-
-        val pixels = IntArray(width * height)
-        for (i in floatArray.indices) {
-            val value = floatArray[i].coerceIn(0f, 1f)
-            val gray = (value * 255).toInt()
-            pixels[i] = Color.rgb(gray, gray, gray)
+        val maskFloats = FloatArray(width * height)
+        outputBuffer.asFloatBuffer()[maskFloats]
+        for (i in maskFloats.indices) {
+            maskFloats[i] = maskFloats[i].coerceIn(0f, 1f)
         }
-
-        val bitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
-        return bitmap
+        return maskFloats
     }
 
-    data class Segmentation(val mask: Bitmap) {
-        fun toBinaryMask(): Bitmap = mask
+    data class Segmentation(private val probmap: FloatArray, val width: Int, val height: Int) {
+        fun get(x: Int, y: Int): Float = probmap[y * width + x]
+        fun toBinaryMask(): Bitmap {
+            val bmp = createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val pixels = IntArray(width * height)
+            for (i in probmap.indices) {
+                val v = (probmap[i].coerceIn(0f, 1f) * 255f).toInt()
+                pixels[i] = Color.rgb(v, v, v)
+            }
+            bmp.setPixels(pixels, 0, width, 0, 0, width, height)
+            return bmp
+        }
+        fun toMat(): Mat {
+            val mat = Mat(height, width, CvType.CV_32FC1)
+            mat.put(0, 0, probmap)
+            return mat
+        }
     }
 
     data class SegmentationResult(
