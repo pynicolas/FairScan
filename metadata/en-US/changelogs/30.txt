@@ -1,0 +1,2 @@
+- Improved automatic document detection, especially for books, magazines, and pages with folded or missing corners
+- Added Czech translation
