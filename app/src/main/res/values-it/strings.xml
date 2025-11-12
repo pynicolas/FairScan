@@ -39,6 +39,8 @@
     <string name="share">Condividi</string>
     <string name="share_pdf">Condividi PDF</string>
     <string name="storage_permission_denied">Impossibile salvare il file PDF: autorizzazione negata</string>
+    <string name="turn_off_torch">Spegni la torcia</string>
+    <string name="turn_on_torch">Accendi la torcia</string>
     <string name="unknown_size">Dimensione sconosciuta</string>
     <string name="version">Versione</string>
     <string name="view_the_full_license">Vedi la licenza completa</string>

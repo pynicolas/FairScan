@@ -45,6 +45,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -93,7 +97,8 @@ data class CameraUiState(
     val captureState: CaptureState,
     val showDetectionError: Boolean,
     val isLandscape: Boolean,
-    val isDebugMode: Boolean
+    val isDebugMode: Boolean,
+    val isTorchEnabled: Boolean,
 )
 
 const val CAPTURED_IMAGE_DISPLAY_DURATION = 1500L
@@ -112,6 +117,7 @@ fun CameraScreen(
     val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
     val thumbnailCoords = remember { mutableStateOf(Offset.Zero) }
     var isDebugMode by remember { mutableStateOf(false) }
+    var isTorchEnabled by remember { mutableStateOf(false) }
 
     BackHandler { navigation.back() }
 
@@ -168,7 +174,8 @@ fun CameraScreen(
             captureState,
             showDetectionError,
             isLandscape = isLandscape,
-            isDebugMode),
+            isDebugMode,
+            isTorchEnabled),
         onCapture = {
             previewView?.bitmap?.let {
                 Log.i("FairScan", "Pressed <Capture>")
@@ -180,6 +187,9 @@ fun CameraScreen(
         },
         onFinalizePressed = onFinalizePressed,
         onDebugModeSwitched = { isDebugMode = !isDebugMode },
+        onTorchSwitched = {
+            isTorchEnabled = !isTorchEnabled
+            captureController.cameraControl?.enableTorch(isTorchEnabled) },
         thumbnailCoords = thumbnailCoords,
         navigation = navigation
     )
@@ -193,6 +203,7 @@ private fun CameraScreenScaffold(
     onCapture: () -> Unit,
     onFinalizePressed: () -> Unit,
     onDebugModeSwitched: () -> Unit,
+    onTorchSwitched: () -> Unit,
     thumbnailCoords: MutableState<Offset>,
     navigation: Navigation,
 ) {
@@ -225,6 +236,7 @@ private fun CameraScreenScaffold(
                     cameraPreview,
                     cameraUiState,
                     onCapture,
+                    onTorchSwitched,
                     modifier.clickable(onClick = onPageCountClick))
         }
         if (cameraUiState.captureState is CaptureState.CapturePreview) {
@@ -238,6 +250,7 @@ private fun CameraPreviewBox(
     cameraPreview: @Composable (() -> Unit),
     cameraUiState: CameraUiState,
     onCapture: () -> Unit,
+    onTorchSwitched: () -> Unit,
     modifier: Modifier,
 ) {
     Box(
@@ -257,6 +270,20 @@ private fun CameraPreviewBox(
                 .align(Alignment.BottomCenter)
                 .padding(16.dp)
         )
+        IconButton(
+            onClick = onTorchSwitched,
+            modifier = Modifier.align(Alignment.BottomStart)
+        ) {
+            val torchEnabled = cameraUiState.isTorchEnabled
+            val icon = if (torchEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff
+            Icon(
+                imageVector = icon,
+                contentDescription =
+                    stringResource(
+                        if (torchEnabled) R.string.turn_off_torch else R.string.turn_on_torch),
+                tint = Color.White
+            )
+        }
     }
 }
 
@@ -479,10 +506,11 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
                     listState = LazyListState(),
                 ),
             cameraUiState = CameraUiState(pageCount = 4, LiveAnalysisState(), captureState,
-                false, rotationDegrees > 0, false),
+                false, rotationDegrees > 0, false, false),
             onCapture = {},
             onFinalizePressed = {},
             onDebugModeSwitched = {},
+            onTorchSwitched = {},
             thumbnailCoords = thumbnailCoords,
             navigation = dummyNavigation()
         )

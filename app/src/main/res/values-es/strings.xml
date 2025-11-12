@@ -39,6 +39,8 @@
     <string name="share">Compartir</string>
     <string name="share_pdf">Compartir PDF</string>
     <string name="storage_permission_denied">No se puede guardar el archivo PDF: permiso denegado</string>
+    <string name="turn_off_torch">Apagar linterna</string>
+    <string name="turn_on_torch">Encender linterna</string>
     <string name="unknown_size">Tamaño desconocido</string>
     <string name="version">Versión</string>
     <string name="view_the_full_license">Ver la licencia completa</string>

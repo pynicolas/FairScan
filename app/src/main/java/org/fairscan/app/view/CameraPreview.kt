@@ -18,6 +18,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
+import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
@@ -136,7 +137,9 @@ fun bindCameraUseCases(
     captureController.imageCapture = imageCapture
 
     val cameraProvider = cameraProviderFuture.get()
-    cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, imageAnalysis, preview, imageCapture)
+    val camera = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector,
+        imageAnalysis, preview, imageCapture)
+    captureController.cameraControl = camera.cameraControl
 }
 
 @Composable
@@ -197,6 +200,7 @@ fun replaceColor(bitmap: Bitmap, toReplace: Color, replacement: Color): Bitmap {
 fun Point.toOffset() = Offset(x.toFloat(), y.toFloat())
 
 class CameraCaptureController {
+    var cameraControl: CameraControl? = null
     var imageCapture: ImageCapture? = null
     private val executor = Executors.newSingleThreadExecutor()
 
