@@ -40,6 +40,8 @@
     <string name="share">Share</string>
     <string name="share_pdf">Share PDF</string>
     <string name="storage_permission_denied">Cannot save PDF file: permission was denied</string>
+    <string name="turn_off_torch">Turn off torch</string>
+    <string name="turn_on_torch">Turn on torch</string>
     <string name="unknown_size">Unknown size</string>
     <string name="version">Version</string>
     <string name="view_the_full_license">View the full license</string>

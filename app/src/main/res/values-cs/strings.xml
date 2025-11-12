@@ -40,6 +40,8 @@
     <string name="share">Sdílet</string>
     <string name="share_pdf">Sdílet PDF</string>
     <string name="storage_permission_denied">Nelze uložit PDF: přístup zakázán</string>
+    <string name="turn_off_torch">Vypnout svítilnu</string>
+    <string name="turn_on_torch">Zapnout svítilnu</string>
     <string name="unknown_size">Neznámá velikost</string>
     <string name="version">Verze</string>
     <string name="view_the_full_license">Zobrazit úplnou licenci</string>

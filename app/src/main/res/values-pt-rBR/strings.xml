@@ -39,6 +39,8 @@
     <string name="share">Compartilhar</string>
     <string name="share_pdf">Compartilhar PDF</string>
     <string name="storage_permission_denied">Não foi possível salvar o arquivo PDF: permissão negada</string>
+    <string name="turn_off_torch">Desligar lanterna</string>
+    <string name="turn_on_torch">Ligar lanterna</string>
     <string name="unknown_size">Tamanho desconhecido</string>
     <string name="version">Versão</string>
     <string name="view_the_full_license">Ver licença completa</string>

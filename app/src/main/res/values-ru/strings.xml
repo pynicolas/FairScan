@@ -39,6 +39,8 @@
     <string name="share">Поделиться</string>
     <string name="share_pdf">Поделиться PDF</string>
     <string name="storage_permission_denied">Не удается сохранить файл PDF: в разрешении отказано</string>
+    <string name="turn_off_torch">Выключить фонарик</string>
+    <string name="turn_on_torch">Включить фонарик</string>
     <string name="unknown_size">Неизвестный размер</string>
     <string name="version">Версия</string>
     <string name="view_the_full_license">Просмотреть полную лицензию</string>

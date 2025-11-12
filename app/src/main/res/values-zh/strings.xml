@@ -39,6 +39,8 @@
     <string name="share">共享</string>
     <string name="share_pdf">共享 PDF</string>
     <string name="storage_permission_denied">无法保存PDF文件：权限被拒绝</string>
+    <string name="turn_off_torch">关闭手电筒</string>
+    <string name="turn_on_torch">打开手电筒</string>
     <string name="unknown_size">未知大小</string>
     <string name="version">版本</string>
     <string name="view_the_full_license">查看完整许可证</string>
