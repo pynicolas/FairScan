@@ -10,25 +10,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/pynicolas/FairScan/releases">
-    <img src="https://img.shields.io/github/v/release/pynicolas/FairScan?logo=github" />
-  </a>
-  <a href="LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/pynicolas/FairScan">
-  </a>
-  <br><br>
-  Get it on :
-  <a href="https://f-droid.org/en/packages/org.fairscan.app/">
-    F-Droid
-  </a> | 
-  <a href="https://play.google.com/store/apps/details?id=org.fairscan.app">
-    Play Store
-  </a> |
-  <a href="https://github.com/pynicolas/FairScan/releases">
-    GitHub
-  </a>
+  <a href="https://github.com/pynicolas/FairScan/releases"><img src="https://img.shields.io/github/v/release/pynicolas/FairScan?logo=github" /></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/pynicolas/FairScan?color=blue"></a>
 </p>
-
+<h3 align="center">
+  <b>Get it on:</b>
+  <a href="https://f-droid.org/en/packages/org.fairscan.app/">F-Droid</a> ·
+  <a href="https://play.google.com/store/apps/details?id=org.fairscan.app">Play Store</a> ·
+  <a href="https://github.com/pynicolas/FairScan/releases">GitHub</a>
+</h3>
 
 ---
 
@@ -52,7 +42,8 @@ And **respectful**: open source, minimal permissions, no tracking, no ads.
 
 ## Features
 
-- **Clear interface**, easy scanning process
+- **Clear, distraction-free interface**
+- **Easy scanning process**: scan → preview → share
 - **Automatic document detection** using a custom segmentation model
 - **Automatic perspective correction**
 - **Automatic image enhancement**
@@ -60,21 +51,6 @@ And **respectful**: open source, minimal permissions, no tracking, no ads.
 - **Fully offline** – the app has *no* internet permission
 - **Minimal permissions**
 - **Open source**, GPLv3
-
----
-
-## Why FairScan?
-
-Many document scanners offer dozens of options, require an account, and track users.
-FairScan takes a different approach:
-
-- single feature: scan a document to PDF
-- distraction-free interface
-- automatic image processing
-- everything done on-device
-- no accounts, no analytics, no ads
-
-Just scan → preview → share.
 
 ---
 
