@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="app/src/main/ic_launcher-playstore.png" alt="FairScan icon" width="120" />
+  <img src="metadata/en-US/images/icon.png" alt="FairScan icon" width="120" />
 </p>
 
 <h1 align="center">FairScan</h1>
