@@ -16,7 +16,7 @@
 <h3 align="center">
   <b>Get it on:</b>
   <a href="https://f-droid.org/en/packages/org.fairscan.app/">F-Droid</a> ·
-  <a href="https://play.google.com/store/apps/details?id=org.fairscan.app">Play Store</a> ·
+  <a href="https://play.google.com/store/apps/details?id=org.fairscan.app">Google Play</a> ·
   <a href="https://github.com/pynicolas/FairScan/releases">GitHub</a>
 </h3>
 
