@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui.components
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text

@@ -12,25 +12,16 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui
+package org.fairscan.app.ui.state
 
-import android.net.Uri
-import org.fairscan.app.data.GeneratedPdf
-import java.io.File
+import android.graphics.Bitmap
+import androidx.compose.runtime.Immutable
+import org.fairscan.app.domain.Quad
 
-data class PdfGenerationUiState(
-    val isGenerating: Boolean = false,
-    val generatedPdf: GeneratedPdf? = null,
-    val desiredFilename: String = "",
-    val savedFileUri: Uri? = null,
-    val hasSharedPdf: Boolean = false,
-    val errorMessage: String? = null,
-) {
-    val hasSavedOrSharedPdf get() = savedFileUri != null || hasSharedPdf
-}
-
-data class RecentDocumentUiState(
-    val file: File,
-    val saveTimestamp: Long,
-    val pageCount: Int,
+@Immutable
+data class LiveAnalysisState(
+    val inferenceTime: Long = 0L,
+    val binaryMask: Bitmap? = null,
+    val documentQuad: Quad? = null,
+    val timestamp: Long = System.currentTimeMillis(),
 )

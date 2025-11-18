@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui.components
 
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.fairscan.app.THUMBNAIL_SIZE_DP
+import org.fairscan.app.ui.state.DocumentUiModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 

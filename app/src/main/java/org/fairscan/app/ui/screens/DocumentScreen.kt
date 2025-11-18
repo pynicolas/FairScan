@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -55,8 +55,16 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.toImmutableList
 import net.engawapg.lib.zoomable.ZoomState
 import net.engawapg.lib.zoomable.zoomable
-import org.fairscan.app.Navigation
+import org.fairscan.app.ui.Navigation
 import org.fairscan.app.R
+import org.fairscan.app.ui.components.CommonPageListState
+import org.fairscan.app.ui.components.ConfirmationDialog
+import org.fairscan.app.ui.components.MainActionButton
+import org.fairscan.app.ui.components.MyScaffold
+import org.fairscan.app.ui.components.SecondaryActionButton
+import org.fairscan.app.ui.dummyNavigation
+import org.fairscan.app.ui.fakeDocument
+import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.theme.FairScanTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,7 +120,8 @@ fun DocumentScreen(
             currentPageIndex,
             { showDeletePageDialog.value = true },
             onRotateImage,
-            modifier)
+            modifier
+        )
         if (showDeletePageDialog.value) {
             ConfirmationDialog(
                 title = stringResource(R.string.delete_page),
@@ -230,7 +239,8 @@ fun DocumentScreenPreview() {
         DocumentScreen(
             fakeDocument(
                 listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" }.toImmutableList(),
-                LocalContext.current),
+                LocalContext.current
+            ),
             initialPage = 1,
             navigation = dummyNavigation(),
             onDeleteImage = { _ -> },

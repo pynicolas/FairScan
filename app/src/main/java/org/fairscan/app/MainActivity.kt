@@ -47,13 +47,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.fairscan.app.data.GeneratedPdf
+import org.fairscan.app.ui.Navigation
+import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.theme.FairScanTheme
-import org.fairscan.app.view.AboutScreen
-import org.fairscan.app.view.CameraScreen
-import org.fairscan.app.view.DocumentScreen
-import org.fairscan.app.view.ExportScreenWrapper
-import org.fairscan.app.view.HomeScreen
-import org.fairscan.app.view.LibrariesScreen
+import org.fairscan.app.ui.screens.AboutScreen
+import org.fairscan.app.ui.screens.camera.CameraScreen
+import org.fairscan.app.ui.screens.DocumentScreen
+import org.fairscan.app.ui.screens.ExportScreenWrapper
+import org.fairscan.app.ui.screens.HomeScreen
+import org.fairscan.app.ui.screens.LibrariesScreen
 import org.opencv.android.OpenCVLoader
 
 private const val PDF_MIME_TYPE = "application/pdf"

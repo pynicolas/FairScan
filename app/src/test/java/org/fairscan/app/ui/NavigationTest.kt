@@ -12,15 +12,15 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app
+package org.fairscan.app.ui
 
 import org.assertj.core.api.Assertions.assertThat
-import org.fairscan.app.Screen.Main.Camera
-import org.fairscan.app.Screen.Main.Document
-import org.fairscan.app.Screen.Main.Export
-import org.fairscan.app.Screen.Main.Home
-import org.fairscan.app.Screen.Overlay.About
-import org.fairscan.app.Screen.Overlay.Libraries
+import org.fairscan.app.ui.Screen.Main.Camera
+import org.fairscan.app.ui.Screen.Main.Document
+import org.fairscan.app.ui.Screen.Main.Export
+import org.fairscan.app.ui.Screen.Main.Home
+import org.fairscan.app.ui.Screen.Overlay.About
+import org.fairscan.app.ui.Screen.Overlay.Libraries
 import org.junit.Test
 
 class NavigationTest {

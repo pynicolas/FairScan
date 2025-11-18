@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -56,10 +56,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.persistentListOf
 import org.fairscan.app.CameraPermissionState
-import org.fairscan.app.Navigation
+import org.fairscan.app.ui.Navigation
 import org.fairscan.app.R
 import org.fairscan.app.rememberCameraPermissionState
-import org.fairscan.app.ui.RecentDocumentUiState
+import org.fairscan.app.ui.state.RecentDocumentUiState
+import org.fairscan.app.ui.components.AboutScreenNavButton
+import org.fairscan.app.ui.components.formatDate
+import org.fairscan.app.ui.components.pageCountText
+import org.fairscan.app.ui.dummyNavigation
+import org.fairscan.app.ui.fakeDocument
+import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import java.io.File
 
@@ -286,7 +292,8 @@ fun HomeScreenPreviewWithCurrentDocument() {
             cameraPermission = rememberCameraPermissionState(),
             currentDocument = fakeDocument(
                 persistentListOf("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
-                LocalContext.current),
+                LocalContext.current
+            ),
             navigation = dummyNavigation(),
             onClearScan = {},
             recentDocuments = listOf(),

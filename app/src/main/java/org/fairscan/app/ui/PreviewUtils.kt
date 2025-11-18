@@ -12,13 +12,13 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui
 
 import android.content.Context
 import android.graphics.BitmapFactory
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import org.fairscan.app.Navigation
+import org.fairscan.app.ui.state.DocumentUiModel
 
 fun dummyNavigation(): Navigation {
     return Navigation({}, {}, {}, {}, {}, {}, {})

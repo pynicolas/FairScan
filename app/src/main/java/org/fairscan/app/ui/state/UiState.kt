@@ -12,22 +12,25 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui.state
 
-import android.content.Context
-import android.text.format.DateFormat
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalResources
-import org.fairscan.app.R
-import java.util.Date
+import android.net.Uri
+import org.fairscan.app.data.GeneratedPdf
+import java.io.File
 
-@Composable
-fun pageCountText(quantity: Int): String {
-    return LocalResources.current.getQuantityString(R.plurals.page_count, quantity, quantity)
+data class PdfGenerationUiState(
+    val isGenerating: Boolean = false,
+    val generatedPdf: GeneratedPdf? = null,
+    val desiredFilename: String = "",
+    val savedFileUri: Uri? = null,
+    val hasSharedPdf: Boolean = false,
+    val errorMessage: String? = null,
+) {
+    val hasSavedOrSharedPdf get() = savedFileUri != null || hasSharedPdf
 }
 
-fun formatDate(timestamp: Long, context: Context): String {
-    val date = Date(timestamp)
-    return DateFormat.getMediumDateFormat(context).format(date) + " " +
-            DateFormat.getTimeFormat(context).format(date)
-}
+data class RecentDocumentUiState(
+    val file: File,
+    val saveTimestamp: Long,
+    val pageCount: Int,
+)

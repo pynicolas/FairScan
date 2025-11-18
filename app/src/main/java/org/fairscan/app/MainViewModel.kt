@@ -47,9 +47,12 @@ import org.fairscan.app.domain.ImageSegmentationService
 import org.fairscan.app.domain.detectDocumentQuad
 import org.fairscan.app.domain.extractDocument
 import org.fairscan.app.domain.scaledTo
-import org.fairscan.app.ui.PdfGenerationUiState
-import org.fairscan.app.ui.RecentDocumentUiState
-import org.fairscan.app.view.DocumentUiModel
+import org.fairscan.app.ui.NavigationState
+import org.fairscan.app.ui.state.PdfGenerationUiState
+import org.fairscan.app.ui.state.RecentDocumentUiState
+import org.fairscan.app.ui.Screen
+import org.fairscan.app.ui.state.DocumentUiModel
+import org.fairscan.app.ui.state.LiveAnalysisState
 import java.io.ByteArrayOutputStream
 import java.io.File
 

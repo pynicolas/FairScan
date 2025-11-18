@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui.screens.camera
 
 import android.graphics.Bitmap
 import android.util.Log
@@ -54,7 +54,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 import org.fairscan.app.CameraPermissionState
-import org.fairscan.app.LiveAnalysisState
+import org.fairscan.app.ui.state.LiveAnalysisState
 import org.fairscan.app.domain.Point
 import org.fairscan.app.domain.scaledTo
 import java.util.concurrent.ExecutorService

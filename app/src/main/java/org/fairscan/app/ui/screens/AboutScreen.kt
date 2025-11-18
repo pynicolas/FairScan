@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui.screens
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import org.fairscan.app.BuildConfig
 import org.fairscan.app.R
+import org.fairscan.app.ui.components.BackButton
 import org.fairscan.app.ui.theme.FairScanTheme
 
 @OptIn(ExperimentalMaterial3Api::class)

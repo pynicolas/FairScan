@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui.screens.camera
 
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -83,12 +83,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import org.fairscan.app.CameraPermissionState
-import org.fairscan.app.LiveAnalysisState
+import org.fairscan.app.ui.state.LiveAnalysisState
 import org.fairscan.app.MainViewModel
 import org.fairscan.app.MainViewModel.CaptureState
-import org.fairscan.app.Navigation
+import org.fairscan.app.ui.Navigation
 import org.fairscan.app.R
-import org.fairscan.app.Screen
+import org.fairscan.app.ui.Screen
+import org.fairscan.app.ui.components.CommonPageListState
+import org.fairscan.app.ui.components.MainActionButton
+import org.fairscan.app.ui.components.MyScaffold
+import org.fairscan.app.ui.components.pageCountText
+import org.fairscan.app.ui.dummyNavigation
+import org.fairscan.app.ui.fakeDocument
 import org.fairscan.app.ui.theme.FairScanTheme
 
 data class CameraUiState(
@@ -230,14 +236,14 @@ private fun CameraScreenScaffold(
             pageListState = pageListState,
             onBack = navigation.back,
             bottomBar = { Bar(cameraUiState.pageCount, onFinalizePressed) }
-        ) {
-            modifier ->
-                CameraPreviewBox(
-                    cameraPreview,
-                    cameraUiState,
-                    onCapture,
-                    onTorchSwitched,
-                    modifier.clickable(onClick = onPageCountClick))
+        ) { modifier ->
+            CameraPreviewBox(
+                cameraPreview,
+                cameraUiState,
+                onCapture,
+                onTorchSwitched,
+                modifier.clickable(onClick = onPageCountClick)
+            )
         }
         if (cameraUiState.captureState is CaptureState.CapturePreview) {
             CapturedImage(cameraUiState.captureState.processed.asImageBitmap(), thumbnailCoords)
@@ -502,7 +508,7 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
                             .toImmutableList(),
                         LocalContext.current),
                     onPageClick = {},
-                    onPageReorder = { _,_ -> },
+                    onPageReorder = { _, _ -> },
                     listState = LazyListState(),
                 ),
             cameraUiState = CameraUiState(pageCount = 4, LiveAnalysisState(), captureState,

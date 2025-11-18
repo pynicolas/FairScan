@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.view
+package org.fairscan.app.ui.screens
 
 import android.content.Context
 import android.text.format.Formatter
@@ -67,10 +67,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import org.fairscan.app.data.GeneratedPdf
-import org.fairscan.app.Navigation
+import org.fairscan.app.ui.Navigation
 import org.fairscan.app.PdfGenerationActions
 import org.fairscan.app.R
-import org.fairscan.app.ui.PdfGenerationUiState
+import org.fairscan.app.ui.state.PdfGenerationUiState
+import org.fairscan.app.ui.components.AboutScreenNavButton
+import org.fairscan.app.ui.components.BackButton
+import org.fairscan.app.ui.components.MainActionButton
+import org.fairscan.app.ui.components.NewDocumentDialog
+import org.fairscan.app.ui.components.isLandscape
+import org.fairscan.app.ui.components.pageCountText
+import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.theme.FairScanTheme
 import java.io.File
 import java.text.SimpleDateFormat

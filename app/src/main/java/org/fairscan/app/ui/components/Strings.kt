@@ -12,16 +12,22 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app
+package org.fairscan.app.ui.components
 
-import android.graphics.Bitmap
-import androidx.compose.runtime.Immutable
-import org.fairscan.app.domain.Quad
+import android.content.Context
+import android.text.format.DateFormat
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalResources
+import org.fairscan.app.R
+import java.util.Date
 
-@Immutable
-data class LiveAnalysisState(
-    val inferenceTime: Long = 0L,
-    val binaryMask: Bitmap? = null,
-    val documentQuad: Quad? = null,
-    val timestamp: Long = System.currentTimeMillis(),
-)
+@Composable
+fun pageCountText(quantity: Int): String {
+    return LocalResources.current.getQuantityString(R.plurals.page_count, quantity, quantity)
+}
+
+fun formatDate(timestamp: Long, context: Context): String {
+    val date = Date(timestamp)
+    return DateFormat.getMediumDateFormat(context).format(date) + " " +
+            DateFormat.getTimeFormat(context).format(date)
+}
