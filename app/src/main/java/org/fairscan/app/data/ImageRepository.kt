@@ -12,13 +12,12 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app
+package org.fairscan.app.data
 
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
-import org.fairscan.app.data.DocumentMetadata
-import org.fairscan.app.data.Page
+import org.fairscan.app.ImageTransformations
 import java.io.File
 
 const val SCAN_DIR_NAME = "scanned_pages"

@@ -46,6 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.fairscan.app.view.AboutScreen
 import org.fairscan.app.view.CameraScreen

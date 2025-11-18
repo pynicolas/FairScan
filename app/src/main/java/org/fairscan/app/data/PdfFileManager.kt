@@ -12,11 +12,17 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app
+package org.fairscan.app.data
 
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+
+data class GeneratedPdf(
+    val file: File,
+    val sizeInBytes: Long,
+    val pageCount: Int,
+)
 
 fun interface PdfWriter {
     fun writePdfFromJpegs(jpegs: Sequence<ByteArray>, outputStream: OutputStream): Int

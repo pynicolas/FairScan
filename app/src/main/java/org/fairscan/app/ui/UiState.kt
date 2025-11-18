@@ -15,7 +15,7 @@
 package org.fairscan.app.ui
 
 import android.net.Uri
-import org.fairscan.app.GeneratedPdf
+import org.fairscan.app.data.GeneratedPdf
 import java.io.File
 
 data class PdfGenerationUiState(

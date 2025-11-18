@@ -66,7 +66,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import org.fairscan.app.GeneratedPdf
+import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.Navigation
 import org.fairscan.app.PdfGenerationActions
 import org.fairscan.app.R

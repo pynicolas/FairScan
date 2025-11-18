@@ -20,6 +20,7 @@ import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream.AppendMode
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
+import org.fairscan.app.data.PdfWriter
 import java.io.OutputStream
 
 class AndroidPdfWriter : PdfWriter {

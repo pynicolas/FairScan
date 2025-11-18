@@ -39,6 +39,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.fairscan.app.data.GeneratedPdf
+import org.fairscan.app.data.ImageRepository
+import org.fairscan.app.data.PdfFileManager
 import org.fairscan.app.data.recentDocumentsDataStore
 import org.fairscan.app.domain.ImageSegmentationService
 import org.fairscan.app.domain.detectDocumentQuad
@@ -71,7 +74,8 @@ class MainViewModel(
                     PdfFileManager(
                         File(context.cacheDir, "pdfs"),
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                        AndroidPdfWriter()),
+                        AndroidPdfWriter()
+                    ),
                     context.recentDocumentsDataStore,
                 ) as T
             }
@@ -384,12 +388,6 @@ class MainViewModel(
         }
     }
 }
-
-data class GeneratedPdf(
-    val file: File,
-    val sizeInBytes: Long,
-    val pageCount: Int,
-)
 
 // TODO Move somewhere else: ViewModel should not depend on that
 data class PdfGenerationActions(
