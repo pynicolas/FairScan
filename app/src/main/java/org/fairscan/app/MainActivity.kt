@@ -49,6 +49,7 @@ import kotlinx.coroutines.withContext
 import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
+import org.fairscan.app.ui.components.rememberCameraPermissionState
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.fairscan.app.ui.screens.AboutScreen
 import org.fairscan.app.ui.screens.camera.CameraScreen

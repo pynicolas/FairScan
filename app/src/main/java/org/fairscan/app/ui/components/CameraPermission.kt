@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app
+package org.fairscan.app.ui.components
 
 import android.Manifest
 import android.content.Context
@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import org.fairscan.app.R
 
 private fun hasCameraPermission(context: Context): Boolean {
     val camera = Manifest.permission.CAMERA

@@ -82,7 +82,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
-import org.fairscan.app.CameraPermissionState
+import org.fairscan.app.ui.components.CameraPermissionState
 import org.fairscan.app.ui.state.LiveAnalysisState
 import org.fairscan.app.MainViewModel
 import org.fairscan.app.MainViewModel.CaptureState
