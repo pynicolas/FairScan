@@ -17,7 +17,6 @@ package org.fairscan.app.data
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
-import org.fairscan.app.ImageTransformations
 import java.io.File
 
 const val SCAN_DIR_NAME = "scanned_pages"

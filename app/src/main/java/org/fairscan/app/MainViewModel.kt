@@ -48,6 +48,7 @@ import org.fairscan.app.domain.detectDocumentQuad
 import org.fairscan.app.domain.extractDocument
 import org.fairscan.app.domain.scaledTo
 import org.fairscan.app.platform.AndroidPdfWriter
+import org.fairscan.app.platform.OpenCvTransformations
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.state.PdfGenerationUiState
 import org.fairscan.app.ui.state.RecentDocumentUiState

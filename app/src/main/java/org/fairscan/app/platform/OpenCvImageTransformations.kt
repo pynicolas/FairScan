@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app
+package org.fairscan.app.platform
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -22,6 +22,7 @@ import org.opencv.imgcodecs.Imgcodecs
 import java.io.File
 import kotlin.math.min
 import androidx.core.graphics.scale
+import org.fairscan.app.data.ImageTransformations
 
 class OpenCvTransformations : ImageTransformations {
     override fun rotate(inputFile: File, outputFile: File, clockwise: Boolean) {

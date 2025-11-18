@@ -15,7 +15,7 @@
 package org.fairscan.app.data
 
 import org.assertj.core.api.Assertions.assertThat
-import org.fairscan.app.ImageTransformations
+import org.fairscan.app.data.ImageTransformations
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
