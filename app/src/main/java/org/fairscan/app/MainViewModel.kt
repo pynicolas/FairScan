@@ -40,6 +40,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.data.recentDocumentsDataStore
+import org.fairscan.app.domain.ImageSegmentationService
+import org.fairscan.app.domain.detectDocumentQuad
+import org.fairscan.app.domain.extractDocument
+import org.fairscan.app.domain.scaledTo
 import org.fairscan.app.ui.PdfGenerationUiState
 import org.fairscan.app.ui.RecentDocumentUiState
 import org.fairscan.app.view.DocumentUiModel

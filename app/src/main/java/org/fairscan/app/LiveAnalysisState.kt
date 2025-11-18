@@ -16,6 +16,7 @@ package org.fairscan.app
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.Immutable
+import org.fairscan.app.domain.Quad
 
 @Immutable
 data class LiveAnalysisState(

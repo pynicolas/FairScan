@@ -12,9 +12,10 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app
+package org.fairscan.app.domain
 
 import kotlin.math.atan2
+import kotlin.math.hypot
 
 data class Point(val x: Double, val y: Double) {
     constructor(x: Int, y: Int) : this (x.toDouble(), y.toDouble())
@@ -29,7 +30,7 @@ data class Line(val from: Point, val to: Point) {
 fun norm(p1: Point, p2: Point): Double {
     val dx = (p2.x - p1.x)
     val dy = (p2.y - p1.y)
-    return kotlin.math.hypot(dx, dy)
+    return hypot(dx, dy)
 }
 
 data class Quad(

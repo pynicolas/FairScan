@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app
+package org.fairscan.app.domain
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -51,8 +51,8 @@ class DocumentDetectionTest {
                 segmentationService.runSegmentationAndReturn(bitmap, 0)
             }
             if (segmentationResult != null) {
-                val mask = segmentationResult.segmentation.toBinaryMask()
-                val quad = detectDocumentQuad(mask)
+                val mask = segmentationResult.segmentation
+                val quad = detectDocumentQuad(mask, false)
                 if (quad != null) {
                     val resizedQuad =
                         quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)

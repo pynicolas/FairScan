@@ -55,8 +55,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 import org.fairscan.app.CameraPermissionState
 import org.fairscan.app.LiveAnalysisState
-import org.fairscan.app.Point
-import org.fairscan.app.scaledTo
+import org.fairscan.app.domain.Point
+import org.fairscan.app.domain.scaledTo
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 

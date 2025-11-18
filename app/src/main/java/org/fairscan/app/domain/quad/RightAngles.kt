@@ -12,9 +12,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.quad
+package org.fairscan.app.domain.quad
 
-import org.fairscan.app.Point
+import org.fairscan.app.domain.Point
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.sqrt

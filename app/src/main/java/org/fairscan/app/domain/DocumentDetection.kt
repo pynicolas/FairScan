@@ -12,14 +12,14 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app
+package org.fairscan.app.domain
 
 import android.graphics.Bitmap
 import androidx.core.graphics.createBitmap
-import org.fairscan.app.ImageSegmentationService.Segmentation
-import org.fairscan.app.quad.detectDocumentQuadFromProbmap
-import org.fairscan.app.quad.findQuadFromRightAngles
-import org.fairscan.app.quad.minAreaRect
+import org.fairscan.app.domain.ImageSegmentationService.Segmentation
+import org.fairscan.app.domain.quad.detectDocumentQuadFromProbmap
+import org.fairscan.app.domain.quad.findQuadFromRightAngles
+import org.fairscan.app.domain.quad.minAreaRect
 import org.opencv.android.Utils
 import org.opencv.core.Core
 import org.opencv.core.CvType
