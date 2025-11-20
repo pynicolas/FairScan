@@ -19,7 +19,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Environment
 import android.util.Log
-import androidx.camera.core.ImageProxy
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
 import androidx.lifecycle.ViewModel
@@ -33,7 +32,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -43,25 +41,18 @@ import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.data.PdfFileManager
 import org.fairscan.app.data.recentDocumentsDataStore
-import org.fairscan.app.domain.ImageSegmentationService
-import org.fairscan.app.domain.detectDocumentQuad
-import org.fairscan.app.domain.extractDocument
-import org.fairscan.app.domain.scaledTo
 import org.fairscan.app.platform.AndroidPdfWriter
 import org.fairscan.app.platform.OpenCvTransformations
 import org.fairscan.app.ui.NavigationState
-import org.fairscan.app.ui.state.PdfGenerationUiState
-import org.fairscan.app.ui.state.RecentDocumentUiState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
-import org.fairscan.app.ui.state.LiveAnalysisState
-import java.io.ByteArrayOutputStream
+import org.fairscan.app.ui.state.PdfGenerationUiState
+import org.fairscan.app.ui.state.RecentDocumentUiState
 import java.io.File
 
 const val THUMBNAIL_SIZE_DP = 120
 
 class MainViewModel(
-    private val imageSegmentationService: ImageSegmentationService,
     private val imageRepository: ImageRepository,
     private val pdfFileManager: PdfFileManager,
     private val recentDocumentsDataStore: DataStore<RecentDocuments>,
@@ -74,7 +65,6 @@ class MainViewModel(
                 val density = context.resources.displayMetrics.density
                 val thumbnailSizePx = (THUMBNAIL_SIZE_DP * density).toInt()
                 return MainViewModel(
-                    ImageSegmentationService(context),
                     ImageRepository(context.filesDir, OpenCvTransformations(), thumbnailSizePx),
                     PdfFileManager(
                         File(context.cacheDir, "pdfs"),
@@ -86,10 +76,6 @@ class MainViewModel(
             }
         }
     }
-
-    private var _liveAnalysisState = MutableStateFlow(LiveAnalysisState())
-    val liveAnalysisState: StateFlow<LiveAnalysisState> = _liveAnalysisState.asStateFlow()
-    private var lastSuccessfulLiveAnalysisState: LiveAnalysisState? = null
 
     private val _navigationState = MutableStateFlow(NavigationState.initial())
     val currentScreen: StateFlow<Screen> = _navigationState.map { it.current }
@@ -109,136 +95,12 @@ class MainViewModel(
             initialValue = DocumentUiModel(persistentListOf(), ::getBitmap, ::getThumbnail)
         )
 
-    private val _captureState = MutableStateFlow<CaptureState>(CaptureState.Idle)
-    val captureState: StateFlow<CaptureState> = _captureState
-
-    init {
-        viewModelScope.launch {
-            imageSegmentationService.initialize()
-            imageSegmentationService.segmentation
-                .filterNotNull()
-                .map {
-                    // TODO Should we really call toBinaryMask if it's used only in debug mode?
-                    val binaryMask = it.segmentation.toBinaryMask()
-                    LiveAnalysisState(
-                        inferenceTime = it.inferenceTime,
-                        binaryMask = binaryMask,
-                        documentQuad = detectDocumentQuad(it.segmentation, isLiveAnalysis = true),
-                        timestamp = System.currentTimeMillis(),
-                    )
-                }
-                .collect {
-                    _liveAnalysisState.value = it
-                    if (it.documentQuad != null) {
-                        lastSuccessfulLiveAnalysisState = it
-                    }
-                }
-        }
-    }
-
-    sealed class CaptureState {
-        open val frozenImage: Bitmap? = null
-
-        object Idle : CaptureState()
-        data class Capturing(override val frozenImage: Bitmap) : CaptureState()
-        data class CaptureError(override val frozenImage: Bitmap) : CaptureState()
-        data class CapturePreview(
-            override val frozenImage: Bitmap,
-            val processed: Bitmap
-        ) : CaptureState()
-    }
-
-
-    fun onCapturePressed(frozenImage: Bitmap) {
-        _captureState.value = CaptureState.Capturing(frozenImage)
-    }
-
-    private fun onCaptureProcessed(captured: Bitmap?) {
-        val current = _captureState.value
-        _captureState.value = when {
-            current is CaptureState.Capturing && captured != null ->
-                CaptureState.CapturePreview(current.frozenImage, captured)
-            current is CaptureState.Capturing ->
-                CaptureState.CaptureError(current.frozenImage)
-            else -> CaptureState.Idle
-        }
-    }
-
-    fun liveAnalysis(imageProxy: ImageProxy) {
-        if (_captureState.value !is CaptureState.Idle) {
-            imageProxy.close()
-            return
-        }
-
-        viewModelScope.launch {
-            imageSegmentationService.runSegmentationAndEmit(
-                imageProxy.toBitmap(),
-                imageProxy.imageInfo.rotationDegrees,
-            )
-            imageProxy.close()
-        }
-    }
-
     fun navigateTo(destination: Screen) {
         _navigationState.update { it.navigateTo(destination) }
     }
 
     fun navigateBack() {
         _navigationState.update { stack -> stack.navigateBack() }
-    }
-
-    fun onImageCaptured(imageProxy: ImageProxy?) {
-        if (imageProxy != null) {
-            viewModelScope.launch {
-                val image = processCapturedImage(imageProxy)
-                imageProxy.close()
-                onCaptureProcessed(image)
-            }
-        } else {
-            onCaptureProcessed(null)
-        }
-    }
-
-    private suspend fun processCapturedImage(imageProxy: ImageProxy): Bitmap? = withContext(Dispatchers.IO) {
-        var corrected: Bitmap? = null
-        val bitmap = imageProxy.toBitmap()
-        val segmentation = imageSegmentationService.runSegmentationAndReturn(bitmap, 0)
-        if (segmentation != null) {
-            val mask = segmentation.segmentation
-            var quad = detectDocumentQuad(mask, isLiveAnalysis = false)
-            if (quad == null) {
-                val now = System.currentTimeMillis()
-                lastSuccessfulLiveAnalysisState?.timestamp?.let {
-                    val offset = now - it
-                    Log.i("Quad", "Last successful live analysis was $offset ms ago")
-                }
-                val recentLive = lastSuccessfulLiveAnalysisState?.takeIf {
-                    now - it.timestamp <= 1500
-                }
-                val rotations = (-imageProxy.imageInfo.rotationDegrees / 90) + 4
-                quad = recentLive?.documentQuad?.rotate90(rotations, mask.width, mask.height)
-                if (quad != null) {
-                    Log.i("Quad", "Using quad taken in live analysis; rotations=$rotations")
-                }
-            }
-            if (quad != null) {
-                val resizedQuad = quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
-                corrected = extractDocument(bitmap, resizedQuad, imageProxy.imageInfo.rotationDegrees)
-            }
-        }
-        return@withContext corrected
-    }
-
-    fun addProcessedImage(quality: Int = 75) {
-        val current = _captureState.value
-        if (current is CaptureState.CapturePreview) {
-            val outputStream = ByteArrayOutputStream()
-            current.processed.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-            val jpegBytes = outputStream.toByteArray()
-            imageRepository.add(jpegBytes)
-            _pageIds.value = imageRepository.imageIds()
-        }
-        _captureState.value = CaptureState.Idle
     }
 
     fun rotateImage(id: String, clockwise: Boolean) {
@@ -251,10 +113,6 @@ class MainViewModel(
     fun movePage(id: String, newIndex: Int) {
         imageRepository.movePage(id, newIndex)
         _pageIds.value = imageRepository.imageIds()
-    }
-
-    fun afterCaptureError() {
-        _captureState.value = CaptureState.Idle
     }
 
     fun deletePage(id: String) {
@@ -391,6 +249,11 @@ class MainViewModel(
                     .build()
             }
         }
+    }
+
+    fun handleImageCaptured(jpegBytes: ByteArray) {
+        imageRepository.add(jpegBytes)
+        _pageIds.value = imageRepository.imageIds()
     }
 }
 

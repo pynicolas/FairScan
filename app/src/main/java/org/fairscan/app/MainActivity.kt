@@ -33,6 +33,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.checkSelfPermission
@@ -57,6 +58,8 @@ import org.fairscan.app.ui.screens.DocumentScreen
 import org.fairscan.app.ui.screens.ExportScreenWrapper
 import org.fairscan.app.ui.screens.HomeScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
+import org.fairscan.app.ui.screens.camera.CameraEvent
+import org.fairscan.app.ui.screens.camera.CameraViewModel
 import org.opencv.android.OpenCVLoader
 
 private const val PDF_MIME_TYPE = "application/pdf"
@@ -70,11 +73,19 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             viewModel.cleanUpOldPdfs(1000 * 3600)
         }
+        val cameraViewModel: CameraViewModel by viewModels { CameraViewModel.getFactory(this) }
         enableEdgeToEdge()
         setContent {
+            LaunchedEffect(Unit) {
+                cameraViewModel.events.collect { event ->
+                    when (event) {
+                        is CameraEvent.ImageCaptured -> viewModel.handleImageCaptured(event.jpegBytes)
+                    }
+                }
+            }
             val context = LocalContext.current
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
-            val liveAnalysisState by viewModel.liveAnalysisState.collectAsStateWithLifecycle()
+            val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
             val savePdf = { savePdf(viewModel.getFinalPdf(), viewModel) }
@@ -113,9 +124,10 @@ class MainActivity : ComponentActivity() {
                     is Screen.Main.Camera -> {
                         CameraScreen(
                             viewModel,
+                            cameraViewModel,
                             navigation,
                             liveAnalysisState,
-                            onImageAnalyzed = { image -> viewModel.liveAnalysis(image) },
+                            onImageAnalyzed = { image -> cameraViewModel.liveAnalysis(image) },
                             onFinalizePressed = navigation.toDocumentScreen,
                             cameraPermission = cameraPermission
                         )

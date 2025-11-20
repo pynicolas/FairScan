@@ -82,19 +82,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
-import org.fairscan.app.ui.components.CameraPermissionState
-import org.fairscan.app.ui.state.LiveAnalysisState
 import org.fairscan.app.MainViewModel
-import org.fairscan.app.MainViewModel.CaptureState
-import org.fairscan.app.ui.Navigation
 import org.fairscan.app.R
+import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
+import org.fairscan.app.ui.components.CameraPermissionState
 import org.fairscan.app.ui.components.CommonPageListState
 import org.fairscan.app.ui.components.MainActionButton
 import org.fairscan.app.ui.components.MyScaffold
 import org.fairscan.app.ui.components.pageCountText
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.fakeDocument
+import org.fairscan.app.ui.state.LiveAnalysisState
 import org.fairscan.app.ui.theme.FairScanTheme
 
 data class CameraUiState(
@@ -113,6 +112,7 @@ const val ANIMATION_DURATION = 200
 @Composable
 fun CameraScreen(
     viewModel: MainViewModel,
+    cameraViewModel: CameraViewModel,
     navigation: Navigation,
     liveAnalysisState: LiveAnalysisState,
     onImageAnalyzed: (ImageProxy) -> Unit,
@@ -132,11 +132,11 @@ fun CameraScreen(
         onDispose { captureController.shutdown() }
     }
 
-    val captureState by viewModel.captureState.collectAsStateWithLifecycle()
+    val captureState by cameraViewModel.captureState.collectAsStateWithLifecycle()
     if (captureState is CaptureState.CapturePreview) {
         LaunchedEffect(captureState) {
             delay(CAPTURED_IMAGE_DISPLAY_DURATION)
-            viewModel.addProcessedImage()
+            cameraViewModel.addProcessedImage()
         }
     }
 
@@ -146,7 +146,7 @@ fun CameraScreen(
             showDetectionError = true
             delay(1000)
             showDetectionError = false
-            viewModel.afterCaptureError()
+            cameraViewModel.afterCaptureError()
         }
     }
 
@@ -185,9 +185,9 @@ fun CameraScreen(
         onCapture = {
             previewView?.bitmap?.let {
                 Log.i("FairScan", "Pressed <Capture>")
-                viewModel.onCapturePressed(it)
+                cameraViewModel.onCapturePressed(it)
                 captureController.takePicture(
-                    onImageCaptured = { imageProxy -> viewModel.onImageCaptured(imageProxy) }
+                    onImageCaptured = { imageProxy -> cameraViewModel.onImageCaptured(imageProxy) }
                 )
             }
         },
