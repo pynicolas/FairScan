@@ -51,15 +51,17 @@ import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
-import org.fairscan.app.ui.theme.FairScanTheme
 import org.fairscan.app.ui.screens.AboutScreen
-import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.DocumentScreen
-import org.fairscan.app.ui.screens.ExportScreenWrapper
 import org.fairscan.app.ui.screens.HomeScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.camera.CameraEvent
+import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
+import org.fairscan.app.ui.screens.export.ExportScreenWrapper
+import org.fairscan.app.ui.screens.export.ExportViewModel
+import org.fairscan.app.ui.screens.export.PdfGenerationActions
+import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
 
 private const val PDF_MIME_TYPE = "application/pdf"
@@ -70,10 +72,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         initLibraries()
         val viewModel: MainViewModel by viewModels { MainViewModel.getFactory(this) }
-        lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.cleanUpOldPdfs(1000 * 3600)
-        }
         val cameraViewModel: CameraViewModel by viewModels { CameraViewModel.getFactory(this) }
+        val exportViewModel: ExportViewModel by viewModels { ExportViewModel.getFactory(this) }
+        lifecycleScope.launch(Dispatchers.IO) {
+            exportViewModel.cleanUpOldPdfs(1000 * 3600)
+        }
         enableEdgeToEdge()
         setContent {
             LaunchedEffect(Unit) {
@@ -88,7 +91,7 @@ class MainActivity : ComponentActivity() {
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
-            val savePdf = { savePdf(viewModel.getFinalPdf(), viewModel) }
+            val savePdf = { savePdf(exportViewModel.getFinalPdf(), viewModel, exportViewModel) }
             val storagePermissionLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.RequestPermission()
             ) { isGranted ->
@@ -146,12 +149,12 @@ class MainActivity : ComponentActivity() {
                         ExportScreenWrapper(
                             navigation = navigation,
                             pdfActions = PdfGenerationActions(
-                                startGeneration = viewModel::startPdfGeneration,
-                                setFilename = viewModel::setFilename,
-                                uiStateFlow = viewModel.pdfUiState,
-                                sharePdf = { sharePdf(viewModel.getFinalPdf(), viewModel) },
+                                startGeneration = exportViewModel::startPdfGeneration,
+                                setFilename = exportViewModel::setFilename,
+                                uiStateFlow = exportViewModel.pdfUiState,
+                                sharePdf = { sharePdf(exportViewModel.getFinalPdf(), exportViewModel) },
                                 savePdf = { checkPermissionThen(storagePermissionLauncher, savePdf) },
-                                openPdf = { openPdf(viewModel.pdfUiState.value.savedFileUri) }
+                                openPdf = { openPdf(exportViewModel.pdfUiState.value.savedFileUri) }
                             ),
                             onCloseScan = {
                                 viewModel.startNewDocument()
@@ -170,7 +173,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun sharePdf(generatedPdf: GeneratedPdf?, viewModel: MainViewModel) {
+    private fun sharePdf(generatedPdf: GeneratedPdf?, viewModel: ExportViewModel) {
         if (generatedPdf == null)
             return
         viewModel.setPdfAsShared()
@@ -205,14 +208,18 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun savePdf(generatedPdf: GeneratedPdf?, viewModel: MainViewModel) {
+    private fun savePdf(
+        generatedPdf: GeneratedPdf?,
+        viewModel: MainViewModel,
+        exportViewModel: ExportViewModel
+    ) {
         if (generatedPdf == null)
             return
         val appScope = CoroutineScope(Dispatchers.IO)
         val context = this
         appScope.launch {
             try {
-                val targetFile = viewModel.saveFile(generatedPdf.file)
+                val targetFile = exportViewModel.saveFile(generatedPdf.file)
                 viewModel.addRecentDocument(targetFile.absolutePath, generatedPdf.pageCount)
 
                 suspendCancellableCoroutine { continuation ->
