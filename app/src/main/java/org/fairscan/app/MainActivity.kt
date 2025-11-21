@@ -53,7 +53,7 @@ import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
 import org.fairscan.app.ui.screens.AboutScreen
 import org.fairscan.app.ui.screens.DocumentScreen
-import org.fairscan.app.ui.screens.HomeScreen
+import org.fairscan.app.ui.screens.home.HomeScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
@@ -61,6 +61,7 @@ import org.fairscan.app.ui.screens.camera.CameraViewModel
 import org.fairscan.app.ui.screens.export.ExportScreenWrapper
 import org.fairscan.app.ui.screens.export.ExportViewModel
 import org.fairscan.app.ui.screens.export.PdfGenerationActions
+import org.fairscan.app.ui.screens.home.HomeViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
 
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         initLibraries()
         val viewModel: MainViewModel by viewModels { MainViewModel.getFactory(this) }
+        val homeViewModel: HomeViewModel by viewModels { HomeViewModel.getFactory(this) }
         val cameraViewModel: CameraViewModel by viewModels { CameraViewModel.getFactory(this) }
         val exportViewModel: ExportViewModel by viewModels { ExportViewModel.getFactory(this) }
         lifecycleScope.launch(Dispatchers.IO) {
@@ -91,7 +93,7 @@ class MainActivity : ComponentActivity() {
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
-            val savePdf = { savePdf(exportViewModel.getFinalPdf(), viewModel, exportViewModel) }
+            val savePdf = { savePdf(exportViewModel.getFinalPdf(), homeViewModel, exportViewModel) }
             val storagePermissionLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.RequestPermission()
             ) { isGranted ->
@@ -114,7 +116,7 @@ class MainActivity : ComponentActivity() {
                 )
                 when (val screen = currentScreen) {
                     is Screen.Main.Home -> {
-                        val recentDocs by viewModel.recentDocuments.collectAsStateWithLifecycle()
+                        val recentDocs by homeViewModel.recentDocuments.collectAsStateWithLifecycle()
                         HomeScreen(
                             cameraPermission = cameraPermission,
                             currentDocument = document,
@@ -210,7 +212,7 @@ class MainActivity : ComponentActivity() {
 
     private fun savePdf(
         generatedPdf: GeneratedPdf?,
-        viewModel: MainViewModel,
+        homeViewModel: HomeViewModel,
         exportViewModel: ExportViewModel
     ) {
         if (generatedPdf == null)
@@ -220,7 +222,7 @@ class MainActivity : ComponentActivity() {
         appScope.launch {
             try {
                 val targetFile = exportViewModel.saveFile(generatedPdf.file)
-                viewModel.addRecentDocument(targetFile.absolutePath, generatedPdf.pageCount)
+                homeViewModel.addRecentDocument(targetFile.absolutePath, generatedPdf.pageCount)
 
                 suspendCancellableCoroutine { continuation ->
                     MediaScannerConnection.scanFile(

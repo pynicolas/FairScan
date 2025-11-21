@@ -17,7 +17,6 @@ package org.fairscan.app
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import androidx.datastore.core.DataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -31,16 +30,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.fairscan.app.data.ImageRepository
-import org.fairscan.app.data.recentDocumentsDataStore
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
-import org.fairscan.app.ui.state.RecentDocumentUiState
-import java.io.File
 
 class MainViewModel(
-    private val imageRepository: ImageRepository,
-    private val recentDocumentsDataStore: DataStore<RecentDocuments>,
+    private val imageRepository: ImageRepository
 ): ViewModel() {
 
     companion object {
@@ -48,10 +43,7 @@ class MainViewModel(
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 val app = context.applicationContext as FairScanApp
-                return MainViewModel(
-                    app.appContainer.imageRepository,
-                    context.recentDocumentsDataStore,
-                ) as T
+                return MainViewModel(app.appContainer.imageRepository) as T
             }
         }
     }
@@ -114,41 +106,6 @@ class MainViewModel(
     fun getThumbnail(id: String): Bitmap? {
         val bytes = imageRepository.getThumbnail(id)
         return bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
-    }
-
-    val recentDocuments: StateFlow<List<RecentDocumentUiState>> =
-        recentDocumentsDataStore.data.map {
-            it.documentsList.map {
-                doc ->
-                    RecentDocumentUiState(
-                        file = File(doc.filePath),
-                        saveTimestamp = doc.createdAt,
-                        pageCount = doc.pageCount,
-                    )
-            }.filter { doc -> doc.file.exists() }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList(),
-        )
-    fun addRecentDocument(filePath: String, pageCount: Int) {
-        viewModelScope.launch {
-            recentDocumentsDataStore.updateData { current ->
-                val newDoc = RecentDocument.newBuilder()
-                    .setFilePath(filePath)
-                    .setPageCount(pageCount)
-                    .setCreatedAt(System.currentTimeMillis())
-                    .build()
-                current.toBuilder()
-                    .addDocuments(0, newDoc)
-                    .also { builder ->
-                        while (builder.documentsCount > 3) {
-                            builder.removeDocuments(builder.documentsCount - 1)
-                        }
-                    }
-                    .build()
-            }
-        }
     }
 
     fun handleImageCaptured(jpegBytes: ByteArray) {
