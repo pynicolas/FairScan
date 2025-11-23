@@ -19,7 +19,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
-import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.Q
@@ -42,25 +41,23 @@ import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
 import org.fairscan.app.ui.screens.AboutScreen
 import org.fairscan.app.ui.screens.DocumentScreen
-import org.fairscan.app.ui.screens.home.HomeScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
+import org.fairscan.app.ui.screens.export.ExportEvent
 import org.fairscan.app.ui.screens.export.ExportScreenWrapper
 import org.fairscan.app.ui.screens.export.ExportViewModel
 import org.fairscan.app.ui.screens.export.PdfGenerationActions
+import org.fairscan.app.ui.screens.home.HomeScreen
 import org.fairscan.app.ui.screens.home.HomeViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
@@ -93,17 +90,34 @@ class MainActivity : ComponentActivity() {
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
-            val savePdf = { savePdf(exportViewModel.getFinalPdf(), homeViewModel, exportViewModel) }
             val storagePermissionLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.RequestPermission()
             ) { isGranted ->
                 if (isGranted) {
-                    savePdf()
+                    exportViewModel.onSavePdfClicked()
                 } else {
                     val message = getString(R.string.storage_permission_denied)
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 }
             }
+            LaunchedEffect(Unit) {
+                exportViewModel.events.collect { event ->
+                    when (event) {
+                        ExportEvent.RequestSavePdf -> {
+                            checkPermissionThen(storagePermissionLauncher) {
+                                exportViewModel.onRequestPdfSave(context, homeViewModel)
+                            }
+                        }
+                        is ExportEvent.ShowToast -> {
+                            Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                        }
+                        ExportEvent.PdfSaved -> {
+                            Toast.makeText(context, "PDF saved", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+
             FairScanTheme {
                 val navigation = Navigation(
                     toHomeScreen = { viewModel.navigateTo(Screen.Main.Home) },
@@ -155,7 +169,7 @@ class MainActivity : ComponentActivity() {
                                 setFilename = exportViewModel::setFilename,
                                 uiStateFlow = exportViewModel.pdfUiState,
                                 sharePdf = { sharePdf(exportViewModel.getFinalPdf(), exportViewModel) },
-                                savePdf = { checkPermissionThen(storagePermissionLauncher, savePdf) },
+                                savePdf = { exportViewModel.onSavePdfClicked() },
                                 openPdf = { openPdf(exportViewModel.pdfUiState.value.savedFileUri) }
                             ),
                             onCloseScan = {
@@ -207,37 +221,6 @@ class MainActivity : ComponentActivity() {
             requestPermissionLauncher.launch(permission)
         } else {
             action()
-        }
-    }
-
-    private fun savePdf(
-        generatedPdf: GeneratedPdf?,
-        homeViewModel: HomeViewModel,
-        exportViewModel: ExportViewModel
-    ) {
-        if (generatedPdf == null)
-            return
-        val appScope = CoroutineScope(Dispatchers.IO)
-        val context = this
-        appScope.launch {
-            try {
-                val targetFile = exportViewModel.saveFile(generatedPdf.file)
-                homeViewModel.addRecentDocument(targetFile.absolutePath, generatedPdf.pageCount)
-
-                suspendCancellableCoroutine { continuation ->
-                    MediaScannerConnection.scanFile(
-                        context,
-                        arrayOf(targetFile.absolutePath),
-                        arrayOf(PDF_MIME_TYPE)
-                    ) { _, _ -> continuation.resume(Unit) {} }
-                }
-            } catch (e: Exception) {
-                Log.e("FairScan", "Failed to save PDF", e)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context,
-                        getString(R.string.error_save), Toast.LENGTH_SHORT).show()
-                }
-            }
         }
     }
 

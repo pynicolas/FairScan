@@ -15,6 +15,7 @@
 package org.fairscan.app.ui.screens.export
 
 import android.content.Context
+import android.media.MediaScannerConnection
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
@@ -22,19 +23,32 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.fairscan.app.FairScanApp
 import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.data.PdfFileManager
+import org.fairscan.app.ui.screens.home.HomeViewModel
 import org.fairscan.app.ui.state.PdfGenerationUiState
 import java.io.File
+
+private const val PDF_MIME_TYPE = "application/pdf"
+
+sealed interface ExportEvent {
+    data object RequestSavePdf : ExportEvent
+    data class ShowToast(val message: String) : ExportEvent
+    data object PdfSaved : ExportEvent
+}
 
 class ExportViewModel(
     private val pdfFileManager: PdfFileManager,
@@ -52,6 +66,9 @@ class ExportViewModel(
             }
         }
     }
+
+    private val _events = MutableSharedFlow<ExportEvent>()
+    val events = _events.asSharedFlow()
 
     private suspend fun generatePdf(): GeneratedPdf = withContext(Dispatchers.IO) {
         val imageIds = imageRepository.imageIds()
@@ -126,6 +143,49 @@ class ExportViewModel(
         _pdfUiState.update { it.copy(savedFileUri = copiedFile.toUri()) }
         return copiedFile
     }
+
+    fun onSavePdfClicked() {
+        viewModelScope.launch {
+            _events.emit(ExportEvent.RequestSavePdf)
+        }
+    }
+
+    fun onRequestPdfSave(context: Context, homeViewModel: HomeViewModel) {
+        viewModelScope.launch {
+            performPdfSave(context, homeViewModel)
+        }
+    }
+
+    private suspend fun performPdfSave(context: Context, homeViewModel: HomeViewModel) {
+        try {
+            val pdf = getFinalPdf() ?: return
+            val targetFile = saveFile(pdf.file)
+
+            mediaScan(context, targetFile)
+
+            // TODO remove that call: that should be handled through the ExportEvent
+            homeViewModel.addRecentDocument(
+                targetFile.absolutePath,
+                pdf.pageCount
+            )
+
+            _events.emit(ExportEvent.PdfSaved)
+
+        } catch (e: Exception) {
+            Log.e("FairScan", "Failed to save PDF", e)
+            _events.emit(ExportEvent.ShowToast("Error while saving PDF"))
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun mediaScan(context: Context, file: File) =
+        suspendCancellableCoroutine { continuation ->
+            MediaScannerConnection.scanFile(
+                context,
+                arrayOf(file.absolutePath),
+                arrayOf(PDF_MIME_TYPE)
+            ) { _, _ -> continuation.resume(Unit) {} }
+        }
 
     fun cleanUpOldPdfs(thresholdInMillis: Int) {
         pdfFileManager.cleanUpOldFiles(thresholdInMillis)
