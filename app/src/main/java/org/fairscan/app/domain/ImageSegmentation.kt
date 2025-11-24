@@ -28,6 +28,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.fairscan.app.data.Logger
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.tensorflow.lite.DataType
@@ -41,7 +42,7 @@ import org.tensorflow.lite.support.image.ops.Rot90Op
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class ImageSegmentationService(private val context: Context) {
+class ImageSegmentationService(private val context: Context, private val logger: Logger) {
 
     companion object {
         private const val TAG = "ImageSegmentation"
@@ -63,7 +64,7 @@ class ImageSegmentationService(private val context: Context) {
             Interpreter(litertBuffer, options)
         } catch (e: Error) {
             // That should not happen: let the app crash so that we know about it
-            Log.e(TAG, "Failed to load LiteRT model: ${e.message}")
+            logger.e(TAG, "Failed to load LiteRT model", e)
             throw IllegalStateException("Failed to load LiteRT model", e)
         }
     }
@@ -107,7 +108,7 @@ class ImageSegmentationService(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error occurred in image segmentation: ${e.message}")
+            logger.e(TAG, "Error occurred in image segmentation", e)
         }
     }
 

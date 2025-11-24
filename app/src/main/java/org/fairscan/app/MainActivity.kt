@@ -69,10 +69,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initLibraries()
-        val viewModel: MainViewModel by viewModels { MainViewModel.getFactory(this) }
-        val homeViewModel: HomeViewModel by viewModels { HomeViewModel.getFactory(this) }
-        val cameraViewModel: CameraViewModel by viewModels { CameraViewModel.getFactory(this) }
-        val exportViewModel: ExportViewModel by viewModels { ExportViewModel.getFactory(this) }
+        val appContainer = (application as FairScanApp).appContainer
+        val viewModel: MainViewModel by viewModels { appContainer.mainViewModelFactory }
+        val homeViewModel: HomeViewModel by viewModels { appContainer.homeViewModelFactory }
+        val cameraViewModel: CameraViewModel by viewModels { appContainer.cameraViewModelFactory }
+        val exportViewModel: ExportViewModel by viewModels { appContainer.exportViewModelFactory }
         lifecycleScope.launch(Dispatchers.IO) {
             exportViewModel.cleanUpOldPdfs(1000 * 3600)
         }

@@ -14,14 +14,11 @@
  */
 package org.fairscan.app.ui.screens.camera
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.ImageProxy
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +29,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.fairscan.app.domain.ImageSegmentationService
+import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.detectDocumentQuad
 import org.fairscan.app.domain.extractDocument
 import org.fairscan.app.domain.scaledTo
@@ -43,18 +40,9 @@ sealed interface CameraEvent {
     data class ImageCaptured(val jpegBytes: ByteArray) : CameraEvent
 }
 
-class CameraViewModel(
-    private val imageSegmentationService: ImageSegmentationService
-): ViewModel() {
+class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
-    companion object {
-        fun getFactory(context: Context) = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                return CameraViewModel(ImageSegmentationService(context)) as T
-            }
-        }
-    }
+    private val imageSegmentationService = appContainer.imageSegmentationService
 
     private val _events = MutableSharedFlow<CameraEvent>()
     val events = _events.asSharedFlow()

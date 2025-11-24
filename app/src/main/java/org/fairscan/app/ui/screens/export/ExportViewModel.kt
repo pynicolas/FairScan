@@ -16,12 +16,9 @@ package org.fairscan.app.ui.screens.export
 
 import android.content.Context
 import android.media.MediaScannerConnection
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -34,9 +31,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import org.fairscan.app.FairScanApp
+import org.fairscan.app.AppContainer
 import org.fairscan.app.data.GeneratedPdf
-import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.data.PdfFileManager
 import org.fairscan.app.ui.screens.home.HomeViewModel
 import org.fairscan.app.ui.state.PdfGenerationUiState
@@ -50,22 +46,11 @@ sealed interface ExportEvent {
     data object PdfSaved : ExportEvent
 }
 
-class ExportViewModel(
-    private val pdfFileManager: PdfFileManager,
-    private val imageRepository: ImageRepository,
-): ViewModel() {
+class ExportViewModel(container: AppContainer): ViewModel() {
 
-    companion object {
-        fun getFactory(context: Context) = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                val app = context.applicationContext as FairScanApp
-                val pdfFileManager = app.appContainer.pdfFileManager
-                val imageRepository = app.appContainer.imageRepository
-                return ExportViewModel(pdfFileManager, imageRepository) as T
-            }
-        }
-    }
+    private val pdfFileManager = container.pdfFileManager
+    private val imageRepository = container.imageRepository
+    private val logger = container.logger
 
     private val _events = MutableSharedFlow<ExportEvent>()
     val events = _events.asSharedFlow()
@@ -100,7 +85,7 @@ class ExportViewModel(
                     )
                 }
             } catch (e: Exception) {
-                Log.e("FairScan", "PDF generation failed", e)
+                logger.e("FairScan", "PDF generation failed", e)
                 _pdfUiState.update {
                     it.copy(
                         isGenerating = false,
@@ -172,7 +157,7 @@ class ExportViewModel(
             _events.emit(ExportEvent.PdfSaved)
 
         } catch (e: Exception) {
-            Log.e("FairScan", "Failed to save PDF", e)
+            logger.e("FairScan", "Failed to save PDF", e)
             _events.emit(ExportEvent.ShowToast("Error while saving PDF"))
         }
     }

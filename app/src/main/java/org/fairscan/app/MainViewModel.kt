@@ -14,13 +14,10 @@
  */
 package org.fairscan.app
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,24 +26,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
 
-class MainViewModel(
-    private val imageRepository: ImageRepository
-): ViewModel() {
+class MainViewModel(appContainer: AppContainer): ViewModel() {
 
-    companion object {
-        fun getFactory(context: Context) = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                val app = context.applicationContext as FairScanApp
-                return MainViewModel(app.appContainer.imageRepository) as T
-            }
-        }
-    }
+    private val imageRepository = appContainer.imageRepository
 
     private val _navigationState = MutableStateFlow(NavigationState.initial())
     val currentScreen: StateFlow<Screen> = _navigationState.map { it.current }
