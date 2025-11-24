@@ -17,10 +17,20 @@ package org.fairscan.app
 import android.app.Application
 import android.content.Context
 import android.os.Environment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.CreationExtras
+import org.fairscan.app.data.FileLogger
 import org.fairscan.app.data.ImageRepository
+import org.fairscan.app.data.LogRepository
 import org.fairscan.app.data.PdfFileManager
+import org.fairscan.app.data.recentDocumentsDataStore
+import org.fairscan.app.domain.ImageSegmentationService
 import org.fairscan.app.platform.AndroidPdfWriter
 import org.fairscan.app.platform.OpenCvTransformations
+import org.fairscan.app.ui.screens.camera.CameraViewModel
+import org.fairscan.app.ui.screens.export.ExportViewModel
+import org.fairscan.app.ui.screens.home.HomeViewModel
 import java.io.File
 
 class FairScanApp : Application() {
@@ -43,4 +53,21 @@ class AppContainer(context: Context) {
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
         AndroidPdfWriter()
     )
+    val logger = FileLogger(LogRepository(File(context.filesDir, "logs.txt")))
+    val imageSegmentationService = ImageSegmentationService(context, logger)
+    val recentDocumentsDataStore = context.recentDocumentsDataStore
+
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified VM : ViewModel> viewModelFactory(
+        crossinline create: (AppContainer) -> VM
+    ) = object : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+            return create(this@AppContainer) as T
+        }
+    }
+
+    val mainViewModelFactory = viewModelFactory { MainViewModel(it) }
+    val homeViewModelFactory = viewModelFactory { HomeViewModel(it) }
+    val cameraViewModelFactory = viewModelFactory { CameraViewModel(it) }
+    val exportViewModelFactory = viewModelFactory { ExportViewModel(it) }
 }

@@ -38,7 +38,7 @@ class DocumentDetectionTest {
         assertEquals("org.fairscan.app", appContext.packageName)
 
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val segmentationService = ImageSegmentationService(context)
+        val segmentationService = ImageSegmentationService(context) { _, _, _ -> }
         segmentationService.initialize()
         OpenCVLoader.initLocal()
 

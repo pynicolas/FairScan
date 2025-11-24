@@ -14,33 +14,21 @@
  */
 package org.fairscan.app.ui.screens.home
 
-import android.content.Context
-import androidx.datastore.core.DataStore
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.fairscan.app.AppContainer
 import org.fairscan.app.RecentDocument
-import org.fairscan.app.RecentDocuments
-import org.fairscan.app.data.recentDocumentsDataStore
 import org.fairscan.app.ui.state.RecentDocumentUiState
 import java.io.File
 
-class HomeViewModel(private val recentDocumentsDataStore: DataStore<RecentDocuments>): ViewModel() {
+class HomeViewModel(appContainer: AppContainer): ViewModel() {
 
-    companion object {
-        fun getFactory(context: Context) = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                return HomeViewModel(context.recentDocumentsDataStore) as T
-            }
-        }
-    }
+    private val recentDocumentsDataStore = appContainer.recentDocumentsDataStore
 
     val recentDocuments: StateFlow<List<RecentDocumentUiState>> =
         recentDocumentsDataStore.data.map {
