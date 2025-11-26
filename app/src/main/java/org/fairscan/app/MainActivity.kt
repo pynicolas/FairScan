@@ -17,6 +17,7 @@ package org.fairscan.app
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.ClipData
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -33,6 +34,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalClipboard
@@ -86,68 +88,17 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            LaunchedEffect(Unit) {
-                cameraViewModel.events.collect { event ->
-                    when (event) {
-                        is CameraEvent.ImageCaptured -> viewModel.handleImageCaptured(event.jpegBytes)
-                    }
-                }
-            }
             val context = LocalContext.current
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
-            val storagePermissionLauncher = rememberLauncherForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { isGranted ->
-                if (isGranted) {
-                    exportViewModel.onSavePdfClicked()
-                } else {
-                    val message = getString(R.string.storage_permission_denied)
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                }
-            }
-            LaunchedEffect(Unit) {
-                exportViewModel.events.collect { event ->
-                    when (event) {
-                        ExportEvent.RequestSavePdf -> {
-                            checkPermissionThen(storagePermissionLauncher) {
-                                exportViewModel.onRequestPdfSave(context, homeViewModel)
-                            }
-                        }
-                        is ExportEvent.SaveError -> {
-                            val text = getString(R.string.error_save)
-                            Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            }
-            val clipboard = LocalClipboard.current
-            val msgCopiedLogs = stringResource(R.string.copied_logs)
-            LaunchedEffect(aboutViewModel.events) {
-                aboutViewModel.events.collect { event ->
-                    when (event) {
-                        is AboutEvent.CopyLogs -> {
-                            clipboard.setClipEntry(
-                                ClipData.newPlainText("FairScan logs", event.logs).toClipEntry()
-                            )
-                            Toast.makeText(context, msgCopiedLogs, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            }
+            CollectCameraEvents(cameraViewModel, viewModel)
+            CollectExportEvents(context, exportViewModel, homeViewModel)
+            CollectAboutEvents(context, aboutViewModel)
 
             FairScanTheme {
-                val navigation = Navigation(
-                    toHomeScreen = { viewModel.navigateTo(Screen.Main.Home) },
-                    toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
-                    toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
-                    toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
-                    toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
-                    toLibrariesScreen = { viewModel.navigateTo(Screen.Overlay.Libraries) },
-                    back = { viewModel.navigateBack() }
-                )
+                val navigation = navigation(viewModel)
                 when (val screen = currentScreen) {
                     is Screen.Main.Home -> {
                         val recentDocs by homeViewModel.recentDocuments.collectAsStateWithLifecycle()
@@ -207,6 +158,75 @@ class MainActivity : ComponentActivity() {
                     is Screen.Overlay.Libraries -> {
                         LibrariesScreen(onBack = navigation.back)
                     }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun CollectAboutEvents(
+        context: Context,
+        aboutViewModel: AboutViewModel,
+    ) {
+        val clipboard = LocalClipboard.current
+        val msgCopiedLogs = stringResource(R.string.copied_logs)
+        LaunchedEffect(Unit) {
+            aboutViewModel.events.collect { event ->
+                when (event) {
+                    is AboutEvent.CopyLogs -> {
+                        clipboard.setClipEntry(
+                            ClipData.newPlainText("FairScan logs", event.logs).toClipEntry()
+                        )
+                        Toast.makeText(context, msgCopiedLogs, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun CollectExportEvents(
+        context: Context,
+        exportViewModel: ExportViewModel,
+        homeViewModel: HomeViewModel,
+    ) {
+        val storagePermissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                exportViewModel.onSavePdfClicked()
+            } else {
+                val message = getString(R.string.storage_permission_denied)
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+        LaunchedEffect(Unit) {
+            exportViewModel.events.collect { event ->
+                when (event) {
+                    ExportEvent.RequestSavePdf -> {
+                        checkPermissionThen(storagePermissionLauncher) {
+                            exportViewModel.onRequestPdfSave(context, homeViewModel)
+                        }
+                    }
+
+                    is ExportEvent.SaveError -> {
+                        val text = getString(R.string.error_save)
+                        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun CollectCameraEvents(
+        cameraViewModel: CameraViewModel,
+        viewModel: MainViewModel,
+    ) {
+        LaunchedEffect(Unit) {
+            cameraViewModel.events.collect { event ->
+                when (event) {
+                    is CameraEvent.ImageCaptured -> viewModel.handleImageCaptured(event.jpegBytes)
                 }
             }
         }
@@ -275,3 +295,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+private fun navigation(viewModel: MainViewModel): Navigation = Navigation(
+    toHomeScreen = { viewModel.navigateTo(Screen.Main.Home) },
+    toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
+    toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
+    toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
+    toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
+    toLibrariesScreen = { viewModel.navigateTo(Screen.Overlay.Libraries) },
+    back = { viewModel.navigateBack() }
+)
