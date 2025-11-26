@@ -15,15 +15,23 @@
 package org.fairscan.app.data
 
 import java.io.File
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class LogRepository(private val file: File) {
+
+    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")
+        .withZone(ZoneId.systemDefault())
 
     fun getLogs(): String = if (file.exists()) file.readText() else ""
 
     fun log(tag: String, message: String, throwable: Throwable) {
+        val timestamp = formatter.format(Instant.now())
+
         val line = buildString {
-            append("${System.currentTimeMillis()} [$tag] $message")
-            append("\n${throwable.stackTraceToString()}")
+            append("$timestamp [$tag] $message\n")
+            append(throwable.stackTraceToString())
         }
 
         try {
