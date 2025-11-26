@@ -8,6 +8,8 @@
     <string name="cancel">Abbrechen</string>
     <string name="clear_text">Text löschen</string>
     <string name="contact">Kontakt</string>
+    <string name="copied_logs">Logs in die Zwischenablage kopiert</string>
+    <string name="copy_logs">Logs kopieren</string>
     <string name="creating_pdf">PDF wird erstellt…</string>
     <string name="delete_page">Seite löschen</string>
     <string name="delete_page_warning">Möchten Sie diese Seite löschen?</string>

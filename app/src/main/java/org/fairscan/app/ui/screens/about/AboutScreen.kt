@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui.screens
+package org.fairscan.app.ui.screens.about
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
@@ -32,6 +32,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,7 +70,11 @@ import org.fairscan.app.ui.theme.FairScanTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen(onBack: () -> Unit, onViewLibraries: () -> Unit) {
+fun AboutScreen(
+    onBack: () -> Unit,
+    onCopyLogs: () -> Unit,
+    onViewLibraries: () -> Unit,
+) {
     val showLicenseDialog = rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     BackHandler { onBack() }
@@ -81,7 +86,11 @@ fun AboutScreen(onBack: () -> Unit, onViewLibraries: () -> Unit) {
             )
         }
     ) { paddingValues ->
-        AboutContent(modifier = Modifier.padding(paddingValues), showLicenseDialog, onViewLibraries)
+        AboutContent(
+            modifier = Modifier.padding(paddingValues),
+            onCopyLogs,
+            showLicenseDialog,
+            onViewLibraries)
     }
     if (showLicenseDialog.value) {
         LicenseBottomSheet(sheetState, onDismiss = { showLicenseDialog.value = false })
@@ -91,6 +100,7 @@ fun AboutScreen(onBack: () -> Unit, onViewLibraries: () -> Unit) {
 @Composable
 fun AboutContent(
     modifier: Modifier = Modifier,
+    onCopyLogs: () -> Unit,
     showLicenseDialog: MutableState<Boolean>,
     onViewLibraries: () -> Unit,
     ) {
@@ -142,12 +152,12 @@ fun AboutContent(
                     context.startActivity(intent)
                 }
             )
+            CopyLogsButton (onClick = onCopyLogs)
         }
 
         Section(title = stringResource(R.string.license)) {
             Text(
                 stringResource(R.string.licensed_under),
-
             )
             Text(
                 text = stringResource(R.string.view_the_full_license),
@@ -155,7 +165,6 @@ fun AboutContent(
                 color = MaterialTheme.colorScheme.primary
             )
         }
-
 
         Section(title = stringResource(R.string.libraries)) {
             Text(
@@ -259,10 +268,29 @@ fun LicenseBottomSheet(
     }
 }
 
+@Composable
+fun CopyLogsButton(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.ContentCopy,
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(stringResource(R.string.copy_logs))
+    }
+}
+
+
 @Preview
 @Composable
 fun AboutScreenPreview() {
     FairScanTheme {
-        AboutScreen(onBack = {}, onViewLibraries = {})
+        AboutScreen(onBack = {}, onCopyLogs = {}, onViewLibraries = {})
     }
 }

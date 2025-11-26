@@ -8,6 +8,8 @@
     <string name="cancel">Annulla</string>
     <string name="clear_text">Svuota testo</string>
     <string name="contact">Contatti</string>
+    <string name="copied_logs">Log copiati negli appunti</string>
+    <string name="copy_logs">Copia log</string>
     <string name="creating_pdf">Creazione PDF…</string>
     <string name="delete_page">Elimina pagina</string>
     <string name="delete_page_warning">Vuoi eliminare questa pagina?</string>

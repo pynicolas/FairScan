@@ -18,6 +18,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
 
 class LogRepositoryTest {
 
@@ -32,5 +33,13 @@ class LogRepositoryTest {
         assertThat(repo.getLogs()).contains("[tag1] message1")
         assertThat(repo.getLogs()).contains("my exception")
         print(repo.getLogs())
+    }
+
+    @Test
+    fun get_logs_with_file_not_yet_created() {
+        val file = File(folder.newFolder(), "log.txt")
+        val repo = LogRepository(file)
+        assertThat(file).doesNotExist()
+        assertThat(repo.getLogs()).isEmpty()
     }
 }
