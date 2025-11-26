@@ -116,11 +116,9 @@ class MainActivity : ComponentActivity() {
                                 exportViewModel.onRequestPdfSave(context, homeViewModel)
                             }
                         }
-                        is ExportEvent.ShowToast -> {
-                            Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
-                        }
-                        ExportEvent.PdfSaved -> {
-                            Toast.makeText(context, "PDF saved", Toast.LENGTH_SHORT).show()
+                        is ExportEvent.SaveError -> {
+                            val text = getString(R.string.error_save)
+                            Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }

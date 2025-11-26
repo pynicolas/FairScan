@@ -42,8 +42,7 @@ private const val PDF_MIME_TYPE = "application/pdf"
 
 sealed interface ExportEvent {
     data object RequestSavePdf : ExportEvent
-    data class ShowToast(val message: String) : ExportEvent
-    data object PdfSaved : ExportEvent
+    data object SaveError : ExportEvent
 }
 
 class ExportViewModel(container: AppContainer): ViewModel() {
@@ -153,12 +152,9 @@ class ExportViewModel(container: AppContainer): ViewModel() {
                 targetFile.absolutePath,
                 pdf.pageCount
             )
-
-            _events.emit(ExportEvent.PdfSaved)
-
         } catch (e: Exception) {
             logger.e("FairScan", "Failed to save PDF", e)
-            _events.emit(ExportEvent.ShowToast("Error while saving PDF"))
+            _events.emit(ExportEvent.SaveError)
         }
     }
 
