@@ -28,6 +28,7 @@ import org.fairscan.app.data.recentDocumentsDataStore
 import org.fairscan.app.domain.ImageSegmentationService
 import org.fairscan.app.platform.AndroidPdfWriter
 import org.fairscan.app.platform.OpenCvTransformations
+import org.fairscan.app.ui.screens.about.AboutViewModel
 import org.fairscan.app.ui.screens.camera.CameraViewModel
 import org.fairscan.app.ui.screens.export.ExportViewModel
 import org.fairscan.app.ui.screens.home.HomeViewModel
@@ -53,7 +54,8 @@ class AppContainer(context: Context) {
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
         AndroidPdfWriter()
     )
-    val logger = FileLogger(LogRepository(File(context.filesDir, "logs.txt")))
+    val logRepository = LogRepository(File(context.filesDir, "logs.txt"))
+    val logger = FileLogger(logRepository)
     val imageSegmentationService = ImageSegmentationService(context, logger)
     val recentDocumentsDataStore = context.recentDocumentsDataStore
 
@@ -70,4 +72,5 @@ class AppContainer(context: Context) {
     val homeViewModelFactory = viewModelFactory { HomeViewModel(it) }
     val cameraViewModelFactory = viewModelFactory { CameraViewModel(it) }
     val exportViewModelFactory = viewModelFactory { ExportViewModel(it) }
+    val aboutViewModelFactory = viewModelFactory { AboutViewModel(it) }
 }

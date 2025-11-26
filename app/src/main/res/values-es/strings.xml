@@ -8,6 +8,8 @@
     <string name="cancel">Cancelar</string>
     <string name="clear_text">Borrar texto</string>
     <string name="contact">Contacto</string>
+    <string name="copied_logs">Registros copiados al portapapeles</string>
+    <string name="copy_logs">Copiar registros</string>
     <string name="creating_pdf">Creando PDF…</string>
     <string name="delete_page">Eliminar página</string>
     <string name="delete_page_warning">¿Quieres eliminar esta página?</string>

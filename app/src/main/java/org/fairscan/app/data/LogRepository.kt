@@ -18,7 +18,7 @@ import java.io.File
 
 class LogRepository(private val file: File) {
 
-    fun getLogs(): String = file.readText()
+    fun getLogs(): String = if (file.exists()) file.readText() else ""
 
     fun log(tag: String, message: String, throwable: Throwable) {
         val line = buildString {

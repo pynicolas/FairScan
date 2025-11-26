@@ -16,6 +16,7 @@ package org.fairscan.app
 
 import android.Manifest
 import android.content.ActivityNotFoundException
+import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -34,7 +35,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.toClipEntry
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
@@ -47,9 +51,11 @@ import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
-import org.fairscan.app.ui.screens.AboutScreen
 import org.fairscan.app.ui.screens.DocumentScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
+import org.fairscan.app.ui.screens.about.AboutEvent
+import org.fairscan.app.ui.screens.about.AboutScreen
+import org.fairscan.app.ui.screens.about.AboutViewModel
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
@@ -74,6 +80,7 @@ class MainActivity : ComponentActivity() {
         val homeViewModel: HomeViewModel by viewModels { appContainer.homeViewModelFactory }
         val cameraViewModel: CameraViewModel by viewModels { appContainer.cameraViewModelFactory }
         val exportViewModel: ExportViewModel by viewModels { appContainer.exportViewModelFactory }
+        val aboutViewModel: AboutViewModel by viewModels { appContainer.aboutViewModelFactory }
         lifecycleScope.launch(Dispatchers.IO) {
             exportViewModel.cleanUpOldPdfs(1000 * 3600)
         }
@@ -114,6 +121,20 @@ class MainActivity : ComponentActivity() {
                         }
                         ExportEvent.PdfSaved -> {
                             Toast.makeText(context, "PDF saved", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+            val clipboard = LocalClipboard.current
+            val msgCopiedLogs = stringResource(R.string.copied_logs)
+            LaunchedEffect(aboutViewModel.events) {
+                aboutViewModel.events.collect { event ->
+                    when (event) {
+                        is AboutEvent.CopyLogs -> {
+                            clipboard.setClipEntry(
+                                ClipData.newPlainText("FairScan logs", event.logs).toClipEntry()
+                            )
+                            Toast.makeText(context, msgCopiedLogs, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -180,7 +201,10 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     is Screen.Overlay.About -> {
-                        AboutScreen(onBack = navigation.back, onViewLibraries = navigation.toLibrariesScreen)
+                        AboutScreen(
+                            onBack = navigation.back,
+                            onCopyLogs = { aboutViewModel.onCopyLogsClicked() },
+                            onViewLibraries = navigation.toLibrariesScreen)
                     }
                     is Screen.Overlay.Libraries -> {
                         LibrariesScreen(onBack = navigation.back)

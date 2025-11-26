@@ -8,6 +8,8 @@
     <string name="cancel">取消</string>
     <string name="clear_text">清除文字</string>
     <string name="contact">联系人</string>
+    <string name="copied_logs">日志已复制到剪贴板</string>
+    <string name="copy_logs">复制日志</string>
     <string name="creating_pdf">正在创建 PDF…</string>
     <string name="delete_page">删除页面</string>
     <string name="delete_page_warning">是否要删除此页面?</string>

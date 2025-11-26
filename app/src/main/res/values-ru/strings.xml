@@ -8,6 +8,8 @@
     <string name="cancel">Отмена</string>
     <string name="clear_text">Стереть текст</string>
     <string name="contact">Контакты</string>
+    <string name="copied_logs">Журналы скопированы в буфер обмена</string>
+    <string name="copy_logs">Копировать журналы</string>
     <string name="creating_pdf">Создание PDF…</string>
     <string name="delete_page">Удалить страницу</string>
     <string name="delete_page_warning">Вы желаете удалить эту страницу?</string>

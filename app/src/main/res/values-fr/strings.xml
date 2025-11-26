@@ -8,6 +8,8 @@
     <string name="cancel">Annuler</string>
     <string name="contact">Contact</string>
     <string name="clear_text">Effacer le text</string>
+    <string name="copied_logs">Logs copiés dans le presse-papiers</string>
+    <string name="copy_logs">Copier les logs</string>
     <string name="creating_pdf">Création du PDF…</string>
     <string name="delete_page">Supprimer la page</string>
     <string name="delete_page_warning">Voulez-vous supprimer cette page ?</string>
