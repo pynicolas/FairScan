@@ -221,9 +221,8 @@ private fun CameraScreenScaffold(
 
     Box {
         MyScaffold(
-            toAboutScreen = navigation.toAboutScreen,
+            navigation = navigation,
             pageListState = pageListState,
-            onBack = navigation.back,
             bottomBar = { Bar(cameraUiState.pageCount, onFinalizePressed) }
         ) { modifier ->
             CameraPreviewBox(

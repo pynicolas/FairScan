@@ -95,7 +95,7 @@ fun DocumentScreen(
     }
 
     MyScaffold(
-        toAboutScreen = navigation.toAboutScreen,
+        navigation = navigation,
         pageListState = CommonPageListState(
             document,
             onPageClick = { index -> currentPageIndex.intValue = index },
@@ -103,7 +103,6 @@ fun DocumentScreen(
             currentPageIndex = currentPageIndex.intValue,
             listState = listState,
         ),
-        onBack = navigation.back,
         bottomBar = {
             BottomBar(navigation)
         },

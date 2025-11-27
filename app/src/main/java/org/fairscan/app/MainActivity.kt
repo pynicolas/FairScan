@@ -67,6 +67,8 @@ import org.fairscan.app.ui.screens.export.ExportViewModel
 import org.fairscan.app.ui.screens.export.PdfGenerationActions
 import org.fairscan.app.ui.screens.home.HomeScreen
 import org.fairscan.app.ui.screens.home.HomeViewModel
+import org.fairscan.app.ui.screens.settings.SettingsScreen
+import org.fairscan.app.ui.screens.settings.SettingsViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
 
@@ -83,6 +85,8 @@ class MainActivity : ComponentActivity() {
         val cameraViewModel: CameraViewModel by viewModels { appContainer.cameraViewModelFactory }
         val exportViewModel: ExportViewModel by viewModels { appContainer.exportViewModelFactory }
         val aboutViewModel: AboutViewModel by viewModels { appContainer.aboutViewModelFactory }
+        val settingsViewModel: SettingsViewModel
+            by viewModels { appContainer.settingsViewModelFactory }
         lifecycleScope.launch(Dispatchers.IO) {
             exportViewModel.cleanUpOldPdfs(1000 * 3600)
         }
@@ -158,9 +162,33 @@ class MainActivity : ComponentActivity() {
                     is Screen.Overlay.Libraries -> {
                         LibrariesScreen(onBack = navigation.back)
                     }
+                    is Screen.Overlay.Settings -> {
+                        SettingsScreenWrapper(settingsViewModel, navigation)
+                    }
                 }
             }
         }
+    }
+
+    @Composable
+    private fun SettingsScreenWrapper(settingsViewModel: SettingsViewModel, nav: Navigation) {
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocumentTree()
+        ) { uri ->
+            if (uri != null) {
+                val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                contentResolver.takePersistableUriPermission(uri, flags)
+                settingsViewModel.setExportDirUri(uri.toString())
+            }
+        }
+        val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+        SettingsScreen(
+            settingsUiState,
+            onChooseDirectoryClick = { launcher.launch(null) },
+            onResetExportDirClick = { settingsViewModel.setExportDirUri(null) },
+            onBack = nav.back
+        )
     }
 
     @Composable
@@ -303,5 +331,6 @@ private fun navigation(viewModel: MainViewModel): Navigation = Navigation(
     toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
     toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
     toLibrariesScreen = { viewModel.navigateTo(Screen.Overlay.Libraries) },
+    toSettingsScreen = { viewModel.navigateTo(Screen.Overlay.Settings) },
     back = { viewModel.navigateBack() }
 )

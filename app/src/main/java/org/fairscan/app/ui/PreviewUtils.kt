@@ -21,7 +21,7 @@ import kotlinx.collections.immutable.persistentListOf
 import org.fairscan.app.ui.state.DocumentUiModel
 
 fun dummyNavigation(): Navigation {
-    return Navigation({}, {}, {}, {}, {}, {}, {})
+    return Navigation({}, {}, {}, {}, {}, {}, {}, {})
 }
 
 fun fakeDocument(): DocumentUiModel {
