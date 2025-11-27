@@ -12,11 +12,10 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui.state
+package org.fairscan.app.ui.screens.export
 
 import android.net.Uri
 import org.fairscan.app.data.GeneratedPdf
-import java.io.File
 
 data class PdfGenerationUiState(
     val isGenerating: Boolean = false,
@@ -28,9 +27,3 @@ data class PdfGenerationUiState(
 ) {
     val hasSavedOrSharedPdf get() = savedFileUri != null || hasSharedPdf
 }
-
-data class RecentDocumentUiState(
-    val file: File,
-    val saveTimestamp: Long,
-    val pageCount: Int,
-)

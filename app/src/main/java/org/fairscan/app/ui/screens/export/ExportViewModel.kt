@@ -35,7 +35,6 @@ import org.fairscan.app.AppContainer
 import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.data.PdfFileManager
 import org.fairscan.app.ui.screens.home.HomeViewModel
-import org.fairscan.app.ui.state.PdfGenerationUiState
 import java.io.File
 
 private const val PDF_MIME_TYPE = "application/pdf"

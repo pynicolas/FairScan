@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.fairscan.app.AppContainer
 import org.fairscan.app.RecentDocument
-import org.fairscan.app.ui.state.RecentDocumentUiState
 import java.io.File
 
 class HomeViewModel(appContainer: AppContainer): ViewModel() {

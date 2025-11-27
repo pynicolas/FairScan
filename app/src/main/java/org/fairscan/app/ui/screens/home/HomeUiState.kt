@@ -12,16 +12,12 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui.state
+package org.fairscan.app.ui.screens.home
 
-import android.graphics.Bitmap
-import androidx.compose.runtime.Immutable
-import org.fairscan.app.domain.Quad
+import java.io.File
 
-@Immutable
-data class LiveAnalysisState(
-    val inferenceTime: Long = 0L,
-    val binaryMask: Bitmap? = null,
-    val documentQuad: Quad? = null,
-    val timestamp: Long = System.currentTimeMillis(),
+data class RecentDocumentUiState(
+    val file: File,
+    val saveTimestamp: Long,
+    val pageCount: Int,
 )

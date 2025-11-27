@@ -93,18 +93,7 @@ import org.fairscan.app.ui.components.MyScaffold
 import org.fairscan.app.ui.components.pageCountText
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.fakeDocument
-import org.fairscan.app.ui.state.LiveAnalysisState
 import org.fairscan.app.ui.theme.FairScanTheme
-
-data class CameraUiState(
-    val pageCount: Int,
-    val liveAnalysisState: LiveAnalysisState,
-    val captureState: CaptureState,
-    val showDetectionError: Boolean,
-    val isLandscape: Boolean,
-    val isDebugMode: Boolean,
-    val isTorchEnabled: Boolean,
-)
 
 const val CAPTURED_IMAGE_DISPLAY_DURATION = 1500L
 const val ANIMATION_DURATION = 200

@@ -33,7 +33,6 @@ import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.detectDocumentQuad
 import org.fairscan.app.domain.extractDocument
 import org.fairscan.app.domain.scaledTo
-import org.fairscan.app.ui.state.LiveAnalysisState
 import java.io.ByteArrayOutputStream
 
 sealed interface CameraEvent {

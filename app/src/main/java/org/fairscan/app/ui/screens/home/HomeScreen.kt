@@ -59,7 +59,6 @@ import org.fairscan.app.ui.components.CameraPermissionState
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.R
 import org.fairscan.app.ui.components.rememberCameraPermissionState
-import org.fairscan.app.ui.state.RecentDocumentUiState
 import org.fairscan.app.ui.components.AboutScreenNavButton
 import org.fairscan.app.ui.components.formatDate
 import org.fairscan.app.ui.components.pageCountText
