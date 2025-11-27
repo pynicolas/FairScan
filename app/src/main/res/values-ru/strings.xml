@@ -6,6 +6,7 @@
     <string name="camera_permission_denied">В доступе к камере отказано</string>
     <string name="camera_permission_rationale">Для сканирования документов приложению требуется доступ к камере. Отснятые изображения хранятся только на данном устройстве и удаляются по окончании работы с текущим документом.</string>
     <string name="cancel">Отмена</string>
+    <string name="change_directory">Изменить папку</string>
     <string name="clear_text">Стереть текст</string>
     <string name="contact">Контакты</string>
     <string name="copied_logs">Журналы скопированы в буфер обмена</string>
@@ -21,9 +22,10 @@
     <string name="error_no_document">Документ не обнаружен</string>
     <string name="error_no_pdf_app">Приложения для работы с PDF не обнаружено</string>
     <string name="error_save">Сбой при сохранении PDF</string>
+    <string name="export_directory">Папка экспорта</string>
     <string name="export_pdf">Экспорт PDF</string>
-    <string name="filename">Имя файла</string>
     <string name="file_size">Размер файла: %1$s</string>
+    <string name="filename">Имя файла</string>
     <string name="grant_permission">Предоставить разрешение</string>
     <string name="last_saved_pdf_files">Последние PDF сохранены в Download:</string>
     <string name="libraries">Библиотеки</string>
@@ -31,14 +33,17 @@
     <string name="libraries_open_source">Библиотеки с открытым исходным кодом</string>
     <string name="license">Лицензия</string>
     <string name="licensed_under">Это приложение лицензировано в соответствии с GNU General Public License v3.0.</string>
+    <string name="menu">Меню</string>
     <string name="new_document_warning">Результаты текущего сканирования будут потеряны. Желаете продолжить?</string>
     <string name="open">Открыть</string>
     <string name="open_pdf">Открыть PDF</string>
     <string name="pdf_saved_to">PDF сохранен в %1s</string>
+    <string name="reset_to_default">Сбросить по умолчанию</string>
     <string name="resume">Продолжить</string>
     <string name="save">Сохранить</string>
     <string name="scan_button">Начать</string>
     <string name="scan_in_progress">Сканирование выполняется</string>
+    <string name="settings">Настройки</string>
     <string name="share">Поделиться</string>
     <string name="share_pdf">Поделиться PDF</string>
     <string name="storage_permission_denied">Не удается сохранить файл PDF: в разрешении отказано</string>
@@ -46,8 +51,8 @@
     <string name="turn_on_torch">Включить фонарик</string>
     <string name="unknown_size">Неизвестный размер</string>
     <string name="version">Версия</string>
-    <string name="view_the_full_license">Просмотреть полную лицензию</string>
     <string name="view_full_list">Просмотреть полный список</string>
+    <string name="view_the_full_license">Просмотреть полную лицензию</string>
     <string name="yes">Да</string>
     <plurals name="page_count">
         <item quantity="one">%d страница</item>

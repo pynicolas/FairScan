@@ -6,6 +6,7 @@
     <string name="camera_permission_denied">Autorizzazione fotocamera negata</string>
     <string name="camera_permission_rationale">L\'app richiede l\'accesso alla fotocamera per scansionare documenti. Le immagini catturate sono salvate solo in questo dispositivo e verranno eliminate quando chiudi il documento attuale.</string>
     <string name="cancel">Annulla</string>
+    <string name="change_directory">Cambia cartella</string>
     <string name="clear_text">Svuota testo</string>
     <string name="contact">Contatti</string>
     <string name="copied_logs">Log copiati negli appunti</string>
@@ -21,9 +22,10 @@
     <string name="error_no_document">Nessun documento rilevato</string>
     <string name="error_no_pdf_app">Nessuna app trovata per aprire PDF</string>
     <string name="error_save">Salvataggio PDF fallito</string>
+    <string name="export_directory">Cartella di esportazione</string>
     <string name="export_pdf">Esporta PDF</string>
-    <string name="filename">Nome file</string>
     <string name="file_size">Dimensione file: %1$s</string>
+    <string name="filename">Nome file</string>
     <string name="grant_permission">Concendi autorizzazione</string>
     <string name="last_saved_pdf_files">PDF recenti salvati in Download:</string>
     <string name="libraries">Librerie</string>
@@ -31,14 +33,17 @@
     <string name="libraries_open_source">Librerie open source</string>
     <string name="license">Licenza</string>
     <string name="licensed_under">Questa app è concessa in licenza ai sensi della GNU General Public License v3.0.</string>
+    <string name="menu">Menu</string>
     <string name="new_document_warning">La scansiona attuale verrà persa. Vuoi continuare?</string>
     <string name="open">Apri</string>
     <string name="open_pdf">Apri PDF</string>
     <string name="pdf_saved_to">PDF salvato in %1s</string>
+    <string name="reset_to_default">Ripristina impostazioni predefinite</string>
     <string name="resume">Riprendi</string>
     <string name="save">Salva</string>
     <string name="scan_button">Nuova scansione</string>
     <string name="scan_in_progress">Scansione in corso</string>
+    <string name="settings">Impostazioni</string>
     <string name="share">Condividi</string>
     <string name="share_pdf">Condividi PDF</string>
     <string name="storage_permission_denied">Impossibile salvare il file PDF: autorizzazione negata</string>
@@ -46,8 +51,8 @@
     <string name="turn_on_torch">Accendi la torcia</string>
     <string name="unknown_size">Dimensione sconosciuta</string>
     <string name="version">Versione</string>
-    <string name="view_the_full_license">Vedi la licenza completa</string>
     <string name="view_full_list">Vedi l\'elenco completo</string>
+    <string name="view_the_full_license">Vedi la licenza completa</string>
     <string name="yes">Sì</string>
     <plurals name="page_count">
         <item quantity="one">%d pagina</item>
