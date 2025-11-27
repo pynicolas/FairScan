@@ -16,7 +16,9 @@ package org.fairscan.app.ui.screens.export
 
 import android.content.Context
 import android.media.MediaScannerConnection
+import android.net.Uri
 import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -36,6 +39,7 @@ import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.data.PdfFileManager
 import org.fairscan.app.ui.screens.home.HomeViewModel
 import java.io.File
+import java.io.FileInputStream
 
 private const val PDF_MIME_TYPE = "application/pdf"
 
@@ -48,6 +52,7 @@ class ExportViewModel(container: AppContainer): ViewModel() {
 
     private val pdfFileManager = container.pdfFileManager
     private val imageRepository = container.imageRepository
+    private val settingsRepository = container.settingsRepository
     private val logger = container.logger
 
     private val _events = MutableSharedFlow<ExportEvent>()
@@ -121,12 +126,6 @@ class ExportViewModel(container: AppContainer): ViewModel() {
         return _pdfUiState.value.generatedPdf
     }
 
-    fun saveFile(pdfFile: File): File {
-        val copiedFile = pdfFileManager.copyToExternalDir(pdfFile)
-        _pdfUiState.update { it.copy(savedFileUri = copiedFile.toUri()) }
-        return copiedFile
-    }
-
     fun onSavePdfClicked() {
         viewModelScope.launch {
             _events.emit(ExportEvent.RequestSavePdf)
@@ -142,13 +141,30 @@ class ExportViewModel(container: AppContainer): ViewModel() {
     private suspend fun performPdfSave(context: Context, homeViewModel: HomeViewModel) {
         try {
             val pdf = getFinalPdf() ?: return
-            val targetFile = saveFile(pdf.file)
 
-            mediaScan(context, targetFile)
+            val exportDir = settingsRepository.exportDirUri.first()
+            var fileInDownloads: File? = null
+
+            val savedUri: Uri =
+                if (exportDir == null) {
+                    fileInDownloads = pdfFileManager.copyToExternalDir(pdf.file)
+                    fileInDownloads.toUri()
+                } else {
+                    copyViaSaf(context, pdf.file, exportDir.toUri())
+                }
+
+            _pdfUiState.update {
+                it.copy(
+                    savedFileUri = savedUri,
+                    exportDirName = resolveExportDirName(context, exportDir?.toUri()))
+            }
+
+            fileInDownloads?.let { mediaScan(context, it) }
 
             // TODO remove that call: that should be handled through the ExportEvent
             homeViewModel.addRecentDocument(
-                targetFile.absolutePath,
+                // FIXME This is not a file path
+                savedUri.toString(),
                 pdf.pageCount
             )
         } catch (e: Exception) {
@@ -167,10 +183,40 @@ class ExportViewModel(container: AppContainer): ViewModel() {
             ) { _, _ -> continuation.resume(Unit) {} }
         }
 
+    private fun copyViaSaf(
+        context: Context,
+        source: File,
+        exportDirUri: Uri,
+    ): Uri {
+        val resolver = context.contentResolver
+
+        val tree = DocumentFile.fromTreeUri(context, exportDirUri)
+            ?: throw IllegalStateException("Invalid SAF directory")
+
+        // Name collisions are handled automatically by SAF provider
+        val target = tree.createFile(PDF_MIME_TYPE, source.name)
+            ?: throw IllegalStateException("Unable to create SAF file")
+
+        resolver.openOutputStream(target.uri)?.use { output ->
+            FileInputStream(source).use { input ->
+                input.copyTo(output)
+            }
+        } ?: throw IllegalStateException("Failed to open SAF output stream")
+
+        return target.uri
+    }
+
     fun cleanUpOldPdfs(thresholdInMillis: Int) {
         pdfFileManager.cleanUpOldFiles(thresholdInMillis)
     }
 
+    private fun resolveExportDirName(context: Context, exportDirUri: Uri?): String? {
+        return if (exportDirUri == null) {
+            null
+        } else {
+            DocumentFile.fromTreeUri(context, exportDirUri)?.name
+        }
+    }
 }
 
 data class PdfGenerationActions(

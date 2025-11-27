@@ -17,6 +17,7 @@ package org.fairscan.app
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.ClipData
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -297,13 +298,15 @@ class MainActivity : ComponentActivity() {
 
     private fun openPdf(fileUri: Uri?) {
         if (fileUri == null) return
-        val uri = FileProvider.getUriForFile(
-            this,
-            "${applicationContext.packageName}.fileprovider",
-            fileUri.toFile()
-        )
+        val uriToOpen: Uri =
+            if (fileUri.scheme == ContentResolver.SCHEME_CONTENT) {
+                fileUri
+            } else {
+                val authority = "${applicationContext.packageName}.fileprovider"
+                FileProvider.getUriForFile(this, authority, fileUri.toFile())
+            }
         val openIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, PDF_MIME_TYPE)
+            setDataAndType(uriToOpen, PDF_MIME_TYPE)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         try {

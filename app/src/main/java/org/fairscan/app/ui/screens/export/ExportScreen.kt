@@ -221,7 +221,7 @@ private fun TextFieldAndPdfInfos(
     }
 
     if (uiState.savedFileUri != null) {
-        SavedPdfBar(onOpen)
+        SavedPdfBar(uiState, onOpen)
     }
     if (uiState.errorMessage != null) {
         ErrorBar(uiState.errorMessage)
@@ -335,7 +335,8 @@ fun ExportButton(
 }
 
 @Composable
-private fun SavedPdfBar(onOpen: () -> Unit) {
+private fun SavedPdfBar(uiState: PdfGenerationUiState, onOpen: () -> Unit) {
+    val dirName = uiState.exportDirName?:stringResource(R.string.download_dirname)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Absolute.SpaceBetween,
@@ -345,7 +346,7 @@ private fun SavedPdfBar(onOpen: () -> Unit) {
             .padding(vertical = 8.dp, horizontal = 16.dp),
     ) {
         Text(
-            text = stringResource(R.string.pdf_saved_to),
+            text = stringResource(R.string.pdf_saved_to, dirName),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
@@ -428,6 +429,7 @@ fun PreviewExportScreenAfterSaveHorizontal() {
         uiState = PdfGenerationUiState(
             generatedPdf = GeneratedPdf(file, 442897L, 3),
             savedFileUri = file.toUri(),
+            exportDirName = "MyVeryVeryLongDirectoryName"
         ),
     )
 }

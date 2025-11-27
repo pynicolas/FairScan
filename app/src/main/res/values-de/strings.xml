@@ -15,6 +15,7 @@
     <string name="delete_page_warning">Möchten Sie diese Seite löschen?</string>
     <string name="developer">Entwickler</string>
     <string name="discard_scan">Löschen</string>
+    <string name="download_dirname">Downloads</string>
     <string name="end_scan">Scan beenden</string>
     <string name="error">Fehler: %1$s</string>
     <string name="error_no_document">Kein Dokument erkannt</string>
@@ -33,7 +34,7 @@
     <string name="new_document_warning">Das aktuelle Dokument geht verloren. Möchten Sie fortfahren?</string>
     <string name="open">Öffnen</string>
     <string name="open_pdf">PDF öffnen</string>
-    <string name="pdf_saved_to">PDF gespeichert in Downloads</string>
+    <string name="pdf_saved_to">PDF gespeichert in %1s</string>
     <string name="resume">Fortsetzen</string>
     <string name="save">Speichern</string>
     <string name="scan_button">Neuer Scan</string>

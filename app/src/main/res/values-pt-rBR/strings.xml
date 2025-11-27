@@ -15,6 +15,7 @@
     <string name="delete_page_warning">Deseja excluir esta página?</string>
     <string name="developer">Desenvolvedor</string>
     <string name="discard_scan">Descartar digitalização</string>
+    <string name="download_dirname">Downloads</string>
     <string name="end_scan">Finalizar digitalização</string>
     <string name="error">Erro: %1$s</string>
     <string name="error_no_document">Nenhum documento detectado</string>
@@ -33,7 +34,7 @@
     <string name="new_document_warning">A digitalização atual será perdida. Deseja continuar?</string>
     <string name="open">Abrir</string>
     <string name="open_pdf">Abrir PDF</string>
-    <string name="pdf_saved_to">PDF salvo em Downloads</string>
+    <string name="pdf_saved_to">PDF salvo em %1s</string>
     <string name="resume">Retomar</string>
     <string name="save">Salvar</string>
     <string name="scan_button">Nova digitalização</string>

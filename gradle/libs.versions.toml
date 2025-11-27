@@ -11,6 +11,7 @@ activityCompose = "1.10.1"
 composeBom = "2025.08.01"
 camerax = "1.4.2"
 datastore = "1.2.0"
+documentfile = "1.1.0"
 litert = "1.4.0"
 opencv = "4.12.0"
 assertj = "3.27.4"
@@ -47,6 +48,7 @@ androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycl
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 androidx-datastore = { group = "androidx.datastore", name = "datastore" , version.ref = "datastore" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences" , version.ref = "datastore" }
+androidx-documentfile = { group = "androidx.documentfile", name = "documentfile" , version.ref = "documentfile" }
 protobuf-javalite = { group = "com.google.protobuf", name="protobuf-javalite", version.ref = "protobufJavaLite"}
 litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
 litert-support = { group = "com.google.ai.edge.litert", name = "litert-support", version.ref = "litert" }
