@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -83,21 +82,5 @@ fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
             contentDescription = stringResource(R.string.back),
             tint = MaterialTheme.colorScheme.onSurface
         )
-    }
-}
-
-@Composable
-fun AboutScreenNavButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    IconButton(
-        onClick = onClick,
-        modifier = modifier
-    ) {
-        Icon(
-            imageVector = Icons.Default.Info,
-            contentDescription = stringResource(R.string.about),
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
     }
 }

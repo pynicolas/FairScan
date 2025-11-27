@@ -32,6 +32,8 @@ import org.fairscan.app.ui.screens.about.AboutViewModel
 import org.fairscan.app.ui.screens.camera.CameraViewModel
 import org.fairscan.app.ui.screens.export.ExportViewModel
 import org.fairscan.app.ui.screens.home.HomeViewModel
+import org.fairscan.app.ui.screens.settings.SettingsRepository
+import org.fairscan.app.ui.screens.settings.SettingsViewModel
 import java.io.File
 
 class FairScanApp : Application() {
@@ -58,6 +60,7 @@ class AppContainer(context: Context) {
     val logger = FileLogger(logRepository)
     val imageSegmentationService = ImageSegmentationService(context, logger)
     val recentDocumentsDataStore = context.recentDocumentsDataStore
+    val settingsRepository = SettingsRepository(context)
 
     @Suppress("UNCHECKED_CAST")
     inline fun <reified VM : ViewModel> viewModelFactory(
@@ -73,4 +76,5 @@ class AppContainer(context: Context) {
     val cameraViewModelFactory = viewModelFactory { CameraViewModel(it) }
     val exportViewModelFactory = viewModelFactory { ExportViewModel(it) }
     val aboutViewModelFactory = viewModelFactory { AboutViewModel(it) }
+    val settingsViewModelFactory = viewModelFactory { SettingsViewModel(it) }
 }

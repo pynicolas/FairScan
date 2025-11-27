@@ -69,7 +69,7 @@ import androidx.core.net.toUri
 import org.fairscan.app.R
 import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.ui.Navigation
-import org.fairscan.app.ui.components.AboutScreenNavButton
+import org.fairscan.app.ui.components.AppOverflowMenu
 import org.fairscan.app.ui.components.BackButton
 import org.fairscan.app.ui.components.MainActionButton
 import org.fairscan.app.ui.components.NewDocumentDialog
@@ -154,7 +154,7 @@ fun ExportScreen(
                 title = { Text(stringResource(R.string.export_pdf)) },
                 navigationIcon = { BackButton(navigation.back) },
                 actions = {
-                    AboutScreenNavButton(onClick = navigation.toAboutScreen)
+                    AppOverflowMenu(navigation)
                 }
             )
         }

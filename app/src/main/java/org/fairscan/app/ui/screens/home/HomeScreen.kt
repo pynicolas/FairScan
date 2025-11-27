@@ -55,13 +55,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.persistentListOf
-import org.fairscan.app.ui.components.CameraPermissionState
-import org.fairscan.app.ui.Navigation
 import org.fairscan.app.R
-import org.fairscan.app.ui.components.rememberCameraPermissionState
-import org.fairscan.app.ui.components.AboutScreenNavButton
+import org.fairscan.app.ui.Navigation
+import org.fairscan.app.ui.components.AppOverflowMenu
+import org.fairscan.app.ui.components.CameraPermissionState
 import org.fairscan.app.ui.components.formatDate
 import org.fairscan.app.ui.components.pageCountText
+import org.fairscan.app.ui.components.rememberCameraPermissionState
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.fakeDocument
 import org.fairscan.app.ui.state.DocumentUiModel
@@ -82,9 +82,7 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
-                actions = {
-                    AboutScreenNavButton(onClick = navigation.toAboutScreen)
-                }
+                actions = { AppOverflowMenu(navigation) }
             )
         },
     ) { padding ->
