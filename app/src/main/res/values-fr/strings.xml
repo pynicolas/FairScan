@@ -6,8 +6,9 @@
     <string name="camera_permission_denied">L\'autorisation d\'accès à la caméra a été refusée</string>
     <string name="camera_permission_rationale">L’application a besoin d’accéder à l’appareil photo pour scanner des documents. Les images capturées sont enregistrées uniquement sur cet appareil et seront supprimées lorsque vous fermerez le document en cours.</string>
     <string name="cancel">Annuler</string>
-    <string name="contact">Contact</string>
+    <string name="change_directory">Changer de dossier</string>
     <string name="clear_text">Effacer le text</string>
+    <string name="contact">Contact</string>
     <string name="copied_logs">Logs copiés dans le presse-papiers</string>
     <string name="copy_logs">Copier les logs</string>
     <string name="creating_pdf">Création du PDF…</string>
@@ -21,9 +22,10 @@
     <string name="error_no_document">Aucun document détecté</string>
     <string name="error_no_pdf_app">Aucune application trouvée pour ouvrir un PDF</string>
     <string name="error_save">Échec de l\'enregistrement du PDF</string>
+    <string name="export_directory">Dossier d’export</string>
     <string name="export_pdf">Exporter en PDF</string>
-    <string name="filename">Nom de fichier</string>
     <string name="file_size">Taille du fichier : %1$s</string>
+    <string name="filename">Nom de fichier</string>
     <string name="grant_permission">Autoriser</string>
     <string name="last_saved_pdf_files">Derniers PDF enregistrés dans Téléchargements :</string>
     <string name="libraries">Bibliothèques</string>
@@ -31,14 +33,17 @@
     <string name="libraries_open_source">Bibliothèques open source</string>
     <string name="license">Licence</string>
     <string name="licensed_under">Cette application est distribuée sous licence GNU General Public License v3.0.</string>
+    <string name="menu">Menu</string>
     <string name="new_document_warning">Le scan en cours sera perdu. Voulez-vous continuer ?</string>
     <string name="open">Ouvrir</string>
     <string name="open_pdf">Ouvrir le PDF</string>
     <string name="pdf_saved_to">PDF enregistré dans %1s</string>
+    <string name="reset_to_default">Réinitialiser par défaut</string>
     <string name="resume">Reprendre</string>
     <string name="save">Enregistrer</string>
     <string name="scan_button">Nouveau scan</string>
     <string name="scan_in_progress">Scan en cours</string>
+    <string name="settings">Paramètres</string>
     <string name="share">Partager</string>
     <string name="share_pdf">Partager le PDF</string>
     <string name="storage_permission_denied">Impossible d’enregistrer le fichier PDF : permission refusée</string>
@@ -46,8 +51,8 @@
     <string name="turn_on_torch">Allumer la torche</string>
     <string name="unknown_size">Taille inconnue</string>
     <string name="version">Version</string>
-    <string name="view_the_full_license">Voir la licence complète</string>
     <string name="view_full_list">Voir la liste complète</string>
+    <string name="view_the_full_license">Voir la licence complète</string>
     <string name="yes">Oui</string>
     <plurals name="page_count" tools:ignore="MissingQuantity">
         <item quantity="one">%d page</item>

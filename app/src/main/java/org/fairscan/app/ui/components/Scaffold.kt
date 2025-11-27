@@ -46,7 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import org.fairscan.app.R
 import org.fairscan.app.ui.Navigation
 
 @Composable
@@ -169,7 +171,7 @@ fun AppOverflowMenu(
         modifier
     ) {
         IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "Menu")
+            Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.menu))
         }
 
         DropdownMenu(
@@ -181,7 +183,7 @@ fun AppOverflowMenu(
 
             DropdownMenuItem(
                 leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                text = { Text("Settings") },
+                text = { Text(stringResource(R.string.settings)) },
                 onClick = {
                     expanded = false
                     navigation.toSettingsScreen()
@@ -190,7 +192,7 @@ fun AppOverflowMenu(
 
             DropdownMenuItem(
                 leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
-                text = { Text("About") },
+                text = { Text(stringResource(R.string.about)) },
                 onClick = {
                     expanded = false
                     navigation.toAboutScreen()

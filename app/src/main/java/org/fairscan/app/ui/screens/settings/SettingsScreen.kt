@@ -15,6 +15,7 @@
 package org.fairscan.app.ui.screens.settings
 
 
+import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -40,9 +41,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import org.fairscan.app.R
 import org.fairscan.app.ui.components.BackButton
 import org.fairscan.app.ui.theme.FairScanTheme
 
@@ -58,7 +62,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings)) },
                 navigationIcon = { BackButton(onBack) },
             )
         }
@@ -76,8 +80,9 @@ private fun SettingsContent(
     onResetExportDirClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     val folderName = remember(uiState.exportDirUri) {
-        extractFolderName(uiState.exportDirUri)
+        extractFolderName(uiState.exportDirUri, context)
     }
 
     Column(
@@ -86,7 +91,7 @@ private fun SettingsContent(
             .padding(20.dp)
     ) {
         DirectorySettingItem(
-            label = "Export directory",
+            label = stringResource(R.string.export_directory),
             folderName = folderName,
             onClick = onChooseDirectoryClick
         )
@@ -98,7 +103,7 @@ private fun SettingsContent(
                 onClick = onResetExportDirClick,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             ) {
-                Text("Reset to default")
+                Text(stringResource(R.string.reset_to_default))
             }
         }
     }
@@ -138,15 +143,15 @@ fun DirectorySettingItem(
 
                 Icon(
                     Icons.Default.Folder,
-                    contentDescription = "Change directory",
+                    contentDescription = stringResource(R.string.change_directory),
                 )
             }
         }
     }
 }
 
-private fun extractFolderName(uriString: String?): String {
-    if (uriString == null) return "Downloads (default)"
+private fun extractFolderName(uriString: String?, context: Context): String {
+    if (uriString == null) return context.getString(R.string.download_dirname)
     return runCatching {
         val uri = uriString.toUri()
         uri.lastPathSegment?.substringAfter(':')?.substringAfter('/') ?: uriString

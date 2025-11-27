@@ -6,6 +6,7 @@
     <string name="camera_permission_denied">Permiso de cámara denegado</string>
     <string name="camera_permission_rationale">La aplicación necesita acceso a la cámara para escanear documentos. Las imágenes capturadas se guardan solo en este dispositivo y se eliminarán cuando cierres el documento actual.</string>
     <string name="cancel">Cancelar</string>
+    <string name="change_directory">Cambiar carpeta</string>
     <string name="clear_text">Borrar texto</string>
     <string name="contact">Contacto</string>
     <string name="copied_logs">Registros copiados al portapapeles</string>
@@ -21,9 +22,10 @@
     <string name="error_no_document">No se detectó ningún documento</string>
     <string name="error_no_pdf_app">No se encontró ninguna aplicación para abrir PDF</string>
     <string name="error_save">Error al guardar el PDF</string>
+    <string name="export_directory">Carpeta de exportación</string>
     <string name="export_pdf">Exportar PDF</string>
-    <string name="filename">Nombre del archivo</string>
     <string name="file_size">Tamaño del archivo: %1$s</string>
+    <string name="filename">Nombre del archivo</string>
     <string name="grant_permission">Conceder permiso</string>
     <string name="last_saved_pdf_files">PDF recientes guardados en Descargas:</string>
     <string name="libraries">Bibliotecas</string>
@@ -31,14 +33,17 @@
     <string name="libraries_open_source">Bibliotecas de código abierto</string>
     <string name="license">Licencia</string>
     <string name="licensed_under">Esta aplicación está licenciada bajo la GNU General Public License v3.0.</string>
+    <string name="menu">Menú</string>
     <string name="new_document_warning">El escaneo actual se perderá. ¿Deseas continuar?</string>
     <string name="open">Abrir</string>
     <string name="open_pdf">Abrir PDF</string>
     <string name="pdf_saved_to">PDF guardado en %1s</string>
+    <string name="reset_to_default">Restablecer valores predeterminados</string>
     <string name="resume">Reanudar</string>
     <string name="save">Guardar</string>
     <string name="scan_button">Nuevo escaneo</string>
     <string name="scan_in_progress">Escaneo en curso</string>
+    <string name="settings">Ajustes</string>
     <string name="share">Compartir</string>
     <string name="share_pdf">Compartir PDF</string>
     <string name="storage_permission_denied">No se puede guardar el archivo PDF: permiso denegado</string>
@@ -46,8 +51,8 @@
     <string name="turn_on_torch">Encender linterna</string>
     <string name="unknown_size">Tamaño desconocido</string>
     <string name="version">Versión</string>
-    <string name="view_the_full_license">Ver la licencia completa</string>
     <string name="view_full_list">Ver lista completa</string>
+    <string name="view_the_full_license">Ver la licencia completa</string>
     <string name="yes">Sí</string>
     <plurals name="page_count" tools:ignore="MissingQuantity">
         <item quantity="one">%d página</item>

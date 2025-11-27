@@ -6,6 +6,7 @@
     <string name="camera_permission_denied">Kamerazugriff wurde verweigert</string>
     <string name="camera_permission_rationale">Die App benötigt Zugriff auf die Kamera, um Dokumente zu scannen. Aufgenommene Bilder werden nur auf diesem Gerät gespeichert und beim Schließen des aktuellen Dokuments gelöscht.</string>
     <string name="cancel">Abbrechen</string>
+    <string name="change_directory">Ordner ändern</string>
     <string name="clear_text">Text löschen</string>
     <string name="contact">Kontakt</string>
     <string name="copied_logs">Logs in die Zwischenablage kopiert</string>
@@ -21,9 +22,10 @@
     <string name="error_no_document">Kein Dokument erkannt</string>
     <string name="error_no_pdf_app">Keine App zum Öffnen von PDF gefunden</string>
     <string name="error_save">PDF konnte nicht gespeichert werden</string>
+    <string name="export_directory">Exportordner</string>
     <string name="export_pdf">PDF exportieren</string>
-    <string name="filename">Dateiname</string>
     <string name="file_size">Dateigröße: %1$s</string>
+    <string name="filename">Dateiname</string>
     <string name="grant_permission">Berechtigung erteilen</string>
     <string name="last_saved_pdf_files">Zuletzt gespeicherte PDFs in Downloads:</string>
     <string name="libraries">Bibliotheken</string>
@@ -31,14 +33,17 @@
     <string name="libraries_open_source">Open-Source-Bibliotheken</string>
     <string name="license">Lizenz</string>
     <string name="licensed_under">Diese Anwendung ist unter der GNU General Public License v3.0 lizenziert.</string>
+    <string name="menu">Menü</string>
     <string name="new_document_warning">Das aktuelle Dokument geht verloren. Möchten Sie fortfahren?</string>
     <string name="open">Öffnen</string>
     <string name="open_pdf">PDF öffnen</string>
     <string name="pdf_saved_to">PDF gespeichert in %1s</string>
+    <string name="reset_to_default">Auf Standard zurücksetzen</string>
     <string name="resume">Fortsetzen</string>
     <string name="save">Speichern</string>
     <string name="scan_button">Neuer Scan</string>
     <string name="scan_in_progress">Scan läuft</string>
+    <string name="settings">Einstellungen</string>
     <string name="share">Teilen</string>
     <string name="share_pdf">PDF teilen</string>
     <string name="storage_permission_denied">PDF-Datei kann nicht gespeichert werden: Berechtigung verweigert</string>
@@ -46,8 +51,8 @@
     <string name="turn_on_torch">Taschenlampe einschalten</string>
     <string name="unknown_size">Unbekannte Größe</string>
     <string name="version">Version</string>
-    <string name="view_the_full_license">Vollständige Lizenz anzeigen</string>
     <string name="view_full_list">Vollständige Liste anzeigen</string>
+    <string name="view_the_full_license">Vollständige Lizenz anzeigen</string>
     <string name="yes">Ja</string>
     <plurals name="page_count">
         <item quantity="one">%d Seite</item>
