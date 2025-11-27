@@ -15,6 +15,7 @@
     <string name="delete_page_warning">Вы желаете удалить эту страницу?</string>
     <string name="developer">Разработчик</string>
     <string name="discard_scan">Отказаться</string>
+    <string name="download_dirname">Download</string>
     <string name="end_scan">Закончить</string>
     <string name="error">Ошибка: %1$s</string>
     <string name="error_no_document">Документ не обнаружен</string>
@@ -33,7 +34,7 @@
     <string name="new_document_warning">Результаты текущего сканирования будут потеряны. Желаете продолжить?</string>
     <string name="open">Открыть</string>
     <string name="open_pdf">Открыть PDF</string>
-    <string name="pdf_saved_to">PDF сохранен в Download</string>
+    <string name="pdf_saved_to">PDF сохранен в %1s</string>
     <string name="resume">Продолжить</string>
     <string name="save">Сохранить</string>
     <string name="scan_button">Начать</string>

@@ -15,6 +15,7 @@
     <string name="delete_page_warning">¿Quieres eliminar esta página?</string>
     <string name="developer">Desarrollador</string>
     <string name="discard_scan">Descartar escaneo</string>
+    <string name="download_dirname">Descargas</string>
     <string name="end_scan">Finalizar escaneo</string>
     <string name="error">Error: %1$s</string>
     <string name="error_no_document">No se detectó ningún documento</string>
@@ -33,7 +34,7 @@
     <string name="new_document_warning">El escaneo actual se perderá. ¿Deseas continuar?</string>
     <string name="open">Abrir</string>
     <string name="open_pdf">Abrir PDF</string>
-    <string name="pdf_saved_to">PDF guardado en Descargas</string>
+    <string name="pdf_saved_to">PDF guardado en %1s</string>
     <string name="resume">Reanudar</string>
     <string name="save">Guardar</string>
     <string name="scan_button">Nuevo escaneo</string>

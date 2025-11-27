@@ -117,6 +117,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.documentfile)
     implementation(libs.protobuf.javalite)
     implementation(libs.litert)
     implementation(libs.litert.support)
