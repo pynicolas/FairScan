@@ -27,7 +27,7 @@
     <string name="file_size">Tamanho do arquivo: %1$s</string>
     <string name="filename">Nome do arquivo</string>
     <string name="grant_permission">Conceder permissão</string>
-    <string name="last_saved_pdf_files">PDFs recentes salvos em Downloads:</string>
+    <string name="last_saved_pdf_files">PDFs recentes salvos neste dispositivo:</string>
     <string name="libraries">Bibliotecas</string>
     <string name="libraries_intro">Este aplicativo usa várias bibliotecas de código aberto, incluindo:</string>
     <string name="libraries_open_source">Bibliotecas de código aberto</string>

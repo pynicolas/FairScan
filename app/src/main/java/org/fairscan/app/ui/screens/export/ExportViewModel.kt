@@ -145,13 +145,17 @@ class ExportViewModel(container: AppContainer): ViewModel() {
             val exportDir = settingsRepository.exportDirUri.first()
             var fileInDownloads: File? = null
 
-            val savedUri: Uri =
-                if (exportDir == null) {
-                    fileInDownloads = pdfFileManager.copyToExternalDir(pdf.file)
-                    fileInDownloads.toUri()
-                } else {
-                    copyViaSaf(context, pdf.file, exportDir.toUri())
-                }
+            var savedName: String
+            val savedUri: Uri
+            if (exportDir == null) {
+                fileInDownloads = pdfFileManager.copyToExternalDir(pdf.file)
+                savedUri = fileInDownloads.toUri()
+                savedName = fileInDownloads.name
+            } else {
+                val saved = copyViaSaf(context, pdf.file, exportDir.toUri())
+                savedUri = saved.uri
+                savedName = saved.name?:pdf.file.name
+            }
 
             _pdfUiState.update {
                 it.copy(
@@ -162,11 +166,7 @@ class ExportViewModel(container: AppContainer): ViewModel() {
             fileInDownloads?.let { mediaScan(context, it) }
 
             // TODO remove that call: that should be handled through the ExportEvent
-            homeViewModel.addRecentDocument(
-                // FIXME This is not a file path
-                savedUri.toString(),
-                pdf.pageCount
-            )
+            homeViewModel.addRecentDocument(savedUri, savedName, pdf.pageCount)
         } catch (e: Exception) {
             logger.e("FairScan", "Failed to save PDF", e)
             _events.emit(ExportEvent.SaveError)
@@ -187,7 +187,7 @@ class ExportViewModel(container: AppContainer): ViewModel() {
         context: Context,
         source: File,
         exportDirUri: Uri,
-    ): Uri {
+    ): DocumentFile {
         val resolver = context.contentResolver
 
         val tree = DocumentFile.fromTreeUri(context, exportDirUri)
@@ -203,7 +203,7 @@ class ExportViewModel(container: AppContainer): ViewModel() {
             }
         } ?: throw IllegalStateException("Failed to open SAF output stream")
 
-        return target.uri
+        return target
     }
 
     fun cleanUpOldPdfs(thresholdInMillis: Int) {
