@@ -26,10 +26,20 @@ private val Context.dataStore by preferencesDataStore(name = "fairscan_settings"
 class SettingsRepository(private val context: Context) {
 
     private val EXPORT_DIR_URI = stringPreferencesKey("export_dir_uri")
+    private val EXPORT_FORMAT = stringPreferencesKey("export_format")
 
     val exportDirUri: Flow<String?> =
         context.dataStore.data.map { prefs ->
             prefs[EXPORT_DIR_URI]
+        }
+
+    val exportFormat: Flow<ExportFormat> =
+        context.dataStore.data.map { prefs ->
+            when (prefs[EXPORT_FORMAT]) {
+                "JPEG" -> ExportFormat.JPEG
+                "PDF", null -> ExportFormat.PDF
+                else -> ExportFormat.PDF
+            }
         }
 
     suspend fun setExportDirUri(uri: String?) {
@@ -41,4 +51,15 @@ class SettingsRepository(private val context: Context) {
             }
         }
     }
+
+    suspend fun setExportFormat(format: ExportFormat) {
+        context.dataStore.edit { prefs ->
+            prefs[EXPORT_FORMAT] = format.name
+        }
+    }
+}
+
+enum class ExportFormat {
+    PDF,
+    JPEG,
 }

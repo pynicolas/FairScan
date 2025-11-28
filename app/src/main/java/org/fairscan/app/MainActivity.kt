@@ -45,7 +45,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -188,7 +187,8 @@ class MainActivity : ComponentActivity() {
             settingsUiState,
             onChooseDirectoryClick = { launcher.launch(null) },
             onResetExportDirClick = { settingsViewModel.setExportDirUri(null) },
-            onBack = nav.back
+            onExportFormatChanged = { format -> settingsViewModel.setExportFormat(format) },
+            onBack = nav.back,
         )
     }
 
