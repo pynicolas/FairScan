@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
+import org.fairscan.app.RecentDocument
 import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.data.PdfFileManager
 import org.fairscan.app.ui.screens.home.HomeViewModel
@@ -53,6 +54,7 @@ class ExportViewModel(container: AppContainer): ViewModel() {
     private val pdfFileManager = container.pdfFileManager
     private val imageRepository = container.imageRepository
     private val settingsRepository = container.settingsRepository
+    private val recentDocumentsDataStore = container.recentDocumentsDataStore
     private val logger = container.logger
 
     private val _events = MutableSharedFlow<ExportEvent>()
@@ -165,8 +167,7 @@ class ExportViewModel(container: AppContainer): ViewModel() {
 
             fileInDownloads?.let { mediaScan(context, it) }
 
-            // TODO remove that call: that should be handled through the ExportEvent
-            homeViewModel.addRecentDocument(savedUri, savedName, pdf.pageCount)
+            addRecentDocument(savedUri, savedName, pdf.pageCount)
         } catch (e: Exception) {
             logger.e("FairScan", "Failed to save PDF", e)
             _events.emit(ExportEvent.SaveError)
@@ -215,6 +216,27 @@ class ExportViewModel(container: AppContainer): ViewModel() {
             null
         } else {
             DocumentFile.fromTreeUri(context, exportDirUri)?.name
+        }
+    }
+
+    fun addRecentDocument(fileUri: Uri, fileName: String, pageCount: Int) {
+        viewModelScope.launch {
+            recentDocumentsDataStore.updateData { current ->
+                val newDoc = RecentDocument.newBuilder()
+                    .setFileUri(fileUri.toString())
+                    .setFileName(fileName)
+                    .setPageCount(pageCount)
+                    .setCreatedAt(System.currentTimeMillis())
+                    .build()
+                current.toBuilder()
+                    .addDocuments(0, newDoc)
+                    .also { builder ->
+                        while (builder.documentsCount > 3) {
+                            builder.removeDocuments(builder.documentsCount - 1)
+                        }
+                    }
+                    .build()
+            }
         }
     }
 }

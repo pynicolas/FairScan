@@ -24,9 +24,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import org.fairscan.app.AppContainer
-import org.fairscan.app.RecentDocument
 import java.io.File
 
 class HomeViewModel(appContainer: AppContainer, appContext: Context): ViewModel() {
@@ -61,27 +59,6 @@ class HomeViewModel(appContainer: AppContainer, appContext: Context): ViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList(),
         )
-
-    fun addRecentDocument(fileUri: Uri, fileName: String, pageCount: Int) {
-        viewModelScope.launch {
-            recentDocumentsDataStore.updateData { current ->
-                val newDoc = RecentDocument.newBuilder()
-                    .setFileUri(fileUri.toString())
-                    .setFileName(fileName)
-                    .setPageCount(pageCount)
-                    .setCreatedAt(System.currentTimeMillis())
-                    .build()
-                current.toBuilder()
-                    .addDocuments(0, newDoc)
-                    .also { builder ->
-                        while (builder.documentsCount > 3) {
-                            builder.removeDocuments(builder.documentsCount - 1)
-                        }
-                    }
-                    .build()
-            }
-        }
-    }
 
     private fun uriExists(context: Context, uri: Uri): Boolean {
         return if (uri.scheme == "file") {
