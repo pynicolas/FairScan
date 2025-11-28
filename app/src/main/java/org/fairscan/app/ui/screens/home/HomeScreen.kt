@@ -14,6 +14,7 @@
  */
 package org.fairscan.app.ui.screens.home
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -54,6 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import kotlinx.collections.immutable.persistentListOf
 import org.fairscan.app.R
 import org.fairscan.app.ui.Navigation
@@ -76,7 +78,7 @@ fun HomeScreen(
     navigation: Navigation,
     onClearScan: () -> Unit,
     recentDocuments: List<RecentDocumentUiState>,
-    onOpenPdf: (File) -> Unit,
+    onOpenPdf: (Uri) -> Unit,
 ) {
     Scaffold (
         topBar = {
@@ -227,7 +229,7 @@ fun OngoingScanBanner(
 @Composable
 private fun RecentDocumentList(
     recentDocuments: List<RecentDocumentUiState>,
-    onOpenPdf: (File) -> Unit
+    onOpenPdf: (Uri) -> Unit
 ) {
     Spacer(Modifier.height(8.dp))
     Text(
@@ -241,7 +243,7 @@ private fun RecentDocumentList(
             ListItem(
                 headlineContent = {
                     Text(
-                        doc.file.name,
+                        doc.fileName,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 },
@@ -260,7 +262,7 @@ private fun RecentDocumentList(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
-                modifier = Modifier.clickable { onOpenPdf(doc.file) }
+                modifier = Modifier.clickable { onOpenPdf(doc.fileUri) }
             )
         }
     }
@@ -309,8 +311,10 @@ fun HomeScreenPreviewWithLastSavedFiles() {
             navigation = dummyNavigation(),
             onClearScan = {},
             recentDocuments = listOf(
-                RecentDocumentUiState(File("/path/my_file.pdf"), 1755971180000, 3),
-                RecentDocumentUiState(File("/path/scan2.pdf"), 1755000500000, 1)
+                RecentDocumentUiState(
+                    File("/path/my_file.pdf").toUri(), "my_file.pdf", 1755971180000, 3),
+                RecentDocumentUiState(
+                    "content:///path/scan2.pdf".toUri(), "scan2.pdf",1755000500000, 1)
             ),
             onOpenPdf = {},
         )

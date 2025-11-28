@@ -113,7 +113,7 @@ class MainActivity : ComponentActivity() {
                             navigation = navigation,
                             onClearScan = { viewModel.startNewDocument() },
                             recentDocuments = recentDocs,
-                            onOpenPdf = { file -> openPdf(file.toUri()) }
+                            onOpenPdf = { fileUri -> openPdf(fileUri) }
                         )
                     }
                     is Screen.Main.Camera -> {

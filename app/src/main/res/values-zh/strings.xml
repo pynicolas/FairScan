@@ -27,7 +27,7 @@
     <string name="file_size">文件大小: %1$s</string>
     <string name="filename">文件名字</string>
     <string name="grant_permission">授予权限</string>
-    <string name="last_saved_pdf_files">最近保存的PDF:</string>
+    <string name="last_saved_pdf_files">最近保存在此设备上的 PDF：</string>
     <string name="libraries">库</string>
     <string name="libraries_intro">本应用使用的开源库:</string>
     <string name="libraries_open_source">开源库</string>

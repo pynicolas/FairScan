@@ -27,7 +27,7 @@
     <string name="file_size">Taille du fichier : %1$s</string>
     <string name="filename">Nom de fichier</string>
     <string name="grant_permission">Autoriser</string>
-    <string name="last_saved_pdf_files">Derniers PDF enregistrés dans Téléchargements :</string>
+    <string name="last_saved_pdf_files">Derniers PDF enregistrés sur l’appareil :</string>
     <string name="libraries">Bibliothèques</string>
     <string name="libraries_intro">Cette application utilise plusieurs bibliothèques open source, notamment :</string>
     <string name="libraries_open_source">Bibliothèques open source</string>

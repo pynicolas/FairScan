@@ -14,10 +14,11 @@
  */
 package org.fairscan.app.ui.screens.home
 
-import java.io.File
+import android.net.Uri
 
 data class RecentDocumentUiState(
-    val file: File,
+    val fileUri: Uri,
+    val fileName: String,
     val saveTimestamp: Long,
     val pageCount: Int,
 )

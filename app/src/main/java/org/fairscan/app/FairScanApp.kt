@@ -72,7 +72,7 @@ class AppContainer(context: Context) {
     }
 
     val mainViewModelFactory = viewModelFactory { MainViewModel(it) }
-    val homeViewModelFactory = viewModelFactory { HomeViewModel(it) }
+    val homeViewModelFactory = viewModelFactory { HomeViewModel(it, context) }
     val cameraViewModelFactory = viewModelFactory { CameraViewModel(it) }
     val exportViewModelFactory = viewModelFactory { ExportViewModel(it) }
     val aboutViewModelFactory = viewModelFactory { AboutViewModel(it) }
