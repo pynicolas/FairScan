@@ -48,7 +48,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,7 +66,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import org.fairscan.app.R
-import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.components.AppOverflowMenu
 import org.fairscan.app.ui.components.BackButton
@@ -85,17 +83,17 @@ import java.util.Locale
 @Composable
 fun ExportScreenWrapper(
     navigation: Navigation,
-    pdfActions: PdfGenerationActions,
+    uiState: ExportUiState,
+    pdfActions: ExportActions,
     onCloseScan: () -> Unit,
 ) {
     BackHandler { navigation.back() }
 
     val showConfirmationDialog = rememberSaveable { mutableStateOf(false) }
     val filename = remember { mutableStateOf(defaultFilename()) }
-    val uiState by pdfActions.uiStateFlow.collectAsState()
     LaunchedEffect(Unit) {
         pdfActions.setFilename(filename.value)
-        pdfActions.startGeneration()
+        pdfActions.initializeExportScreen()
     }
 
     val onFilenameChange = { newName:String ->
@@ -116,15 +114,15 @@ fun ExportScreenWrapper(
         navigation = navigation,
         onShare = {
             ensureCorrectFileName()
-            pdfActions.sharePdf()
+            pdfActions.share()
         },
         onSave = {
             ensureCorrectFileName()
-            pdfActions.savePdf()
+            pdfActions.save()
         },
-        onOpen = { pdfActions.openPdf() },
+        onOpen = { pdfActions.open() },
         onCloseScan = {
-            if (uiState.hasSavedOrSharedPdf)
+            if (uiState.hasSavedOrShared)
                 onCloseScan()
             else
                 showConfirmationDialog.value = true
@@ -141,7 +139,7 @@ fun ExportScreenWrapper(
 fun ExportScreen(
     filename: MutableState<String>,
     onFilenameChange: (String) -> Unit,
-    uiState: PdfGenerationUiState,
+    uiState: ExportUiState,
     navigation: Navigation,
     onShare: () -> Unit,
     onSave: () -> Unit,
@@ -195,12 +193,12 @@ fun ExportScreen(
 private fun TextFieldAndPdfInfos(
     filename: MutableState<String>,
     onFilenameChange: (String) -> Unit,
-    uiState: PdfGenerationUiState,
+    uiState: ExportUiState,
     onOpen: () -> Unit,
 ) {
     FilenameTextField(filename, onFilenameChange)
 
-    val pdf = uiState.generatedPdf
+    val pdf = uiState.result
 
     // PDF infos
     Column(
@@ -220,8 +218,8 @@ private fun TextFieldAndPdfInfos(
         }
     }
 
-    if (uiState.savedFileUri != null) {
-        SavedPdfBar(uiState, onOpen)
+    if (uiState.savedBundle != null) {
+        SaveInfoBar(uiState.savedBundle, onOpen)
     }
     if (uiState.errorMessage != null) {
         ErrorBar(uiState.errorMessage)
@@ -257,7 +255,7 @@ private fun FilenameTextField(
 
 @Composable
 private fun MainActions(
-    uiState: PdfGenerationUiState,
+    uiState: ExportUiState,
     onShare: () -> Unit,
     onSave: () -> Unit,
     onCloseScan: () -> Unit,
@@ -271,16 +269,16 @@ private fun MainActions(
         ) {
             ExportButton(
                 onClick = onShare,
-                enabled = uiState.generatedPdf != null,
-                isPrimary = !uiState.hasSavedOrSharedPdf,
+                enabled = uiState.result != null,
+                isPrimary = !uiState.hasSavedOrShared,
                 icon = Icons.Default.Share,
                 text = stringResource(R.string.share),
                 modifier = Modifier.weight(1f)
             )
             ExportButton(
                 onClick = onSave,
-                enabled = uiState.generatedPdf != null,
-                isPrimary = !uiState.hasSavedOrSharedPdf,
+                enabled = uiState.result != null,
+                isPrimary = !uiState.hasSavedOrShared,
                 icon = Icons.Default.Download,
                 text = stringResource(R.string.save),
                 modifier = Modifier.weight(1f)
@@ -291,7 +289,7 @@ private fun MainActions(
             text = stringResource(R.string.end_scan),
             onClick = onCloseScan,
             modifier = Modifier.fillMaxWidth(),
-            isPrimary = uiState.hasSavedOrSharedPdf,
+            isPrimary = uiState.hasSavedOrShared,
         )
     }
 }
@@ -335,8 +333,8 @@ fun ExportButton(
 }
 
 @Composable
-private fun SavedPdfBar(uiState: PdfGenerationUiState, onOpen: () -> Unit) {
-    val dirName = uiState.exportDirName?:stringResource(R.string.download_dirname)
+private fun SaveInfoBar(savedBundle: SavedBundle, onOpen: () -> Unit) {
+    val dirName = savedBundle.exportDirName?:stringResource(R.string.download_dirname)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Absolute.SpaceBetween,
@@ -350,12 +348,14 @@ private fun SavedPdfBar(uiState: PdfGenerationUiState, onOpen: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
-        Spacer(Modifier.width(8.dp))
-        MainActionButton(
-            onClick = onOpen,
-            text = stringResource(R.string.open),
-            icon = Icons.AutoMirrored.Filled.OpenInNew,
-        )
+        if (savedBundle.items.size == 1) {
+            Spacer(Modifier.width(8.dp))
+            MainActionButton(
+                onClick = onOpen,
+                text = stringResource(R.string.open),
+                icon = Icons.AutoMirrored.Filled.OpenInNew,
+            )
+        }
     }
 }
 
@@ -386,7 +386,7 @@ fun formatFileSize(sizeInBytes: Long?, context: Context): String {
 @Composable
 fun PreviewExportScreenDuringGeneration() {
     ExportPreviewToCustomize(
-        uiState = PdfGenerationUiState(isGenerating = true)
+        uiState = ExportUiState(isGenerating = true)
     )
 }
 
@@ -395,8 +395,8 @@ fun PreviewExportScreenDuringGeneration() {
 fun PreviewExportScreenAfterGeneration() {
     val file = File("fake.pdf")
     ExportPreviewToCustomize(
-        uiState = PdfGenerationUiState(
-            generatedPdf = GeneratedPdf(file, 442897L, 3),
+        uiState = ExportUiState(
+            result = ExportResult.Pdf(file, 442897L, 3),
         ),
     )
 }
@@ -406,9 +406,9 @@ fun PreviewExportScreenAfterGeneration() {
 fun PreviewExportScreenAfterSave() {
     val file = File("fake.pdf")
     ExportPreviewToCustomize(
-        uiState = PdfGenerationUiState(
-            generatedPdf = GeneratedPdf(file, 442897L, 3),
-            savedFileUri = file.toUri(),
+        uiState = ExportUiState(
+            result = ExportResult.Pdf(file, 442897L, 3),
+            savedBundle = SavedBundle(listOf(SavedItem(file.toUri(), ""))),
         ),
     )
 }
@@ -417,7 +417,7 @@ fun PreviewExportScreenAfterSave() {
 @Composable
 fun ExportScreenPreviewWithError() {
     ExportPreviewToCustomize(
-        PdfGenerationUiState(errorMessage = "PDF generation failed")
+        ExportUiState(errorMessage = "PDF generation failed")
     )
 }
 
@@ -426,16 +426,17 @@ fun ExportScreenPreviewWithError() {
 fun PreviewExportScreenAfterSaveHorizontal() {
     val file = File("fake.pdf")
     ExportPreviewToCustomize(
-        uiState = PdfGenerationUiState(
-            generatedPdf = GeneratedPdf(file, 442897L, 3),
-            savedFileUri = file.toUri(),
-            exportDirName = "MyVeryVeryLongDirectoryName"
+        uiState = ExportUiState(
+            result = ExportResult.Pdf(file, 442897L, 3),
+            savedBundle = SavedBundle(
+                listOf(SavedItem(file.toUri(), "")),
+                exportDirName="MyVeryVeryLongDirectoryName"),
         ),
     )
 }
 
 @Composable
-fun ExportPreviewToCustomize(uiState: PdfGenerationUiState) {
+fun ExportPreviewToCustomize(uiState: ExportUiState) {
     FairScanTheme {
         ExportScreen(
             filename = remember { mutableStateOf("Scan 2025-07-02 17.40.42") },

@@ -23,7 +23,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import org.fairscan.app.data.FileLogger
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.data.LogRepository
-import org.fairscan.app.data.PdfFileManager
+import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.recentDocumentsDataStore
 import org.fairscan.app.domain.ImageSegmentationService
 import org.fairscan.app.platform.AndroidPdfWriter
@@ -51,8 +51,9 @@ class AppContainer(context: Context) {
     private val density = context.resources.displayMetrics.density
     private val thumbnailSizePx = (THUMBNAIL_SIZE_DP * density).toInt()
     val imageRepository = ImageRepository(context.filesDir, OpenCvTransformations(), thumbnailSizePx)
-    val pdfFileManager = PdfFileManager(
-        File(context.cacheDir, "pdfs"),
+    val preparationDir = File(context.cacheDir, "pdfs")
+    val fileManager = FileManager(
+        preparationDir,
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
         AndroidPdfWriter()
     )

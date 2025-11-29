@@ -20,7 +20,7 @@ import java.io.File
 import java.io.OutputStream
 import kotlin.io.path.createTempDirectory
 
-class PdfFileManagerTest {
+class FileManagerTest {
 
     val pdfDir: File = createTempDirectory().toFile()
     val externalDir: File = createTempDirectory().toFile()
@@ -33,7 +33,7 @@ class PdfFileManagerTest {
         val f = File(externalDir, "f.pdf")
         assertThat(f).doesNotExist()
 
-        val manager = PdfFileManager(pdfDir, externalDir, dummyPdfWriter)
+        val manager = FileManager(pdfDir, externalDir, dummyPdfWriter)
         assertThat(manager.copyToExternalDir(original))
             .isEqualTo(f)
             .hasContent("original content")
@@ -48,7 +48,7 @@ class PdfFileManagerTest {
     @Test
     fun cleanUpOldFiles() {
         val subDir = File(pdfDir,"subDir")
-        val manager = PdfFileManager(subDir, externalDir, dummyPdfWriter)
+        val manager = FileManager(subDir, externalDir, dummyPdfWriter)
         manager.cleanUpOldFiles(10)
         assertThat(subDir).doesNotExist()
 
@@ -76,7 +76,7 @@ class PdfFileManagerTest {
                 return list.size
             }
         }
-        val manager = PdfFileManager(pdfDir, externalDir, fakePdfWriter)
+        val manager = FileManager(pdfDir, externalDir, fakePdfWriter)
         val jpegs = listOf(byteArrayOf(0x01, 0x02), byteArrayOf(0x11)).asSequence()
         val pdf = manager.generatePdf(jpegs)
         assertThat(pdf.pageCount).isEqualTo(2)
@@ -87,9 +87,9 @@ class PdfFileManagerTest {
 
     @Test
     fun addExtensionIfMissing() {
-        assertThat(PdfFileManager.addExtensionIfMissing("f1.pdf")).isEqualTo("f1.pdf")
-        assertThat(PdfFileManager.addExtensionIfMissing("f2.PDF")).isEqualTo("f2.PDF")
-        assertThat(PdfFileManager.addExtensionIfMissing("f3")).isEqualTo("f3.pdf")
-        assertThat(PdfFileManager.addExtensionIfMissing("f4.txt")).isEqualTo("f4.txt.pdf")
+        assertThat(FileManager.addPdfExtensionIfMissing("f1.pdf")).isEqualTo("f1.pdf")
+        assertThat(FileManager.addPdfExtensionIfMissing("f2.PDF")).isEqualTo("f2.PDF")
+        assertThat(FileManager.addPdfExtensionIfMissing("f3")).isEqualTo("f3.pdf")
+        assertThat(FileManager.addPdfExtensionIfMissing("f4.txt")).isEqualTo("f4.txt.pdf")
     }
 }

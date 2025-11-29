@@ -59,7 +59,7 @@ class SettingsRepository(private val context: Context) {
     }
 }
 
-enum class ExportFormat {
-    PDF,
-    JPEG,
+enum class ExportFormat(val mimeType: String) {
+    PDF("application/pdf"),
+    JPEG("image/jpeg"),
 }

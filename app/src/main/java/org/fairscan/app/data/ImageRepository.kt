@@ -111,11 +111,12 @@ class ImageRepository(
     }
 
     fun getContent(id: String): ByteArray? {
+        return getFileFor(id)?.readBytes()
+    }
+
+    fun getFileFor(id: String): File? {
         val file = File(scanDir, id)
-        if (file.exists()) {
-            return file.readBytes()
-        }
-        return null
+        return if (file.exists()) file else null
     }
 
     fun getThumbnail(id: String): ByteArray? {

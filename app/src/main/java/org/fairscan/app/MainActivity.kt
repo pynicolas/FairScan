@@ -49,7 +49,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.fairscan.app.data.GeneratedPdf
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
@@ -62,17 +61,17 @@ import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
 import org.fairscan.app.ui.screens.export.ExportEvent
+import org.fairscan.app.ui.screens.export.ExportResult
 import org.fairscan.app.ui.screens.export.ExportScreenWrapper
 import org.fairscan.app.ui.screens.export.ExportViewModel
-import org.fairscan.app.ui.screens.export.PdfGenerationActions
+import org.fairscan.app.ui.screens.export.ExportActions
 import org.fairscan.app.ui.screens.home.HomeScreen
 import org.fairscan.app.ui.screens.home.HomeViewModel
+import org.fairscan.app.ui.screens.settings.ExportFormat
 import org.fairscan.app.ui.screens.settings.SettingsScreen
 import org.fairscan.app.ui.screens.settings.SettingsViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
-
-private const val PDF_MIME_TYPE = "application/pdf"
 
 class MainActivity : ComponentActivity() {
 
@@ -88,7 +87,7 @@ class MainActivity : ComponentActivity() {
         val settingsViewModel: SettingsViewModel
             by viewModels { appContainer.settingsViewModelFactory }
         lifecycleScope.launch(Dispatchers.IO) {
-            exportViewModel.cleanUpOldPdfs(1000 * 3600)
+            exportViewModel.cleanUpOldPreparedFiles(1000 * 3600)
         }
         enableEdgeToEdge()
         setContent {
@@ -96,6 +95,7 @@ class MainActivity : ComponentActivity() {
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
+            val exportUiState by exportViewModel.uiState.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
             CollectExportEvents(context, exportViewModel)
@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity() {
                             navigation = navigation,
                             onClearScan = { viewModel.startNewDocument() },
                             recentDocuments = recentDocs,
-                            onOpenPdf = { fileUri -> openPdf(fileUri) }
+                            onOpenPdf = { fileUri -> openUri(fileUri, ExportFormat.PDF.mimeType) }
                         )
                     }
                     is Screen.Main.Camera -> {
@@ -139,13 +139,14 @@ class MainActivity : ComponentActivity() {
                     is Screen.Main.Export -> {
                         ExportScreenWrapper(
                             navigation = navigation,
-                            pdfActions = PdfGenerationActions(
-                                startGeneration = exportViewModel::startPdfGeneration,
+                            uiState = exportUiState,
+                            pdfActions = ExportActions(
+                                initializeExportScreen = exportViewModel::initializeExportScreen,
                                 setFilename = exportViewModel::setFilename,
-                                uiStateFlow = exportViewModel.pdfUiState,
-                                sharePdf = { sharePdf(exportViewModel.getFinalPdf(), exportViewModel) },
-                                savePdf = { exportViewModel.onSavePdfClicked() },
-                                openPdf = { openPdf(exportViewModel.pdfUiState.value.savedFileUri) }
+                                share = { share(exportViewModel.applyRenaming(), exportViewModel) },
+                                save = { exportViewModel.onSaveClicked() },
+                                open = { exportViewModel.uiState.value.savedBundle
+                                        ?.let{ b -> openUri(b.openableUri(), b.format.mimeType)} }
                             ),
                             onCloseScan = {
                                 viewModel.startNewDocument()
@@ -222,7 +223,7 @@ class MainActivity : ComponentActivity() {
             ActivityResultContracts.RequestPermission()
         ) { isGranted ->
             if (isGranted) {
-                exportViewModel.onSavePdfClicked()
+                exportViewModel.onSaveClicked()
             } else {
                 val message = getString(R.string.storage_permission_denied)
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -231,9 +232,9 @@ class MainActivity : ComponentActivity() {
         LaunchedEffect(Unit) {
             exportViewModel.events.collect { event ->
                 when (event) {
-                    ExportEvent.RequestSavePdf -> {
+                    ExportEvent.RequestSave -> {
                         checkPermissionThen(storagePermissionLauncher) {
-                            exportViewModel.onRequestPdfSave(context)
+                            exportViewModel.onRequestSave(context)
                         }
                     }
 
@@ -260,25 +261,36 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun sharePdf(generatedPdf: GeneratedPdf?, viewModel: ExportViewModel) {
-        if (generatedPdf == null)
-            return
-        viewModel.setPdfAsShared()
-        val file = generatedPdf.file
+    private fun share(result: ExportResult?, viewModel: ExportViewModel) {
+        if (result == null || result.files.isEmpty()) return
+
+        viewModel.setAsShared()
+
         val authority = "${applicationContext.packageName}.fileprovider"
-        val fileUri = FileProvider.getUriForFile(this, authority, file)
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = PDF_MIME_TYPE
-            putExtra(Intent.EXTRA_STREAM, fileUri)
+        val uris = result.files.map { file ->
+            FileProvider.getUriForFile(this, authority, file)
+        }
+        val intent = Intent().apply {
+            action = if (uris.size == 1) Intent.ACTION_SEND else Intent.ACTION_SEND_MULTIPLE
+            type = result.format.mimeType
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+            if (uris.size == 1) {
+                putExtra(Intent.EXTRA_STREAM, uris[0])
+            } else {
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+            }
+        }
+        val chooser = Intent.createChooser(intent, getString(R.string.share_pdf))
+
+        val resolveInfos = packageManager.queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY)
+        for (info in resolveInfos) {
+            val pkg = info.activityInfo.packageName
+            for (uri in uris) {
+                grantUriPermission(pkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
         }
 
-        val chooser = Intent.createChooser(shareIntent, getString(R.string.share_pdf))
-        val resInfoList = packageManager.queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY)
-        for (resInfo in resInfoList) {
-            val packageName = resInfo.activityInfo.packageName
-            grantUriPermission(packageName, fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
         startActivity(chooser)
     }
 
@@ -295,7 +307,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun openPdf(fileUri: Uri?) {
+    private fun openUri(fileUri: Uri?, mimeType: String) {
         if (fileUri == null) return
         val uriToOpen: Uri =
             if (fileUri.scheme == ContentResolver.SCHEME_CONTENT) {
@@ -305,7 +317,7 @@ class MainActivity : ComponentActivity() {
                 FileProvider.getUriForFile(this, authority, fileUri.toFile())
             }
         val openIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uriToOpen, PDF_MIME_TYPE)
+            setDataAndType(uriToOpen, mimeType)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         try {
