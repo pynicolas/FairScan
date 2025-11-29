@@ -134,13 +134,13 @@ class ExportViewModel(container: AppContainer): ViewModel() {
         }
     }
 
-    fun onRequestPdfSave(context: Context, homeViewModel: HomeViewModel) {
+    fun onRequestPdfSave(context: Context) {
         viewModelScope.launch {
-            performPdfSave(context, homeViewModel)
+            performPdfSave(context)
         }
     }
 
-    private suspend fun performPdfSave(context: Context, homeViewModel: HomeViewModel) {
+    private suspend fun performPdfSave(context: Context) {
         try {
             val pdf = getFinalPdf() ?: return
 

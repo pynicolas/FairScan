@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
-            CollectExportEvents(context, exportViewModel, homeViewModel)
+            CollectExportEvents(context, exportViewModel)
             CollectAboutEvents(context, aboutViewModel)
 
             FairScanTheme {
@@ -217,7 +217,6 @@ class MainActivity : ComponentActivity() {
     private fun CollectExportEvents(
         context: Context,
         exportViewModel: ExportViewModel,
-        homeViewModel: HomeViewModel,
     ) {
         val storagePermissionLauncher = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -234,7 +233,7 @@ class MainActivity : ComponentActivity() {
                 when (event) {
                     ExportEvent.RequestSavePdf -> {
                         checkPermissionThen(storagePermissionLauncher) {
-                            exportViewModel.onRequestPdfSave(context, homeViewModel)
+                            exportViewModel.onRequestPdfSave(context)
                         }
                     }
 
