@@ -22,7 +22,6 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +31,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.RecentDocument
@@ -40,6 +38,8 @@ import org.fairscan.app.data.FileManager
 import org.fairscan.app.ui.screens.settings.ExportFormat
 import java.io.File
 import java.io.FileInputStream
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 sealed interface ExportEvent {
     data object RequestSave : ExportEvent
@@ -190,23 +190,26 @@ class ExportViewModel(container: AppContainer): ViewModel() {
         val bundle = SavedBundle(savedItems, exportDir, exportDirName, exportFormat)
         _uiState.update { it.copy(savedBundle = bundle) }
 
-        mediaScan(context, filesForMediaScan, exportFormat)
-
         if (exportFormat == ExportFormat.PDF) {
             savedItems.forEach { item ->
                 addRecentDocument(item.uri, item.fileName, result.pageCount)
             }
         }
+
+        filesForMediaScan.forEach { f -> mediaScan(context, f, exportFormat.mimeType) }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun mediaScan(context: Context, files: List<File>, format: ExportFormat) {
-        val paths = files.map { f -> f.absolutePath }.toTypedArray()
-        val mimeTypes = files.map { _ -> format.mimeType }.toTypedArray()
-        suspendCancellableCoroutine { continuation ->
-            MediaScannerConnection.scanFile(context, paths, mimeTypes) { _, _ ->
-                continuation.resume(Unit) {}
-            }
+    private suspend fun mediaScan(
+        context: Context,
+        file: File,
+        mimeType: String
+    ): Uri? = suspendCoroutine { cont ->
+        MediaScannerConnection.scanFile(
+            context,
+            arrayOf(file.absolutePath),
+            arrayOf(mimeType)
+        ) { _, uri ->
+            cont.resume(uri)
         }
     }
 
