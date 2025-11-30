@@ -178,16 +178,16 @@ class ExportViewModel(container: AppContainer): ViewModel() {
             val saved = if (exportDir == null) {
                 val out = fileManager.copyToExternalDir(file)
                 filesForMediaScan.add(out)
-                SavedItem(out.toUri(), out.name)
+                SavedItem(out.toUri(), out.name, exportFormat)
             } else {
                 val safFile = copyViaSaf(context, file, exportDir, exportFormat)
-                SavedItem(safFile.uri, safFile.name ?: file.name)
+                SavedItem(safFile.uri, safFile.name ?: file.name, exportFormat)
             }
             savedItems += saved
         }
 
         val exportDirName = resolveExportDirName(context, exportDir)
-        val bundle = SavedBundle(savedItems, exportDir, exportDirName, exportFormat)
+        val bundle = SavedBundle(savedItems, exportDir, exportDirName)
         _uiState.update { it.copy(savedBundle = bundle) }
 
         if (exportFormat == ExportFormat.PDF) {
@@ -301,5 +301,5 @@ data class ExportActions(
     val setFilename: (String) -> Unit,
     val share: () -> Unit,
     val save: () -> Unit,
-    val open: () -> Unit,
+    val open: (SavedItem) -> Unit,
 )

@@ -75,6 +75,8 @@ import org.fairscan.app.ui.components.NewDocumentDialog
 import org.fairscan.app.ui.components.isLandscape
 import org.fairscan.app.ui.components.pageCountText
 import org.fairscan.app.ui.dummyNavigation
+import org.fairscan.app.ui.screens.settings.ExportFormat
+import org.fairscan.app.ui.screens.settings.ExportFormat.PDF
 import org.fairscan.app.ui.theme.FairScanTheme
 import java.io.File
 import java.text.SimpleDateFormat
@@ -121,7 +123,7 @@ fun ExportScreenWrapper(
             ensureCorrectFileName()
             pdfActions.save()
         },
-        onOpen = { pdfActions.open() },
+        onOpen = pdfActions.open,
         onCloseScan = {
             if (uiState.hasSavedOrShared)
                 onCloseScan()
@@ -144,7 +146,7 @@ fun ExportScreen(
     navigation: Navigation,
     onShare: () -> Unit,
     onSave: () -> Unit,
-    onOpen: () -> Unit,
+    onOpen: (SavedItem) -> Unit,
     onCloseScan: () -> Unit,
 ) {
     Scaffold(
@@ -195,7 +197,7 @@ private fun TextFieldAndPdfInfos(
     filename: MutableState<String>,
     onFilenameChange: (String) -> Unit,
     uiState: ExportUiState,
-    onOpen: () -> Unit,
+    onOpen: (SavedItem) -> Unit,
 ) {
     FilenameTextField(filename, onFilenameChange)
 
@@ -336,7 +338,7 @@ fun ExportButton(
 }
 
 @Composable
-private fun SaveInfoBar(savedBundle: SavedBundle, onOpen: () -> Unit) {
+private fun SaveInfoBar(savedBundle: SavedBundle, onOpen: (SavedItem) -> Unit) {
     val dirName = savedBundle.exportDirName?:stringResource(R.string.download_dirname)
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -346,8 +348,9 @@ private fun SaveInfoBar(savedBundle: SavedBundle, onOpen: () -> Unit) {
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(vertical = 8.dp, horizontal = 16.dp),
     ) {
-        val nbFiles = savedBundle.items.size
-        val firstFileName = savedBundle.items[0].fileName
+        val items = savedBundle.items
+        val nbFiles = items.size
+        val firstFileName = items[0].fileName
         Text(
             text = LocalResources.current.getQuantityString(
                 R.plurals.files_saved_to,
@@ -360,7 +363,7 @@ private fun SaveInfoBar(savedBundle: SavedBundle, onOpen: () -> Unit) {
         if (nbFiles == 1) {
             Spacer(Modifier.width(8.dp))
             MainActionButton(
-                onClick = onOpen,
+                onClick = { onOpen(items[0]) },
                 text = stringResource(R.string.open),
                 icon = Icons.AutoMirrored.Filled.OpenInNew,
             )
@@ -417,7 +420,9 @@ fun PreviewExportScreenAfterSave() {
     ExportPreviewToCustomize(
         uiState = ExportUiState(
             result = ExportResult.Pdf(file, 442897L, 3),
-            savedBundle = SavedBundle(listOf(SavedItem(file.toUri(), defaultFilename() + ".pdf"))),
+            savedBundle = SavedBundle(
+                listOf(SavedItem(file.toUri(), defaultFilename() + ".pdf", PDF))
+            ),
         ),
     )
 }
@@ -438,7 +443,7 @@ fun PreviewExportScreenAfterSaveHorizontal() {
         uiState = ExportUiState(
             result = ExportResult.Pdf(file, 442897L, 3),
             savedBundle = SavedBundle(
-                listOf(SavedItem(file.toUri(), "my_file.pdf")),
+                listOf(SavedItem(file.toUri(), "my_file.pdf", PDF)),
                 exportDirName="MyVeryVeryLongDirectoryName"),
         ),
     )

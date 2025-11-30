@@ -29,20 +29,14 @@ data class ExportUiState(
     val hasSavedOrShared get() = savedBundle != null || hasShared
 }
 
-data class SavedItem(val uri: Uri, val fileName: String)
+data class SavedItem(
+    val uri: Uri,
+    val fileName: String,
+    val format: ExportFormat,
+)
 
 data class SavedBundle(
     val items: List<SavedItem>,
     val exportDir: Uri? = null,
     val exportDirName: String? = null,
-    val format: ExportFormat = ExportFormat.PDF,
-) {
-    fun openableUri(): Uri? {
-        return if (items.size > 1)
-            exportDir
-        else if (items.size == 1)
-            items[0].uri
-        else
-            null
-    }
-}
+)

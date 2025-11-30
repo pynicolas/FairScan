@@ -145,8 +145,7 @@ class MainActivity : ComponentActivity() {
                                 setFilename = exportViewModel::setFilename,
                                 share = { share(exportViewModel.applyRenaming(), exportViewModel) },
                                 save = { exportViewModel.onSaveClicked() },
-                                open = { exportViewModel.uiState.value.savedBundle
-                                        ?.let{ b -> openUri(b.openableUri(), b.format.mimeType)} }
+                                open = { item -> openUri(item.uri, item.format.mimeType) }
                             ),
                             onCloseScan = {
                                 viewModel.startNewDocument()
