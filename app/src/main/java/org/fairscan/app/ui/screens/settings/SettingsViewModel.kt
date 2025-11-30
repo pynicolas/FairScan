@@ -21,25 +21,37 @@ import kotlinx.coroutines.launch
 import org.fairscan.app.AppContainer
 
 data class SettingsUiState(
-    val exportDirUri: String? = null
+    val exportDirUri: String? = null,
+    val exportFormat: ExportFormat = ExportFormat.PDF,
 )
 
 class SettingsViewModel(container: AppContainer) : ViewModel() {
 
     private val repo = container.settingsRepository
 
-    val uiState: StateFlow<SettingsUiState> =
-        repo.exportDirUri
-            .map { uri -> SettingsUiState(exportDirUri = uri) }
-            .stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
-                SettingsUiState()
-            )
+    val uiState = combine(
+        repo.exportDirUri,
+        repo.exportFormat,
+    ) { dir, format ->
+        SettingsUiState(
+            exportDirUri = dir,
+            exportFormat = format,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        SettingsUiState()
+    )
 
     fun setExportDirUri(uri: String?) {
         viewModelScope.launch {
             repo.setExportDirUri(uri)
+        }
+    }
+
+    fun setExportFormat(format: ExportFormat) {
+        viewModelScope.launch {
+            repo.setExportFormat(format)
         }
     }
 }

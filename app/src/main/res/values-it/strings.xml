@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="about">Informazioni</string>
     <string name="add_page">Aggiungi pagina</string>
     <string name="app_tagline">Un\'app semplice e rispettosa per scansionare i tuoi documenti.</string>
@@ -11,7 +11,7 @@
     <string name="contact">Contatti</string>
     <string name="copied_logs">Log copiati negli appunti</string>
     <string name="copy_logs">Copia log</string>
-    <string name="creating_pdf">Creazione PDF…</string>
+    <string name="creating_export">Preparazione dell’esportazione…</string>
     <string name="delete_page">Elimina pagina</string>
     <string name="delete_page_warning">Vuoi eliminare questa pagina?</string>
     <string name="developer">Sviluppatore</string>
@@ -19,12 +19,14 @@
     <string name="download_dirname">Download</string>
     <string name="end_scan">Termina scansione</string>
     <string name="error">Errore: %1$s</string>
+    <string name="error_no_app">Nessuna app trovata per aprire questo file</string>
     <string name="error_no_document">Nessun documento rilevato</string>
-    <string name="error_no_pdf_app">Nessuna app trovata per aprire PDF</string>
-    <string name="error_save">Salvataggio PDF fallito</string>
+    <string name="error_save">Impossibile salvare il file</string>
+    <string name="export">Esporta</string>
+    <string name="export_as">Esporta come %1$s</string>
     <string name="export_directory">Cartella di esportazione</string>
-    <string name="export_pdf">Esporta PDF</string>
-    <string name="file_size">Dimensione file: %1$s</string>
+    <string name="file_size">Dimensione del file: %1$s</string>
+    <string name="file_size_total">Dimensione totale: %1$s</string>
     <string name="filename">Nome file</string>
     <string name="grant_permission">Concendi autorizzazione</string>
     <string name="last_saved_pdf_files">PDF recenti salvati su questo dispositivo:</string>
@@ -36,8 +38,7 @@
     <string name="menu">Menu</string>
     <string name="new_document_warning">La scansiona attuale verrà persa. Vuoi continuare?</string>
     <string name="open">Apri</string>
-    <string name="open_pdf">Apri PDF</string>
-    <string name="pdf_saved_to">PDF salvato in %1s</string>
+    <string name="open_file">Apri file</string>
     <string name="reset_to_default">Ripristina impostazioni predefinite</string>
     <string name="resume">Riprendi</string>
     <string name="save">Salva</string>
@@ -45,8 +46,8 @@
     <string name="scan_in_progress">Scansione in corso</string>
     <string name="settings">Impostazioni</string>
     <string name="share">Condividi</string>
-    <string name="share_pdf">Condividi PDF</string>
-    <string name="storage_permission_denied">Impossibile salvare il file PDF: autorizzazione negata</string>
+    <string name="share_document">Condividi documento</string>
+    <string name="storage_permission_denied">Impossibile salvare il file: permesso negato</string>
     <string name="turn_off_torch">Spegni la torcia</string>
     <string name="turn_on_torch">Accendi la torcia</string>
     <string name="unknown_size">Dimensione sconosciuta</string>
@@ -54,7 +55,11 @@
     <string name="view_full_list">Vedi l\'elenco completo</string>
     <string name="view_the_full_license">Vedi la licenza completa</string>
     <string name="yes">Sì</string>
-    <plurals name="page_count">
+    <plurals name="files_saved_to" tools:ignore="MissingQuantity">
+        <item quantity="one">%2$s salvato in %3$s</item>
+        <item quantity="other">%1$d file salvati in %3$s</item>
+    </plurals>
+    <plurals name="page_count" tools:ignore="MissingQuantity">
         <item quantity="one">%d pagina</item>
         <item quantity="other">%d pagine</item>
     </plurals>

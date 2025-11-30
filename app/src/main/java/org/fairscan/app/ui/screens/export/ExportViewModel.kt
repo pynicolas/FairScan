@@ -22,7 +22,6 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,26 +31,25 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.RecentDocument
-import org.fairscan.app.data.GeneratedPdf
-import org.fairscan.app.data.PdfFileManager
-import org.fairscan.app.ui.screens.home.HomeViewModel
+import org.fairscan.app.data.FileManager
+import org.fairscan.app.ui.screens.settings.ExportFormat
 import java.io.File
 import java.io.FileInputStream
-
-private const val PDF_MIME_TYPE = "application/pdf"
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 sealed interface ExportEvent {
-    data object RequestSavePdf : ExportEvent
+    data object RequestSave : ExportEvent
     data object SaveError : ExportEvent
 }
 
 class ExportViewModel(container: AppContainer): ViewModel() {
 
-    private val pdfFileManager = container.pdfFileManager
+    private val preparationDir = container.preparationDir
+    private val fileManager = container.fileManager
     private val imageRepository = container.imageRepository
     private val settingsRepository = container.settingsRepository
     private val recentDocumentsDataStore = container.recentDocumentsDataStore
@@ -60,134 +58,166 @@ class ExportViewModel(container: AppContainer): ViewModel() {
     private val _events = MutableSharedFlow<ExportEvent>()
     val events = _events.asSharedFlow()
 
-    private suspend fun generatePdf(): GeneratedPdf = withContext(Dispatchers.IO) {
+    private suspend fun generatePdf(): ExportResult.Pdf = withContext(Dispatchers.IO) {
         val imageIds = imageRepository.imageIds()
         val jpegs = imageIds.asSequence()
-            .map { id -> imageRepository.getContent(id) }
-            .filterNotNull()
-        return@withContext pdfFileManager.generatePdf(jpegs)
+            .mapNotNull { id -> imageRepository.getContent(id) }
+        val pdf = fileManager.generatePdf(jpegs)
+        return@withContext ExportResult.Pdf(pdf.file, pdf.sizeInBytes, pdf.pageCount)
     }
 
-    private val _pdfUiState = MutableStateFlow(PdfGenerationUiState())
-    val pdfUiState: StateFlow<PdfGenerationUiState> = _pdfUiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ExportUiState())
+    val uiState: StateFlow<ExportUiState> = _uiState.asStateFlow()
 
-    private var generationJob: Job? = null
+    private var preparationJob: Job? = null
     private var desiredFilename: String = ""
+    private var exportFormat = ExportFormat.PDF
 
     fun setFilename(name: String) {
         desiredFilename = name
     }
 
-    fun startPdfGeneration() {
-        cancelPdfGeneration()
-        generationJob = viewModelScope.launch {
+    fun initializeExportScreen() {
+        cancelPreparation()
+
+        preparationJob = viewModelScope.launch {
+            exportFormat = settingsRepository.exportFormat.first()
+            _uiState.update { it.copy(format = exportFormat) }
             try {
-                val result = generatePdf()
-                _pdfUiState.update {
-                    it.copy(
-                        isGenerating = false,
-                        generatedPdf = result
-                    )
+                val result = if (exportFormat == ExportFormat.JPEG) {
+                    val jpegFiles = imageRepository.imageIds()
+                        .mapNotNull { id -> imageRepository.getFileFor(id) }
+                        .map { f -> f.copyTo(File(preparationDir, f.name), overwrite = true) }
+                    val sizeInBytes = jpegFiles.sumOf { it.length() }
+                    ExportResult.Jpeg(jpegFiles, sizeInBytes)
+                } else {
+                    generatePdf()
+                }
+                _uiState.update {
+                    it.copy(isGenerating = false, result = result)
                 }
             } catch (e: Exception) {
-                logger.e("FairScan", "PDF generation failed", e)
-                _pdfUiState.update {
+                val message = "Failed to prepare $exportFormat export"
+                logger.e("FairScan", message, e)
+                _uiState.update {
                     it.copy(
                         isGenerating = false,
-                        errorMessage = "PDF generation failed"
+                        errorMessage = message
                     )
                 }
             }
         }
     }
 
-    fun cancelPdfGeneration() {
-        generationJob?.cancel()
-        _pdfUiState.value = PdfGenerationUiState()
+    fun cancelPreparation() {
+        preparationJob?.cancel()
+        _uiState.value = ExportUiState()
     }
 
-    fun setPdfAsShared() {
-        _pdfUiState.update { it.copy(hasSharedPdf = true) }
+    fun setAsShared() {
+        _uiState.update { it.copy(hasShared = true) }
     }
 
-    fun getFinalPdf(): GeneratedPdf? {
-        val tempPdf = _pdfUiState.value.generatedPdf ?: return null
-        val tempFile = tempPdf.file
-        val fileName = PdfFileManager.addExtensionIfMissing(desiredFilename)
-        val newFile = File(tempFile.parentFile, fileName)
-        if (tempFile.absolutePath != newFile.absolutePath) {
-            if (newFile.exists()) newFile.delete()
-            val success = tempFile.renameTo(newFile)
-            if (!success) return null
-            _pdfUiState.update {
-                it.copy(generatedPdf = GeneratedPdf(
-                    newFile, tempPdf.sizeInBytes, tempPdf.pageCount)
-                )
+    fun applyRenaming(): ExportResult? {
+        val result = _uiState.value.result ?: return null
+        when (result) {
+            is ExportResult.Pdf -> {
+                val fileName = FileManager.addPdfExtensionIfMissing(desiredFilename)
+                val newFile = File(result.file.parentFile, fileName)
+                val tempFile = result.file
+                if (tempFile.absolutePath != newFile.absolutePath) {
+                    if (newFile.exists()) newFile.delete()
+                    val success = tempFile.renameTo(newFile)
+                    if (!success) return null
+                    _uiState.update {
+                        it.copy(result = ExportResult.Pdf(
+                            newFile, result.sizeInBytes, result.pageCount)
+                        )
+                    }
+                }
+            }
+            is ExportResult.Jpeg -> {
+                val base = desiredFilename.removeSuffix(".jpg")
+                val renamedFiles = result.files.mapIndexed { index, file ->
+                    val newFile = File(file.parentFile, "${base}_${index + 1}.jpg")
+                    if (newFile.exists()) newFile.delete()
+                    file.renameTo(newFile)
+                    newFile
+                }
+                val updated = result.copy(jpegFiles = renamedFiles)
+                _uiState.update { it.copy(result = updated) }
             }
         }
-        return _pdfUiState.value.generatedPdf
+        return _uiState.value.result
     }
 
-    fun onSavePdfClicked() {
+    fun onSaveClicked() {
         viewModelScope.launch {
-            _events.emit(ExportEvent.RequestSavePdf)
+            _events.emit(ExportEvent.RequestSave)
         }
     }
 
-    fun onRequestPdfSave(context: Context) {
+    fun onRequestSave(context: Context) {
         viewModelScope.launch {
-            performPdfSave(context)
+            try {
+                save(context)
+            } catch (e: Exception) {
+                logger.e("FairScan", "Failed to save PDF", e)
+                _events.emit(ExportEvent.SaveError)
+            }
         }
     }
 
-    private suspend fun performPdfSave(context: Context) {
-        try {
-            val pdf = getFinalPdf() ?: return
+    private suspend fun save(context:Context) {
+        val result = applyRenaming() ?: return
+        val exportDir = settingsRepository.exportDirUri.first()?.toUri()
+        val savedItems = mutableListOf<SavedItem>()
+        val filesForMediaScan = mutableListOf<File>()
 
-            val exportDir = settingsRepository.exportDirUri.first()
-            var fileInDownloads: File? = null
-
-            var savedName: String
-            val savedUri: Uri
-            if (exportDir == null) {
-                fileInDownloads = pdfFileManager.copyToExternalDir(pdf.file)
-                savedUri = fileInDownloads.toUri()
-                savedName = fileInDownloads.name
+        for (file in result.files) {
+            val saved = if (exportDir == null) {
+                val out = fileManager.copyToExternalDir(file)
+                filesForMediaScan.add(out)
+                SavedItem(out.toUri(), out.name, exportFormat)
             } else {
-                val saved = copyViaSaf(context, pdf.file, exportDir.toUri())
-                savedUri = saved.uri
-                savedName = saved.name?:pdf.file.name
+                val safFile = copyViaSaf(context, file, exportDir, exportFormat)
+                SavedItem(safFile.uri, safFile.name ?: file.name, exportFormat)
             }
-
-            _pdfUiState.update {
-                it.copy(
-                    savedFileUri = savedUri,
-                    exportDirName = resolveExportDirName(context, exportDir?.toUri()))
-            }
-
-            fileInDownloads?.let { mediaScan(context, it) }
-
-            addRecentDocument(savedUri, savedName, pdf.pageCount)
-        } catch (e: Exception) {
-            logger.e("FairScan", "Failed to save PDF", e)
-            _events.emit(ExportEvent.SaveError)
+            savedItems += saved
         }
+
+        val exportDirName = resolveExportDirName(context, exportDir)
+        val bundle = SavedBundle(savedItems, exportDir, exportDirName)
+        _uiState.update { it.copy(savedBundle = bundle) }
+
+        if (exportFormat == ExportFormat.PDF) {
+            savedItems.forEach { item ->
+                addRecentDocument(item.uri, item.fileName, result.pageCount)
+            }
+        }
+
+        filesForMediaScan.forEach { f -> mediaScan(context, f, exportFormat.mimeType) }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun mediaScan(context: Context, file: File) =
-        suspendCancellableCoroutine { continuation ->
-            MediaScannerConnection.scanFile(
-                context,
-                arrayOf(file.absolutePath),
-                arrayOf(PDF_MIME_TYPE)
-            ) { _, _ -> continuation.resume(Unit) {} }
+    private suspend fun mediaScan(
+        context: Context,
+        file: File,
+        mimeType: String
+    ): Uri? = suspendCoroutine { cont ->
+        MediaScannerConnection.scanFile(
+            context,
+            arrayOf(file.absolutePath),
+            arrayOf(mimeType)
+        ) { _, uri ->
+            cont.resume(uri)
         }
+    }
 
     private fun copyViaSaf(
         context: Context,
         source: File,
         exportDirUri: Uri,
+        exportFormat: ExportFormat,
     ): DocumentFile {
         val resolver = context.contentResolver
 
@@ -195,7 +225,7 @@ class ExportViewModel(container: AppContainer): ViewModel() {
             ?: throw IllegalStateException("Invalid SAF directory")
 
         // Name collisions are handled automatically by SAF provider
-        val target = tree.createFile(PDF_MIME_TYPE, source.name)
+        val target = tree.createFile(exportFormat.mimeType, source.name)
             ?: throw IllegalStateException("Unable to create SAF file")
 
         resolver.openOutputStream(target.uri)?.use { output ->
@@ -207,8 +237,8 @@ class ExportViewModel(container: AppContainer): ViewModel() {
         return target
     }
 
-    fun cleanUpOldPdfs(thresholdInMillis: Int) {
-        pdfFileManager.cleanUpOldFiles(thresholdInMillis)
+    fun cleanUpOldPreparedFiles(thresholdInMillis: Int) {
+        fileManager.cleanUpOldFiles(thresholdInMillis)
     }
 
     private fun resolveExportDirName(context: Context, exportDirUri: Uri?): String? {
@@ -241,11 +271,35 @@ class ExportViewModel(container: AppContainer): ViewModel() {
     }
 }
 
-data class PdfGenerationActions(
-    val startGeneration: () -> Unit,
+sealed class ExportResult {
+    abstract val files: List<File>
+    abstract val sizeInBytes: Long
+    abstract val pageCount: Int
+    abstract val format: ExportFormat
+
+    data class Pdf(
+        val file: File,
+        override val sizeInBytes: Long,
+        override val pageCount: Int,
+    ) : ExportResult() {
+        override val files get() = listOf(file)
+        override val format: ExportFormat = ExportFormat.PDF
+    }
+
+    data class Jpeg(
+        val jpegFiles: List<File>,
+        override val sizeInBytes: Long,
+    ) : ExportResult() {
+        override val files get() = jpegFiles
+        override val pageCount get() = jpegFiles.size
+        override val format: ExportFormat = ExportFormat.JPEG
+    }
+}
+
+data class ExportActions(
+    val initializeExportScreen: () -> Unit,
     val setFilename: (String) -> Unit,
-    val uiStateFlow: StateFlow<PdfGenerationUiState>,// TODO is it ok to have that here?
-    val sharePdf: () -> Unit,
-    val savePdf: () -> Unit,
-    val openPdf: () -> Unit,
+    val share: () -> Unit,
+    val save: () -> Unit,
+    val open: (SavedItem) -> Unit,
 )

@@ -11,7 +11,7 @@
     <string name="contact">Contact</string>
     <string name="copied_logs">Logs copiés dans le presse-papiers</string>
     <string name="copy_logs">Copier les logs</string>
-    <string name="creating_pdf">Création du PDF…</string>
+    <string name="creating_export">Préparation de l’export…</string>
     <string name="delete_page">Supprimer la page</string>
     <string name="delete_page_warning">Voulez-vous supprimer cette page ?</string>
     <string name="developer">Développeur</string>
@@ -19,12 +19,14 @@
     <string name="download_dirname">Téléchargements</string>
     <string name="end_scan">Terminer le scan</string>
     <string name="error">Erreur : %1$s</string>
+    <string name="error_no_app">Aucune application trouvée pour ouvrir ce fichier</string>
     <string name="error_no_document">Aucun document détecté</string>
-    <string name="error_no_pdf_app">Aucune application trouvée pour ouvrir un PDF</string>
-    <string name="error_save">Échec de l\'enregistrement du PDF</string>
+    <string name="error_save">Échec de l\'enregistrement du fichier</string>
+    <string name="export">Exporter</string>
+    <string name="export_as">Exporter en %1$s</string>
     <string name="export_directory">Dossier d’export</string>
-    <string name="export_pdf">Exporter en PDF</string>
     <string name="file_size">Taille du fichier : %1$s</string>
+    <string name="file_size_total">Taille totale : %1$s</string>
     <string name="filename">Nom de fichier</string>
     <string name="grant_permission">Autoriser</string>
     <string name="last_saved_pdf_files">Derniers PDF enregistrés sur l’appareil :</string>
@@ -36,8 +38,7 @@
     <string name="menu">Menu</string>
     <string name="new_document_warning">Le scan en cours sera perdu. Voulez-vous continuer ?</string>
     <string name="open">Ouvrir</string>
-    <string name="open_pdf">Ouvrir le PDF</string>
-    <string name="pdf_saved_to">PDF enregistré dans %1s</string>
+    <string name="open_file">Ouvrir le fichier</string>
     <string name="reset_to_default">Réinitialiser par défaut</string>
     <string name="resume">Reprendre</string>
     <string name="save">Enregistrer</string>
@@ -45,8 +46,8 @@
     <string name="scan_in_progress">Scan en cours</string>
     <string name="settings">Paramètres</string>
     <string name="share">Partager</string>
-    <string name="share_pdf">Partager le PDF</string>
-    <string name="storage_permission_denied">Impossible d’enregistrer le fichier PDF : permission refusée</string>
+    <string name="share_document">Partager le document</string>
+    <string name="storage_permission_denied">Impossible d’enregistrer le fichier : permission refusée</string>
     <string name="turn_off_torch">Éteindre la torche</string>
     <string name="turn_on_torch">Allumer la torche</string>
     <string name="unknown_size">Taille inconnue</string>
@@ -54,6 +55,10 @@
     <string name="view_full_list">Voir la liste complète</string>
     <string name="view_the_full_license">Voir la licence complète</string>
     <string name="yes">Oui</string>
+    <plurals name="files_saved_to" tools:ignore="MissingQuantity">
+        <item quantity="one">%2$s enregistré dans %3$s</item>
+        <item quantity="other">%1$d fichiers enregistrés dans %3$s</item>
+    </plurals>
     <plurals name="page_count" tools:ignore="MissingQuantity">
         <item quantity="one">%d page</item>
         <item quantity="other">%d pages</item>

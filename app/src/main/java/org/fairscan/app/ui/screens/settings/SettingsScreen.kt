@@ -27,6 +27,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Card
@@ -34,6 +36,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -56,6 +59,7 @@ fun SettingsScreen(
     uiState: SettingsUiState,
     onChooseDirectoryClick: () -> Unit,
     onResetExportDirClick: () -> Unit,
+    onExportFormatChanged: (ExportFormat) -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler { onBack() }
@@ -67,10 +71,13 @@ fun SettingsScreen(
             )
         }
     ) { paddingValues ->
-        SettingsContent(uiState, onChooseDirectoryClick, onResetExportDirClick, modifier = Modifier.padding(paddingValues))
+        SettingsContent(
+            uiState,
+            onChooseDirectoryClick,
+            onResetExportDirClick,
+            onExportFormatChanged,
+            modifier = Modifier.padding(paddingValues))
     }
-
-
 }
 
 @Composable
@@ -78,6 +85,7 @@ private fun SettingsContent(
     uiState: SettingsUiState,
     onChooseDirectoryClick: () -> Unit,
     onResetExportDirClick: () -> Unit,
+    onExportFormatChanged: (ExportFormat) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -89,6 +97,7 @@ private fun SettingsContent(
         modifier
             .fillMaxSize()
             .padding(20.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         DirectorySettingItem(
             label = stringResource(R.string.export_directory),
@@ -105,6 +114,26 @@ private fun SettingsContent(
             ) {
                 Text(stringResource(R.string.reset_to_default))
             }
+        }
+
+        Spacer(Modifier.height(32.dp))
+
+        Text("Export format", style = MaterialTheme.typography.titleLarge)
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(
+                selected = uiState.exportFormat == ExportFormat.PDF,
+                onClick = { onExportFormatChanged(ExportFormat.PDF) },
+            )
+            Text("PDF")
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            RadioButton(
+                selected = uiState.exportFormat == ExportFormat.JPEG,
+                onClick = { onExportFormatChanged(ExportFormat.JPEG) },
+            )
+            Text("JPEG")
         }
     }
 }
@@ -173,6 +202,12 @@ fun SettingsScreenPreviewWithDir() {
 @Composable
 fun SettingsScreenPreview(uiState: SettingsUiState) {
     FairScanTheme {
-        SettingsScreen(uiState, onChooseDirectoryClick = {}, onResetExportDirClick = {}, onBack= {})
+        SettingsScreen(
+            uiState,
+            onChooseDirectoryClick = {},
+            onResetExportDirClick = {},
+            onExportFormatChanged = {},
+            onBack = {}
+        )
     }
 }

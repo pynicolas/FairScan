@@ -11,7 +11,7 @@
     <string name="contact">Kontakt</string>
     <string name="copied_logs">Protokoly zkopírovány do schránky</string>
     <string name="copy_logs">Kopírovat protokoly</string>
-    <string name="creating_pdf">Vytváření PDF…</string>
+    <string name="creating_export">Příprava exportu…</string>
     <string name="delete_page">Smazat stránku</string>
     <string name="delete_page_warning">Chcete smazat tuto stránku?</string>
     <string name="developer">Vývojář</string>
@@ -19,12 +19,14 @@
     <string name="download_dirname">stažených</string>
     <string name="end_scan">Ukončit skenování</string>
     <string name="error">Chyba: %1$s</string>
+    <string name="error_no_app">Nebyla nalezena žádná aplikace pro otevření tohoto souboru</string>
     <string name="error_no_document">Nebyl rozpoznán žádná dokument</string>
-    <string name="error_no_pdf_app">Nebyla nazelena žádná aplikace pro otevření PDF</string>
-    <string name="error_save">Chyba při ukládání PDF</string>
+    <string name="error_save">Soubor se nepodařilo uložit</string>
+    <string name="export">Exportovat</string>
+    <string name="export_as">Exportovat jako %1$s</string>
     <string name="export_directory">Složka pro export</string>
-    <string name="export_pdf">Exportovat PDF</string>
     <string name="file_size">Velikost souboru: %1$s</string>
+    <string name="file_size_total">Celková velikost: %1$s</string>
     <string name="filename">Název souboru</string>
     <string name="grant_permission">Povolit přístup</string>
     <string name="last_saved_pdf_files">Poslední PDF uložené v tomto zařízení:</string>
@@ -36,8 +38,7 @@
     <string name="menu">Menu</string>
     <string name="new_document_warning">Toto skenování bude ztraceno. Chcete pokračovat?</string>
     <string name="open">Otevřít</string>
-    <string name="open_pdf">Otevřít PDF</string>
-    <string name="pdf_saved_to">PDF bylo uloženo do %1s</string>
+    <string name="open_file">Otevřít soubor</string>
     <string name="reset_to_default">Obnovit výchozí</string>
     <string name="resume">Obnovit</string>
     <string name="save">Uložit</string>
@@ -45,8 +46,8 @@
     <string name="scan_in_progress">Probíhá skenování</string>
     <string name="settings">Nastavení</string>
     <string name="share">Sdílet</string>
-    <string name="share_pdf">Sdílet PDF</string>
-    <string name="storage_permission_denied">Nelze uložit PDF: přístup zakázán</string>
+    <string name="share_document">Sdílet dokument</string>
+    <string name="storage_permission_denied">Nelze uložit soubor: oprávnění bylo odmítnuto</string>
     <string name="turn_off_torch">Vypnout svítilnu</string>
     <string name="turn_on_torch">Zapnout svítilnu</string>
     <string name="unknown_size">Neznámá velikost</string>
@@ -54,6 +55,12 @@
     <string name="view_full_list">Zobrazit úplný seznam</string>
     <string name="view_the_full_license">Zobrazit úplnou licenci</string>
     <string name="yes">Ano</string>
+    <plurals name="files_saved_to">
+        <item quantity="one">%2$s uložen do %3$s</item>
+        <item quantity="few">%1$d soubory uloženy do %3$s</item>
+        <item quantity="many">%1$d souborů uloženo do %3$s</item>
+        <item quantity="other">%1$d souborů uloženo do %3$s</item>
+    </plurals>
     <plurals name="page_count">
         <item quantity="one">%d stránka</item>     <!-- 1 -->
         <item quantity="few">%d stránky</item>     <!-- 2–4 -->

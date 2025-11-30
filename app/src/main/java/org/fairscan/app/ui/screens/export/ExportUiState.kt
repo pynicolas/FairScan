@@ -15,16 +15,28 @@
 package org.fairscan.app.ui.screens.export
 
 import android.net.Uri
-import org.fairscan.app.data.GeneratedPdf
+import org.fairscan.app.ui.screens.settings.ExportFormat
 
-data class PdfGenerationUiState(
+data class ExportUiState(
+    val format: ExportFormat = ExportFormat.PDF,
     val isGenerating: Boolean = false,
-    val generatedPdf: GeneratedPdf? = null,
+    val result: ExportResult? = null,
     val desiredFilename: String = "",
-    val savedFileUri: Uri? = null,
-    val exportDirName: String? = null,
-    val hasSharedPdf: Boolean = false,
+    val savedBundle: SavedBundle? = null,
+    val hasShared: Boolean = false,
     val errorMessage: String? = null,
 ) {
-    val hasSavedOrSharedPdf get() = savedFileUri != null || hasSharedPdf
+    val hasSavedOrShared get() = savedBundle != null || hasShared
 }
+
+data class SavedItem(
+    val uri: Uri,
+    val fileName: String,
+    val format: ExportFormat,
+)
+
+data class SavedBundle(
+    val items: List<SavedItem>,
+    val exportDir: Uri? = null,
+    val exportDirName: String? = null,
+)

@@ -11,7 +11,7 @@
     <string name="contact">Контакты</string>
     <string name="copied_logs">Журналы скопированы в буфер обмена</string>
     <string name="copy_logs">Копировать журналы</string>
-    <string name="creating_pdf">Создание PDF…</string>
+    <string name="creating_export">Подготовка экспорта…</string>
     <string name="delete_page">Удалить страницу</string>
     <string name="delete_page_warning">Вы желаете удалить эту страницу?</string>
     <string name="developer">Разработчик</string>
@@ -19,12 +19,14 @@
     <string name="download_dirname">Download</string>
     <string name="end_scan">Закончить</string>
     <string name="error">Ошибка: %1$s</string>
+    <string name="error_no_app">Не найдено приложение для открытия этого файла</string>
     <string name="error_no_document">Документ не обнаружен</string>
-    <string name="error_no_pdf_app">Приложения для работы с PDF не обнаружено</string>
-    <string name="error_save">Сбой при сохранении PDF</string>
+    <string name="error_save">Не удалось сохранить файл</string>
+    <string name="export">Экспорт</string>
+    <string name="export_as">Экспортировать как %1$s</string>
     <string name="export_directory">Папка экспорта</string>
-    <string name="export_pdf">Экспорт PDF</string>
     <string name="file_size">Размер файла: %1$s</string>
+    <string name="file_size_total">Общий размер: %1$s</string>
     <string name="filename">Имя файла</string>
     <string name="grant_permission">Предоставить разрешение</string>
     <string name="last_saved_pdf_files">Последние PDF, сохранённые на этом устройстве:</string>
@@ -36,8 +38,7 @@
     <string name="menu">Меню</string>
     <string name="new_document_warning">Результаты текущего сканирования будут потеряны. Желаете продолжить?</string>
     <string name="open">Открыть</string>
-    <string name="open_pdf">Открыть PDF</string>
-    <string name="pdf_saved_to">PDF сохранен в %1s</string>
+    <string name="open_file">Открыть файл</string>
     <string name="reset_to_default">Сбросить по умолчанию</string>
     <string name="resume">Продолжить</string>
     <string name="save">Сохранить</string>
@@ -45,8 +46,8 @@
     <string name="scan_in_progress">Сканирование выполняется</string>
     <string name="settings">Настройки</string>
     <string name="share">Поделиться</string>
-    <string name="share_pdf">Поделиться PDF</string>
-    <string name="storage_permission_denied">Не удается сохранить файл PDF: в разрешении отказано</string>
+    <string name="share_document">Поделиться документом</string>
+    <string name="storage_permission_denied">Невозможно сохранить файл: доступ запрещён</string>
     <string name="turn_off_torch">Выключить фонарик</string>
     <string name="turn_on_torch">Включить фонарик</string>
     <string name="unknown_size">Неизвестный размер</string>
@@ -54,6 +55,12 @@
     <string name="view_full_list">Просмотреть полный список</string>
     <string name="view_the_full_license">Просмотреть полную лицензию</string>
     <string name="yes">Да</string>
+    <plurals name="files_saved_to">
+        <item quantity="one">%2$s сохранён в %3$s</item>
+        <item quantity="few">%1$d файла сохранены в %3$s</item>
+        <item quantity="many">%1$d файлов сохранено в %3$s</item>
+        <item quantity="other">%1$d файла сохранено в %3$s</item>
+    </plurals>
     <plurals name="page_count">
         <item quantity="one">%d страница</item>
         <item quantity="few">%d страницы</item>

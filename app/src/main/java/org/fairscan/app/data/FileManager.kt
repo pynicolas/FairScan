@@ -28,13 +28,13 @@ fun interface PdfWriter {
     fun writePdfFromJpegs(jpegs: Sequence<ByteArray>, outputStream: OutputStream): Int
 }
 
-class PdfFileManager(
+class FileManager(
     private val pdfDir: File,
     private val externalDir: File,
     private val pdfWriter: PdfWriter
 ) {
     companion object {
-        fun addExtensionIfMissing(fileName: String): String {
+        fun addPdfExtensionIfMissing(fileName: String): String {
             return if (fileName.lowercase().endsWith(".pdf"))
                 fileName
             else
