@@ -11,7 +11,7 @@
     <string name="contact">Kontakt</string>
     <string name="copied_logs">Logs in die Zwischenablage kopiert</string>
     <string name="copy_logs">Logs kopieren</string>
-    <string name="creating_pdf">PDF wird erstellt…</string>
+    <string name="creating_export">Export wird vorbereitet…</string>
     <string name="delete_page">Seite löschen</string>
     <string name="delete_page_warning">Möchten Sie diese Seite löschen?</string>
     <string name="developer">Entwickler</string>
@@ -19,12 +19,14 @@
     <string name="download_dirname">Downloads</string>
     <string name="end_scan">Scan beenden</string>
     <string name="error">Fehler: %1$s</string>
+    <string name="error_no_app">Keine App zum Öffnen dieser Datei gefunden</string>
     <string name="error_no_document">Kein Dokument erkannt</string>
-    <string name="error_no_pdf_app">Keine App zum Öffnen von PDF gefunden</string>
-    <string name="error_save">PDF konnte nicht gespeichert werden</string>
+    <string name="error_save">Datei konnte nicht gespeichert werden</string>
+    <string name="export">Exportieren</string>
+    <string name="export_as">Als %1$s exportieren</string>
     <string name="export_directory">Exportordner</string>
-    <string name="export_pdf">PDF exportieren</string>
     <string name="file_size">Dateigröße: %1$s</string>
+    <string name="file_size_total">Gesamtgröße: %1$s</string>
     <string name="filename">Dateiname</string>
     <string name="grant_permission">Berechtigung erteilen</string>
     <string name="last_saved_pdf_files">Zuletzt auf diesem Gerät gespeicherte PDFs:</string>
@@ -36,8 +38,7 @@
     <string name="menu">Menü</string>
     <string name="new_document_warning">Das aktuelle Dokument geht verloren. Möchten Sie fortfahren?</string>
     <string name="open">Öffnen</string>
-    <string name="open_pdf">PDF öffnen</string>
-    <string name="pdf_saved_to">PDF gespeichert in %1s</string>
+    <string name="open_file">Datei öffnen</string>
     <string name="reset_to_default">Auf Standard zurücksetzen</string>
     <string name="resume">Fortsetzen</string>
     <string name="save">Speichern</string>
@@ -45,8 +46,8 @@
     <string name="scan_in_progress">Scan läuft</string>
     <string name="settings">Einstellungen</string>
     <string name="share">Teilen</string>
-    <string name="share_pdf">PDF teilen</string>
-    <string name="storage_permission_denied">PDF-Datei kann nicht gespeichert werden: Berechtigung verweigert</string>
+    <string name="share_document">Dokument teilen</string>
+    <string name="storage_permission_denied">Datei kann nicht gespeichert werden: Berechtigung verweigert</string>
     <string name="turn_off_torch">Taschenlampe ausschalten</string>
     <string name="turn_on_torch">Taschenlampe einschalten</string>
     <string name="unknown_size">Unbekannte Größe</string>
@@ -54,6 +55,10 @@
     <string name="view_full_list">Vollständige Liste anzeigen</string>
     <string name="view_the_full_license">Vollständige Lizenz anzeigen</string>
     <string name="yes">Ja</string>
+    <plurals name="files_saved_to">
+        <item quantity="one">%2$s gespeichert in %3$s</item>
+        <item quantity="other">%1$d Dateien gespeichert in %3$s</item>
+    </plurals>
     <plurals name="page_count">
         <item quantity="one">%d Seite</item>
         <item quantity="other">%d Seiten</item>

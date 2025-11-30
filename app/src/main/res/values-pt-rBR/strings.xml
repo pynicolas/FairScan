@@ -11,7 +11,7 @@
     <string name="contact">Contato</string>
     <string name="copied_logs">Registros copiados para a área de transferência</string>
     <string name="copy_logs">Copiar registros</string>
-    <string name="creating_pdf">Criando PDF…</string>
+    <string name="creating_export">Preparando exportação…</string>
     <string name="delete_page">Excluir página</string>
     <string name="delete_page_warning">Deseja excluir esta página?</string>
     <string name="developer">Desenvolvedor</string>
@@ -19,12 +19,14 @@
     <string name="download_dirname">Downloads</string>
     <string name="end_scan">Finalizar digitalização</string>
     <string name="error">Erro: %1$s</string>
+    <string name="error_no_app">Nenhum app encontrado para abrir este arquivo</string>
     <string name="error_no_document">Nenhum documento detectado</string>
-    <string name="error_no_pdf_app">Nenhum aplicativo encontrado para abrir PDF</string>
-    <string name="error_save">Falha ao salvar PDF</string>
+    <string name="error_save">Falha ao salvar o arquivo</string>
+    <string name="export">Exportar</string>
+    <string name="export_as">Exportar como %1$s</string>
     <string name="export_directory">Diretório de exportação</string>
-    <string name="export_pdf">Exportar PDF</string>
     <string name="file_size">Tamanho do arquivo: %1$s</string>
+    <string name="file_size_total">Tamanho total: %1$s</string>
     <string name="filename">Nome do arquivo</string>
     <string name="grant_permission">Conceder permissão</string>
     <string name="last_saved_pdf_files">PDFs recentes salvos neste dispositivo:</string>
@@ -36,8 +38,7 @@
     <string name="menu">Menu</string>
     <string name="new_document_warning">A digitalização atual será perdida. Deseja continuar?</string>
     <string name="open">Abrir</string>
-    <string name="open_pdf">Abrir PDF</string>
-    <string name="pdf_saved_to">PDF salvo em %1s</string>
+    <string name="open_file">Abrir arquivo</string>
     <string name="reset_to_default">Restaurar padrão</string>
     <string name="resume">Retomar</string>
     <string name="save">Salvar</string>
@@ -45,8 +46,8 @@
     <string name="scan_in_progress">Digitalização em andamento</string>
     <string name="settings">Configurações</string>
     <string name="share">Compartilhar</string>
-    <string name="share_pdf">Compartilhar PDF</string>
-    <string name="storage_permission_denied">Não foi possível salvar o arquivo PDF: permissão negada</string>
+    <string name="share_document">Compartilhar documento</string>
+    <string name="storage_permission_denied">Não foi possível salvar o arquivo: permissão negada</string>
     <string name="turn_off_torch">Desligar lanterna</string>
     <string name="turn_on_torch">Ligar lanterna</string>
     <string name="unknown_size">Tamanho desconhecido</string>
@@ -54,6 +55,10 @@
     <string name="view_full_list">Ver lista completa</string>
     <string name="view_the_full_license">Ver licença completa</string>
     <string name="yes">Sim</string>
+    <plurals name="files_saved_to" tools:ignore="MissingQuantity">
+        <item quantity="one">%2$s salvo em %3$s</item>
+        <item quantity="other">%1$d arquivos salvos em %3$s</item>
+    </plurals>
     <plurals name="page_count" tools:ignore="MissingQuantity">
         <item quantity="one">%d página</item>
         <item quantity="other">%d páginas</item>

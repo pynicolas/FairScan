@@ -32,7 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.RotateLeft
 import androidx.compose.material.icons.automirrored.filled.RotateRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -55,8 +55,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.toImmutableList
 import net.engawapg.lib.zoomable.ZoomState
 import net.engawapg.lib.zoomable.zoomable
-import org.fairscan.app.ui.Navigation
 import org.fairscan.app.R
+import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.components.CommonPageListState
 import org.fairscan.app.ui.components.ConfirmationDialog
 import org.fairscan.app.ui.components.MainActionButton
@@ -225,8 +225,8 @@ private fun BottomBar(
     ) {
         MainActionButton(
             onClick = navigation.toExportScreen,
-            icon = Icons.Default.PictureAsPdf,
-            text = stringResource(R.string.export_pdf),
+            icon = Icons.Default.Description,
+            text = stringResource(R.string.export),
         )
     }
 }

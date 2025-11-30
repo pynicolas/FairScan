@@ -82,6 +82,7 @@ class ExportViewModel(container: AppContainer): ViewModel() {
 
         preparationJob = viewModelScope.launch {
             exportFormat = settingsRepository.exportFormat.first()
+            _uiState.update { it.copy(format = exportFormat) }
             try {
                 val result = if (exportFormat == ExportFormat.JPEG) {
                     val jpegFiles = imageRepository.imageIds()

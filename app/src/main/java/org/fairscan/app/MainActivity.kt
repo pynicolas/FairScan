@@ -281,7 +281,7 @@ class MainActivity : ComponentActivity() {
                 putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
             }
         }
-        val chooser = Intent.createChooser(intent, getString(R.string.share_pdf))
+        val chooser = Intent.createChooser(intent, getString(R.string.share_document))
 
         val resolveInfos = packageManager.queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY)
         for (info in resolveInfos) {
@@ -321,9 +321,9 @@ class MainActivity : ComponentActivity() {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         try {
-            startActivity(Intent.createChooser(openIntent, getString(R.string.open_pdf)))
+            startActivity(Intent.createChooser(openIntent, getString(R.string.open_file)))
         } catch (_: ActivityNotFoundException) {
-            Toast.makeText(this, getString(R.string.error_no_pdf_app), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_no_app), Toast.LENGTH_SHORT).show()
         }
     }
 

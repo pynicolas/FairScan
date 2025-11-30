@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -149,7 +150,7 @@ fun ExportScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.export_pdf)) },
+                title = { Text(stringResource(R.string.export_as, uiState.format)) },
                 navigationIcon = { BackButton(navigation.back) },
                 actions = {
                     AppOverflowMenu(navigation)
@@ -206,7 +207,7 @@ private fun TextFieldAndPdfInfos(
     ) {
 
         if (uiState.isGenerating) {
-            Text(stringResource(R.string.creating_pdf), fontStyle = FontStyle.Italic)
+            Text(stringResource(R.string.creating_export), fontStyle = FontStyle.Italic)
         } else if (pdf != null) {
             val context = LocalContext.current
             val formattedFileSize = formatFileSize(pdf.sizeInBytes, context)
@@ -343,12 +344,18 @@ private fun SaveInfoBar(savedBundle: SavedBundle, onOpen: () -> Unit) {
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(vertical = 8.dp, horizontal = 16.dp),
     ) {
+        val nbFiles = savedBundle.items.size
+        val firstFileName = savedBundle.items[0].fileName
         Text(
-            text = stringResource(R.string.pdf_saved_to, dirName),
+            text = LocalResources.current.getQuantityString(
+                R.plurals.files_saved_to,
+                nbFiles,
+                nbFiles, firstFileName, dirName
+            ),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.weight(1f),
         )
-        if (savedBundle.items.size == 1) {
+        if (nbFiles == 1) {
             Spacer(Modifier.width(8.dp))
             MainActionButton(
                 onClick = onOpen,
@@ -408,7 +415,7 @@ fun PreviewExportScreenAfterSave() {
     ExportPreviewToCustomize(
         uiState = ExportUiState(
             result = ExportResult.Pdf(file, 442897L, 3),
-            savedBundle = SavedBundle(listOf(SavedItem(file.toUri(), ""))),
+            savedBundle = SavedBundle(listOf(SavedItem(file.toUri(), "my_file.pdf"))),
         ),
     )
 }
@@ -429,7 +436,7 @@ fun PreviewExportScreenAfterSaveHorizontal() {
         uiState = ExportUiState(
             result = ExportResult.Pdf(file, 442897L, 3),
             savedBundle = SavedBundle(
-                listOf(SavedItem(file.toUri(), "")),
+                listOf(SavedItem(file.toUri(), "my_file.pdf")),
                 exportDirName="MyVeryVeryLongDirectoryName"),
         ),
     )

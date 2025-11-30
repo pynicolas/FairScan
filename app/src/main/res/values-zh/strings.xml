@@ -11,7 +11,7 @@
     <string name="contact">联系人</string>
     <string name="copied_logs">日志已复制到剪贴板</string>
     <string name="copy_logs">复制日志</string>
-    <string name="creating_pdf">正在创建 PDF…</string>
+    <string name="creating_export">正在准备导出…</string>
     <string name="delete_page">删除页面</string>
     <string name="delete_page_warning">是否要删除此页面?</string>
     <string name="developer">开发者</string>
@@ -19,12 +19,14 @@
     <string name="download_dirname">下载</string>
     <string name="end_scan">结束扫描</string>
     <string name="error">错误: %1$s</string>
+    <string name="error_no_app">未找到可打开此文件的应用</string>
     <string name="error_no_document">未检测到任何文档</string>
-    <string name="error_no_pdf_app">未找到可打开PDF的应用</string>
-    <string name="error_save">保存PDF失败</string>
+    <string name="error_save">无法保存文件</string>
+    <string name="export">导出</string>
+    <string name="export_as">导出为 %1$s</string>
     <string name="export_directory">导出目录</string>
-    <string name="export_pdf">导出PDF</string>
-    <string name="file_size">文件大小: %1$s</string>
+    <string name="file_size">文件大小：%1$s</string>
+    <string name="file_size_total">总大小：%1$s</string>
     <string name="filename">文件名字</string>
     <string name="grant_permission">授予权限</string>
     <string name="last_saved_pdf_files">最近保存在此设备上的 PDF：</string>
@@ -36,8 +38,7 @@
     <string name="menu">菜单</string>
     <string name="new_document_warning">当前扫描将丢失。是否继续？</string>
     <string name="open">打开</string>
-    <string name="open_pdf">打开 PDF</string>
-    <string name="pdf_saved_to">PDF 已保存到 %1$s</string>
+    <string name="open_file">打开文件</string>
     <string name="reset_to_default">恢复默认设置</string>
     <string name="resume">恢复</string>
     <string name="save">保存</string>
@@ -45,8 +46,8 @@
     <string name="scan_in_progress">正在进行扫描</string>
     <string name="settings">设置</string>
     <string name="share">共享</string>
-    <string name="share_pdf">共享 PDF</string>
-    <string name="storage_permission_denied">无法保存PDF文件：权限被拒绝</string>
+    <string name="share_document">分享文档</string>
+    <string name="storage_permission_denied">无法保存文件：权限被拒绝</string>
     <string name="turn_off_torch">关闭手电筒</string>
     <string name="turn_on_torch">打开手电筒</string>
     <string name="unknown_size">未知大小</string>
@@ -54,8 +55,10 @@
     <string name="view_full_list">查看完整列表</string>
     <string name="view_the_full_license">查看完整许可证</string>
     <string name="yes">是</string>
+    <plurals name="files_saved_to">
+        <item quantity="other">%1$d 个文件已保存到 %3$s</item>
+    </plurals>
     <plurals name="page_count">
-        <item quantity="one">%d 页</item>
         <item quantity="other">%d 页</item>
     </plurals>
 </resources>
