@@ -199,7 +199,7 @@ private fun TextFieldAndPdfInfos(
 ) {
     FilenameTextField(filename, onFilenameChange)
 
-    val pdf = uiState.result
+    val result = uiState.result
 
     // PDF infos
     Column(
@@ -208,12 +208,14 @@ private fun TextFieldAndPdfInfos(
 
         if (uiState.isGenerating) {
             Text(stringResource(R.string.creating_export), fontStyle = FontStyle.Italic)
-        } else if (pdf != null) {
+        } else if (result != null) {
             val context = LocalContext.current
-            val formattedFileSize = formatFileSize(pdf.sizeInBytes, context)
-            Text(text = pageCountText(pdf.pageCount))
+            val formattedFileSize = formatFileSize(result.sizeInBytes, context)
+            Text(text = pageCountText(result.pageCount))
+            val sizeMessageKey =
+                if (result.files.size == 1) R.string.file_size else R.string.file_size_total
             Text(
-                text = stringResource(R.string.file_size, formattedFileSize),
+                text = stringResource(sizeMessageKey, formattedFileSize),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
@@ -415,7 +417,7 @@ fun PreviewExportScreenAfterSave() {
     ExportPreviewToCustomize(
         uiState = ExportUiState(
             result = ExportResult.Pdf(file, 442897L, 3),
-            savedBundle = SavedBundle(listOf(SavedItem(file.toUri(), "my_file.pdf"))),
+            savedBundle = SavedBundle(listOf(SavedItem(file.toUri(), defaultFilename() + ".pdf"))),
         ),
     )
 }
