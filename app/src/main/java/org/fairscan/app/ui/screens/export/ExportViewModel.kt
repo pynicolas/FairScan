@@ -138,8 +138,10 @@ class ExportViewModel(container: AppContainer): ViewModel() {
             }
             is ExportResult.Jpeg -> {
                 val base = desiredFilename.removeSuffix(".jpg")
-                val renamedFiles = result.files.mapIndexed { index, file ->
-                    val newFile = File(file.parentFile, "${base}_${index + 1}.jpg")
+                val files = result.files
+                val renamedFiles = files.mapIndexed { index, file ->
+                    val indexSuffix = if (files.size == 1) "" else "_${index + 1}"
+                    val newFile = File(file.parentFile, "${base}${indexSuffix}.jpg")
                     if (newFile.exists()) newFile.delete()
                     file.renameTo(newFile)
                     newFile
