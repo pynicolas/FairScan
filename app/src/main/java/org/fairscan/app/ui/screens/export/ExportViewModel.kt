@@ -142,8 +142,10 @@ class ExportViewModel(container: AppContainer): ViewModel() {
                 val renamedFiles = files.mapIndexed { index, file ->
                     val indexSuffix = if (files.size == 1) "" else "_${index + 1}"
                     val newFile = File(file.parentFile, "${base}${indexSuffix}.jpg")
-                    if (newFile.exists()) newFile.delete()
-                    file.renameTo(newFile)
+                    if (file.absolutePath != newFile.absolutePath) {
+                        if (newFile.exists()) newFile.delete()
+                        file.renameTo(newFile)
+                    }
                     newFile
                 }
                 val updated = result.copy(jpegFiles = renamedFiles)
