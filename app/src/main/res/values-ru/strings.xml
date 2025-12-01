@@ -31,7 +31,6 @@
     <string name="grant_permission">Предоставить разрешение</string>
     <string name="last_saved_pdf_files">Последние PDF, сохранённые на этом устройстве:</string>
     <string name="libraries">Библиотеки</string>
-    <string name="libraries_intro">Это приложение использует ряд библиотек с открытым исходным кодом, включая:</string>
     <string name="libraries_open_source">Библиотеки с открытым исходным кодом</string>
     <string name="license">Лицензия</string>
     <string name="licensed_under">Это приложение лицензировано в соответствии с GNU General Public License v3.0.</string>

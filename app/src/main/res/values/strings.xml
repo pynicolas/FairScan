@@ -32,7 +32,6 @@
     <string name="grant_permission">Grant permission</string>
     <string name="last_saved_pdf_files">Recent PDFs saved on this device:</string>
     <string name="libraries">Libraries</string>
-    <string name="libraries_intro">This application uses several open-source libraries, including:</string>
     <string name="libraries_open_source">Open-source libraries</string>
     <string name="license">License</string>
     <string name="licensed_under">This application is licensed under the GNU General Public License v3.0.</string>

@@ -31,7 +31,6 @@
     <string name="grant_permission">授予权限</string>
     <string name="last_saved_pdf_files">最近保存在此设备上的 PDF：</string>
     <string name="libraries">库</string>
-    <string name="libraries_intro">本应用使用的开源库:</string>
     <string name="libraries_open_source">开源库</string>
     <string name="license">许可证</string>
     <string name="licensed_under">本应用根据GNU General Public License v3.0获得许可。</string>

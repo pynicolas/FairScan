@@ -31,7 +31,6 @@
     <string name="grant_permission">Conceder permiso</string>
     <string name="last_saved_pdf_files">PDF recientes guardados en este dispositivo:</string>
     <string name="libraries">Bibliotecas</string>
-    <string name="libraries_intro">Esta aplicación utiliza varias bibliotecas de código abierto, incluidas:</string>
     <string name="libraries_open_source">Bibliotecas de código abierto</string>
     <string name="license">Licencia</string>
     <string name="licensed_under">Esta aplicación está licenciada bajo la GNU General Public License v3.0.</string>

@@ -31,7 +31,6 @@
     <string name="grant_permission">Autoriser</string>
     <string name="last_saved_pdf_files">Derniers PDF enregistrés sur l’appareil :</string>
     <string name="libraries">Bibliothèques</string>
-    <string name="libraries_intro">Cette application utilise plusieurs bibliothèques open source, notamment :</string>
     <string name="libraries_open_source">Bibliothèques open source</string>
     <string name="license">Licence</string>
     <string name="licensed_under">Cette application est distribuée sous licence GNU General Public License v3.0.</string>

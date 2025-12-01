@@ -31,7 +31,6 @@
     <string name="grant_permission">Povolit přístup</string>
     <string name="last_saved_pdf_files">Poslední PDF uložené v tomto zařízení:</string>
     <string name="libraries">Kníhovny</string>
-    <string name="libraries_intro">Tato aplikace využívá několik open-source knihoven včetně:</string>
     <string name="libraries_open_source">Open-source knihovny</string>
     <string name="license">Licence</string>
     <string name="licensed_under">Tato aplikace je licencována pod GNU General Public License v3.0.</string>

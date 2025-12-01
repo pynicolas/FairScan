@@ -31,7 +31,6 @@
     <string name="grant_permission">Concendi autorizzazione</string>
     <string name="last_saved_pdf_files">PDF recenti salvati su questo dispositivo:</string>
     <string name="libraries">Librerie</string>
-    <string name="libraries_intro">Questa app usa diverse librerie open source, incluse:</string>
     <string name="libraries_open_source">Librerie open source</string>
     <string name="license">Licenza</string>
     <string name="licensed_under">Questa app è concessa in licenza ai sensi della GNU General Public License v3.0.</string>

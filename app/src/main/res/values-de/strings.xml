@@ -31,7 +31,6 @@
     <string name="grant_permission">Berechtigung erteilen</string>
     <string name="last_saved_pdf_files">Zuletzt auf diesem Gerät gespeicherte PDFs:</string>
     <string name="libraries">Bibliotheken</string>
-    <string name="libraries_intro">Diese Anwendung verwendet mehrere Open-Source-Bibliotheken, darunter:</string>
     <string name="libraries_open_source">Open-Source-Bibliotheken</string>
     <string name="license">Lizenz</string>
     <string name="licensed_under">Diese Anwendung ist unter der GNU General Public License v3.0 lizenziert.</string>
