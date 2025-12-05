@@ -103,6 +103,7 @@ fun DocumentScreen(
             currentPageIndex = currentPageIndex.intValue,
             listState = listState,
         ),
+        onBack = navigation.back,
         bottomBar = {
             BottomBar(navigation)
         },
