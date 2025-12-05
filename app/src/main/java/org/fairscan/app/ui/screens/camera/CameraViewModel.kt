@@ -17,6 +17,7 @@ package org.fairscan.app.ui.screens.camera
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.ImageProxy
+import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -30,9 +31,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
-import org.fairscan.app.domain.detectDocumentQuad
-import org.fairscan.app.domain.extractDocument
-import org.fairscan.app.domain.scaledTo
+import org.fairscan.imageprocessing.Quad
+import org.fairscan.imageprocessing.detectDocumentQuad
+import org.fairscan.imageprocessing.extractDocument
+import org.fairscan.imageprocessing.scaledTo
+import org.opencv.android.Utils
+import org.opencv.core.Mat
 import java.io.ByteArrayOutputStream
 
 sealed interface CameraEvent {
@@ -143,7 +147,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
             }
             if (quad != null) {
                 val resizedQuad = quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
-                corrected = extractDocument(bitmap, resizedQuad, imageProxy.imageInfo.rotationDegrees)
+                corrected = extractDocumentFromBitmap(bitmap, resizedQuad, imageProxy.imageInfo.rotationDegrees)
             }
         }
         return@withContext corrected
@@ -178,4 +182,16 @@ sealed class CaptureState {
         override val frozenImage: Bitmap,
         val processed: Bitmap
     ) : CaptureState()
+}
+
+fun extractDocumentFromBitmap(originalBitmap: Bitmap, quad: Quad, rotationDegrees: Int): Bitmap {
+    val inputMat = Mat()
+    Utils.bitmapToMat(originalBitmap, inputMat)
+    return toBitmap(extractDocument(inputMat, quad, rotationDegrees))
+}
+
+private fun toBitmap(mat: Mat): Bitmap {
+    val outputBitmap = createBitmap(mat.cols(), mat.rows())
+    Utils.matToBitmap(mat, outputBitmap)
+    return outputBitmap
 }

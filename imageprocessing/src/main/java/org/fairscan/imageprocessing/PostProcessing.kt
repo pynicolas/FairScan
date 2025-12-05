@@ -12,9 +12,8 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.domain
+package org.fairscan.imageprocessing
 
-import android.util.Log
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
@@ -25,12 +24,10 @@ import kotlin.math.max
 
 fun enhanceCapturedImage(img: Mat): Mat {
     return if (isColoredDocument(img)) {
-        Log.i("PostProcessing", "color document")
         val result = Mat()
         Core.convertScaleAbs(img, result, 1.2, 10.0)
         result
     } else {
-        Log.i("PostProcessing", "grayscale document")
         val gray = multiScaleRetinex(img)
         val contrastedGray = enhanceContrastAuto(gray)
         val result = Mat()

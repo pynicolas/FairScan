@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.domain
+package org.fairscan.imageprocessing
 
 import kotlin.math.atan2
 import kotlin.math.hypot
