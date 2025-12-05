@@ -14,7 +14,7 @@ val abiCodes = mapOf(
 
 android {
     namespace = "org.fairscan.app"
-    compileSdk = 35
+    compileSdk = 36
     sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/assets"))
 
     defaultConfig {
