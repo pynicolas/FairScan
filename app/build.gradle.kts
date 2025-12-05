@@ -24,7 +24,7 @@ android {
         // LiteRT documentation only states that version 1.2.0 requires Android 12:
         // https://ai.google.dev/edge/litert/android/index
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 34 // increment by 2 because of ABI-specific APKs
         versionName = "1.7.0"
 
