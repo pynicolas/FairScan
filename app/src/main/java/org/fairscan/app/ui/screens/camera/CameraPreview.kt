@@ -53,8 +53,8 @@ import androidx.core.graphics.scale
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
-import org.fairscan.app.domain.Point
-import org.fairscan.app.domain.scaledTo
+import org.fairscan.imageprocessing.Point
+import org.fairscan.imageprocessing.scaledTo
 import org.fairscan.app.ui.components.CameraPermissionState
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors

@@ -12,9 +12,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.domain.quad
+package org.fairscan.imageprocessing.quad
 
-import org.fairscan.app.domain.Point
+import org.fairscan.imageprocessing.Point
 import kotlin.math.cos
 import kotlin.math.sin
 

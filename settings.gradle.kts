@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "FairScan"
 include(":app")
- 
+include(":imageprocessing")

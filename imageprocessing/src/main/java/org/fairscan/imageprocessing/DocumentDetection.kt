@@ -12,15 +12,11 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.domain
+package org.fairscan.imageprocessing
 
-import android.graphics.Bitmap
-import androidx.core.graphics.createBitmap
-import org.fairscan.app.domain.ImageSegmentationService.Segmentation
-import org.fairscan.app.domain.quad.detectDocumentQuadFromProbmap
-import org.fairscan.app.domain.quad.findQuadFromRightAngles
-import org.fairscan.app.domain.quad.minAreaRect
-import org.opencv.android.Utils
+import org.fairscan.imageprocessing.quad.detectDocumentQuadFromProbmap
+import org.fairscan.imageprocessing.quad.findQuadFromRightAngles
+import org.fairscan.imageprocessing.quad.minAreaRect
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
@@ -31,7 +27,13 @@ import org.opencv.imgproc.Imgproc
 import kotlin.math.abs
 import kotlin.math.max
 
-fun detectDocumentQuad(mask: Segmentation, isLiveAnalysis: Boolean, minQuadAreaRatio: Double = 0.02): Quad? {
+interface Mask {
+    val width: Int
+    val height: Int
+    fun toMat(): Mat
+}
+
+fun detectDocumentQuad(mask: Mask, isLiveAnalysis: Boolean, minQuadAreaRatio: Double = 0.02): Quad? {
     val mat = mask.toMat()
     val (biggest: MatOfPoint2f?, area) = biggestContour(mat)
     var vertices: List<Point>?
@@ -114,7 +116,7 @@ fun refineMask(original: Mat): Mat {
     return opened
 }
 
-fun extractDocument(originalBitmap: Bitmap, quad: Quad, rotationDegrees: Int): Bitmap {
+fun extractDocument(inputMat: Mat, quad: Quad, rotationDegrees: Int): Mat {
     val widthTop = norm(quad.topLeft, quad.topRight)
     val widthBottom = norm(quad.bottomLeft, quad.bottomRight)
     val targetWidth = (widthTop + widthBottom) / 2
@@ -137,8 +139,6 @@ fun extractDocument(originalBitmap: Bitmap, quad: Quad, rotationDegrees: Int): B
     )
     val transform = Imgproc.getPerspectiveTransform(srcPoints, dstPoints)
 
-    val inputMat = Mat()
-    Utils.bitmapToMat(originalBitmap, inputMat)
     val outputMat = Mat()
     val outputSize = Size(targetWidth.toDouble(), targetHeight.toDouble())
     Imgproc.warpPerspective(inputMat, outputMat, transform, outputSize)
@@ -147,7 +147,7 @@ fun extractDocument(originalBitmap: Bitmap, quad: Quad, rotationDegrees: Int): B
     val enhanced = enhanceCapturedImage(resized)
     val rotated = rotate(enhanced, rotationDegrees)
 
-    return toBitmap(rotated)
+    return rotated
 }
 
 fun resize(original: Mat, targetMax: Double): Mat {
@@ -175,12 +175,6 @@ fun rotate(input: Mat, degrees: Int): Mat {
         else -> throw IllegalArgumentException("Only 0, 90, 180, 270 degrees are supported")
     }
     return output
-}
-
-private fun toBitmap(mat: Mat): Bitmap {
-    val outputBitmap = createBitmap(mat.cols(), mat.rows())
-    Utils.matToBitmap(mat, outputBitmap)
-    return outputBitmap
 }
 
 fun Point.toCv(): org.opencv.core.Point {

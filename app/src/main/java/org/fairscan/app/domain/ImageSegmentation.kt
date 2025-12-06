@@ -29,6 +29,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.fairscan.app.data.Logger
+import org.fairscan.imageprocessing.Mask
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.tensorflow.lite.DataType
@@ -132,7 +133,11 @@ class ImageSegmentationService(private val context: Context, private val logger:
         return maskFloats
     }
 
-    data class Segmentation(private val probmap: FloatArray, val width: Int, val height: Int) {
+    data class Segmentation(
+        private val probmap: FloatArray,
+        override val width: Int,
+        override val height: Int
+    ): Mask {
         fun get(x: Int, y: Int): Float = probmap[y * width + x]
         fun toBinaryMask(): Bitmap {
             val bmp = createBitmap(width, height, Bitmap.Config.ARGB_8888)
@@ -144,7 +149,8 @@ class ImageSegmentationService(private val context: Context, private val logger:
             bmp.setPixels(pixels, 0, width, 0, 0, width, height)
             return bmp
         }
-        fun toMat(): Mat {
+
+        override fun toMat(): Mat {
             val mat = Mat(height, width, CvType.CV_32FC1)
             mat.put(0, 0, probmap)
             return mat

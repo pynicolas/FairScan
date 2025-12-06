@@ -22,6 +22,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
+import org.fairscan.imageprocessing.scaledTo
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Test

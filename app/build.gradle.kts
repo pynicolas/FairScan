@@ -88,8 +88,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
     buildFeatures {
         compose = true
@@ -100,6 +102,10 @@ android {
 apply(from = "download-tflite.gradle.kts")
 
 dependencies {
+
+    implementation(project(":imageprocessing")) {
+        exclude(group = "org.openpnp", module = "opencv")
+    }
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
