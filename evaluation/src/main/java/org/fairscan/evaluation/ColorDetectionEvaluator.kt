@@ -62,11 +62,10 @@ object ColorDetectionEvaluator {
                 ?.scaledTo(mask.width, mask.height, mat.width(), mat.height())
 
             val document: Mat = if (quad != null) {
-                extractDocument(mat, quad, 0)
+                extractDocument(mat, quad, 0, mask)
             } else continue
 
-            val documentWithoutEnhancement = extractDocument(mat, quad, 0, enhance = false)
-            val detected = isColoredDocument(documentWithoutEnhancement)
+            val detected = isColoredDocument(mat, mask)
 
             nbProcessedImages++
 

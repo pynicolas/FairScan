@@ -71,7 +71,7 @@ object DatasetEvaluator {
                 ?.scaledTo(mask.width, mask.height, inputMat.width(), inputMat.height())
 
             val corrected: Mat? = if (quad != null) {
-                extractDocument(inputMat, quad = quad, rotationDegrees = 0)
+                extractDocument(inputMat, quad = quad, rotationDegrees = 0, mask)
             } else null
 
             val inputOut = File(outputDir, "${e.name}_input.jpg")

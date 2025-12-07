@@ -116,7 +116,12 @@ fun refineMask(original: Mat): Mat {
     return opened
 }
 
-fun extractDocument(inputMat: Mat, quad: Quad, rotationDegrees: Int, enhance: Boolean = true): Mat {
+fun extractDocument(
+    inputMat: Mat,
+    quad: Quad,
+    rotationDegrees: Int,
+    mask: Mask,
+): Mat {
     val widthTop = norm(quad.topLeft, quad.topRight)
     val widthBottom = norm(quad.bottomLeft, quad.bottomRight)
     val targetWidth = (widthTop + widthBottom) / 2
@@ -144,7 +149,8 @@ fun extractDocument(inputMat: Mat, quad: Quad, rotationDegrees: Int, enhance: Bo
     Imgproc.warpPerspective(inputMat, outputMat, transform, outputSize)
 
     val resized = resize(outputMat, 1500.0)
-    val enhanced = if (enhance) enhanceCapturedImage(resized) else resized
+    val isColored = isColoredDocument(resized, mask)
+    val enhanced = enhanceCapturedImage(resized, isColored)
     val rotated = rotate(enhanced, rotationDegrees)
 
     return rotated

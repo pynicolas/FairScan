@@ -22,8 +22,8 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 
-fun enhanceCapturedImage(img: Mat): Mat {
-    return if (isColoredDocument(img)) {
+fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
+    return if (isColored) {
         val result = Mat()
         Core.convertScaleAbs(img, result, 1.2, 10.0)
         result
@@ -38,12 +38,19 @@ fun enhanceCapturedImage(img: Mat): Mat {
 
 fun isColoredDocument(
     img: Mat,
+    mask: Mask,
     chromaThreshold: Double = 20.0,
     proportionThreshold: Double = 0.001
 ): Boolean {
+    val imgSize = Size(img.width().toDouble(), img.height().toDouble())
+    val resizedMask = Mat()
+    Imgproc.resize(mask.toMat(), resizedMask, imgSize, 0.0, 0.0, Imgproc.INTER_AREA)
+
+    // Convert to Lab
     val lab = Mat()
     Imgproc.cvtColor(img, lab, Imgproc.COLOR_BGR2Lab)
 
+    // Split Lab into channels
     val channels = ArrayList<Mat>()
     Core.split(lab, channels)
     val a = channels[1]
@@ -54,11 +61,13 @@ fun isColoredDocument(
     a.convertTo(aFloat, CvType.CV_32F)
     b.convertTo(bFloat, CvType.CV_32F)
 
+    // Shift channels to center at 0
     val aShifted = Mat()
     val bShifted = Mat()
     Core.subtract(aFloat, Scalar(128.0), aShifted)
     Core.subtract(bFloat, Scalar(128.0), bShifted)
 
+    // Compute chroma = sqrt(a^2 + b^2)
     val aSq = Mat()
     val bSq = Mat()
     Core.multiply(aShifted, aShifted, aSq)
@@ -70,11 +79,32 @@ fun isColoredDocument(
     val chroma = Mat()
     Core.sqrt(sumSq, chroma)
 
-    val mask = Mat()
-    Imgproc.threshold(chroma, mask, chromaThreshold, 1.0, Imgproc.THRESH_BINARY)
-    val coloredPixels = Core.countNonZero(mask)
+    // Threshold chroma into a binary mask of "colored" pixels
+    val colorMask = Mat()
+    Imgproc.threshold(chroma, colorMask, chromaThreshold, 1.0, Imgproc.THRESH_BINARY)
 
-    val totalPixels = chroma.rows() * chroma.cols()
+    // We now want to count only pixels where BOTH:
+    // - the segmentation mask is 255
+    // - colorMask == 1
+    //
+    // So we multiply elementwise: colorMask * (mask/255).
+    // This gives a binary mask of colored pixels restricted to document area.
+
+    val maskFloat = Mat()
+    resizedMask.convertTo(maskFloat, CvType.CV_32F)
+    Core.divide(maskFloat, Scalar(255.0), maskFloat) // now 0.0 or 1.0
+
+    val restrictedMask = Mat()
+    Core.multiply(colorMask, maskFloat, restrictedMask)
+
+    val coloredPixels = Core.countNonZero(restrictedMask)
+
+    val totalPixels = Core.countNonZero(resizedMask)
+
+    if (totalPixels == 0) {
+        return false
+    }
+
     val proportion = coloredPixels.toDouble() / totalPixels.toDouble()
 
     lab.release()
@@ -87,7 +117,9 @@ fun isColoredDocument(
     bSq.release()
     sumSq.release()
     chroma.release()
-    mask.release()
+    colorMask.release()
+    maskFloat.release()
+    restrictedMask.release()
 
     return proportion > proportionThreshold
 }
