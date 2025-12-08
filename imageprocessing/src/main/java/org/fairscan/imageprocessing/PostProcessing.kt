@@ -17,6 +17,7 @@ package org.fairscan.imageprocessing
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.MatOfPoint
 import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
@@ -39,12 +40,15 @@ fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
 fun isColoredDocument(
     img: Mat,
     mask: Mask,
+    quad: Quad,
     chromaThreshold: Double = 20.0,
     proportionThreshold: Double = 0.001
 ): Boolean {
     val imgSize = Size(img.width().toDouble(), img.height().toDouble())
     val resizedMask = Mat()
     Imgproc.resize(mask.toMat(), resizedMask, imgSize, 0.0, 0.0, Imgproc.INTER_AREA)
+    val quadMask = quadMaskIntersection(resizedMask, quad)
+    resizedMask.release()
 
     // Convert to Lab
     val lab = Mat()
@@ -91,7 +95,7 @@ fun isColoredDocument(
     // This gives a binary mask of colored pixels restricted to document area.
 
     val maskFloat = Mat()
-    resizedMask.convertTo(maskFloat, CvType.CV_32F)
+    quadMask.convertTo(maskFloat, CvType.CV_32F)
     Core.divide(maskFloat, Scalar(255.0), maskFloat) // now 0.0 or 1.0
 
     val restrictedMask = Mat()
@@ -99,7 +103,7 @@ fun isColoredDocument(
 
     val coloredPixels = Core.countNonZero(restrictedMask)
 
-    val totalPixels = Core.countNonZero(resizedMask)
+    val totalPixels = Core.countNonZero(quadMask)
 
     if (totalPixels == 0) {
         return false
@@ -120,10 +124,28 @@ fun isColoredDocument(
     colorMask.release()
     maskFloat.release()
     restrictedMask.release()
+    quadMask.release()
 
     return proportion > proportionThreshold
 }
 
+fun quadMaskIntersection(
+    originalMask: Mat,
+    quad: Quad
+): Mat {
+    val quadMask = Mat.zeros(originalMask.size(), CvType.CV_8UC1)
+    val pts = MatOfPoint(
+        quad.topLeft.toCv(), quad.topRight.toCv(), quad.bottomRight.toCv(), quad.bottomLeft.toCv())
+    Imgproc.fillConvexPoly(quadMask, pts, Scalar(255.0))
+
+    val result = Mat()
+    Core.bitwise_and(originalMask, quadMask, result)
+
+    quadMask.release()
+    pts.release()
+
+    return result
+}
 
 private fun multiScaleRetinex(img: Mat): Mat {
     val imageSize = img.size()

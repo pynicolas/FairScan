@@ -65,7 +65,7 @@ object ColorDetectionEvaluator {
                 extractDocument(mat, quad, 0, mask)
             } else continue
 
-            val detected = isColoredDocument(mat, mask)
+            val detected = isColoredDocument(mat, mask, quad)
 
             nbProcessedImages++
 

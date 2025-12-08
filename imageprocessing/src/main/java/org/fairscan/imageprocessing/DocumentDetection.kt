@@ -149,7 +149,7 @@ fun extractDocument(
     Imgproc.warpPerspective(inputMat, outputMat, transform, outputSize)
 
     val resized = resize(outputMat, 1500.0)
-    val isColored = isColoredDocument(resized, mask)
+    val isColored = isColoredDocument(inputMat, mask, quad)
     val enhanced = enhanceCapturedImage(resized, isColored)
     val rotated = rotate(enhanced, rotationDegrees)
 
