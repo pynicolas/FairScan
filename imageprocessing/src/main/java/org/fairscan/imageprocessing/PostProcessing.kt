@@ -82,30 +82,16 @@ fun isColoredDocument(
     Core.subtract(aFloat, Scalar(128.0), aShifted)
     Core.subtract(bFloat, Scalar(128.0), bShifted)
 
-    val aSq = Mat()
-    val bSq = Mat()
-    Core.multiply(aShifted, aShifted, aSq)
-    Core.multiply(bShifted, bShifted, bSq)
-
-    val sumSq = Mat()
-    Core.add(aSq, bSq, sumSq)
-
     val chroma = Mat()
-    Core.sqrt(sumSq, chroma)
+    Core.magnitude(aShifted, bShifted, chroma)
 
     val colorMask = Mat()
     Imgproc.threshold(chroma, colorMask, chromaThreshold, 255.0, Imgproc.THRESH_BINARY)
     colorMask.convertTo(colorMask, CvType.CV_8U)
 
     // 6) Create luminance mask L ∈ [luminanceMin, luminanceMax]
-    val luminanceMaskLow = Mat()
-    Imgproc.threshold(luminance, luminanceMaskLow, luminanceMin, 255.0, Imgproc.THRESH_BINARY)
-
-    val luminanceMaskHigh = Mat()
-    Imgproc.threshold(luminance, luminanceMaskHigh, luminanceMax, 255.0, Imgproc.THRESH_BINARY_INV)
-
     val luminanceMask = Mat()
-    Core.bitwise_and(luminanceMaskLow, luminanceMaskHigh, luminanceMask)
+    Core.inRange(luminance, Scalar(luminanceMin), Scalar(luminanceMax), luminanceMask)
 
     // 7) Combine colorMask & LMask & docMask
     val docMask8 = Mat()
@@ -128,13 +114,8 @@ fun isColoredDocument(
     bFloat.release()
     aShifted.release()
     bShifted.release()
-    aSq.release()
-    bSq.release()
-    sumSq.release()
     chroma.release()
     colorMask.release()
-    luminanceMaskLow.release()
-    luminanceMaskHigh.release()
     luminanceMask.release()
     docMask8.release()
     tmp.release()
