@@ -22,6 +22,7 @@ import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
     return if (isColored) {
@@ -36,12 +37,13 @@ fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
         result
     }
 }
+
 fun isColoredDocument(
     img: Mat,
     mask: Mask,
     quad: Quad,
-    chromaThreshold: Double = 17.0,
-    proportionThreshold: Double = 0.0005,
+    chromaThreshold: Double = 17.5,
+    proportionThreshold: Double = 0.0003,
     luminanceMin: Double = 40.0,
     luminanceMax: Double = 180.0
 ): Boolean {
@@ -50,7 +52,9 @@ fun isColoredDocument(
     val imgSize = Size(img.width().toDouble(), img.height().toDouble())
     val resizedMask = Mat()
     Imgproc.resize(mask.toMat(), resizedMask, imgSize, 0.0, 0.0, Imgproc.INTER_AREA)
-    val docMask = quadMaskIntersection(resizedMask, quad)
+    val erodedMask = erodeBorder(resizedMask, quad)
+    val docMask = quadMaskIntersection(erodedMask, quad)
+    erodedMask.release()
     resizedMask.release()
 
     // 2) Apply white balance only inside document
@@ -141,6 +145,22 @@ fun isColoredDocument(
 
     val proportion = coloredPixels.toDouble() / totalPixels.toDouble()
     return proportion > proportionThreshold
+}
+
+private fun erodeBorder(mask: Mat, quad: Quad): Mat {
+    val minDim = quad.edges().minOf { it.norm() }
+    var k = (minDim * 0.02).roundToInt()
+    k = k.coerceIn(3, 15)
+    if (k % 2 == 0) k += 1
+
+    val kernel = Imgproc.getStructuringElement(
+        Imgproc.MORPH_ELLIPSE,
+        Size(k.toDouble(), k.toDouble())
+    )
+    val erodedMask = Mat()
+    Imgproc.morphologyEx(mask, erodedMask, Imgproc.MORPH_ERODE, kernel)
+    kernel.release()
+    return erodedMask
 }
 
 fun quadMaskIntersection(
