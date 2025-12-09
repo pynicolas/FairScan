@@ -47,12 +47,14 @@ fun isColoredDocument(
     val imgSize = Size(img.width().toDouble(), img.height().toDouble())
     val resizedMask = Mat()
     Imgproc.resize(mask.toMat(), resizedMask, imgSize, 0.0, 0.0, Imgproc.INTER_AREA)
-    val quadMask = quadMaskIntersection(resizedMask, quad)
+    val docMask = quadMaskIntersection(resizedMask, quad)
     resizedMask.release()
+
+    val whiteBalanced = applyGrayWorldToDocument(img, docMask)
 
     // Convert to Lab
     val lab = Mat()
-    Imgproc.cvtColor(img, lab, Imgproc.COLOR_BGR2Lab)
+    Imgproc.cvtColor(whiteBalanced, lab, Imgproc.COLOR_BGR2Lab)
 
     // Split Lab into channels
     val channels = ArrayList<Mat>()
@@ -95,7 +97,7 @@ fun isColoredDocument(
     // This gives a binary mask of colored pixels restricted to document area.
 
     val maskFloat = Mat()
-    quadMask.convertTo(maskFloat, CvType.CV_32F)
+    docMask.convertTo(maskFloat, CvType.CV_32F)
     Core.divide(maskFloat, Scalar(255.0), maskFloat) // now 0.0 or 1.0
 
     val restrictedMask = Mat()
@@ -103,7 +105,7 @@ fun isColoredDocument(
 
     val coloredPixels = Core.countNonZero(restrictedMask)
 
-    val totalPixels = Core.countNonZero(quadMask)
+    val totalPixels = Core.countNonZero(docMask)
 
     if (totalPixels == 0) {
         return false
@@ -111,6 +113,7 @@ fun isColoredDocument(
 
     val proportion = coloredPixels.toDouble() / totalPixels.toDouble()
 
+    whiteBalanced.release()
     lab.release()
     channels.forEach { it.release() }
     aFloat.release()
@@ -124,7 +127,7 @@ fun isColoredDocument(
     colorMask.release()
     maskFloat.release()
     restrictedMask.release()
-    quadMask.release()
+    docMask.release()
 
     return proportion > proportionThreshold
 }
@@ -143,6 +146,64 @@ fun quadMaskIntersection(
 
     quadMask.release()
     pts.release()
+
+    return result
+}
+
+fun applyGrayWorldToDocument(
+    img: Mat,
+    docMask: Mat,
+): Mat {
+    require(img.type() == CvType.CV_8UC3)
+
+    val nonZero = Core.countNonZero(docMask)
+    if (nonZero == 0) {
+        docMask.release()
+        return img.clone()
+    }
+
+    // compute mean per channel on docMask (B,G,R)
+    val meanScalar = Core.mean(img, docMask) // Scalar(bMean, gMean, rMean, alpha)
+    val meanB = meanScalar.`val`[0]
+    val meanG = meanScalar.`val`[1]
+    val meanR = meanScalar.`val`[2]
+
+    // safety: avoid division by very small values
+    val eps = 1e-6
+    val meanBsafe = if (meanB < eps) eps else meanB
+    val meanGsafe = if (meanG < eps) eps else meanG
+    val meanRsafe = if (meanR < eps) eps else meanR
+
+    val meanGray = (meanBsafe + meanGsafe + meanRsafe) / 3.0
+
+    val scaleB = meanGray / meanBsafe
+    val scaleG = meanGray / meanGsafe
+    val scaleR = meanGray / meanRsafe
+
+    // apply per-channel scaling only on docMask
+    // convert to float
+    val imgF = Mat()
+    img.convertTo(imgF, CvType.CV_32FC3)
+
+    // build scales scalar in BGR order
+    val scales = Scalar(scaleB, scaleG, scaleR)
+
+    // prepare scaled full image (float)
+    val scaledF = Mat()
+    Core.multiply(imgF, scales, scaledF)
+
+    // convert scaledF back to 8U
+    val scaled8 = Mat()
+    scaledF.convertTo(scaled8, CvType.CV_8UC3)
+
+    // result = original copy, then copy scaled pixels where docMask != 0
+    val result = img.clone()
+    scaled8.copyTo(result, docMask)
+
+    // cleanup
+    imgF.release()
+    scaledF.release()
+    scaled8.release()
 
     return result
 }
