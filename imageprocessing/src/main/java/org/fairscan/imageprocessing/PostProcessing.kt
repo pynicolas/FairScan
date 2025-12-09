@@ -36,44 +36,48 @@ fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
         result
     }
 }
-
 fun isColoredDocument(
     img: Mat,
     mask: Mask,
     quad: Quad,
-    chromaThreshold: Double = 20.0,
-    proportionThreshold: Double = 0.001
+    chromaThreshold: Double = 17.0,
+    proportionThreshold: Double = 0.0005,
+    luminanceMin: Double = 40.0,
+    luminanceMax: Double = 180.0
 ): Boolean {
+
+    // 1) Compute doc mask (mask ∩ quad)
     val imgSize = Size(img.width().toDouble(), img.height().toDouble())
     val resizedMask = Mat()
     Imgproc.resize(mask.toMat(), resizedMask, imgSize, 0.0, 0.0, Imgproc.INTER_AREA)
     val docMask = quadMaskIntersection(resizedMask, quad)
     resizedMask.release()
 
+    // 2) Apply white balance only inside document
     val whiteBalanced = applyGrayWorldToDocument(img, docMask)
 
-    // Convert to Lab
+    // 3) Convert to Lab, see https://en.wikipedia.org/wiki/CIELAB_color_space
     val lab = Mat()
     Imgproc.cvtColor(whiteBalanced, lab, Imgproc.COLOR_BGR2Lab)
 
-    // Split Lab into channels
+    // 4) Split Lab
     val channels = ArrayList<Mat>()
     Core.split(lab, channels)
+    val luminance = channels[0]
     val a = channels[1]
     val b = channels[2]
 
+    // 5) Compute chroma
     val aFloat = Mat()
     val bFloat = Mat()
     a.convertTo(aFloat, CvType.CV_32F)
     b.convertTo(bFloat, CvType.CV_32F)
 
-    // Shift channels to center at 0
     val aShifted = Mat()
     val bShifted = Mat()
     Core.subtract(aFloat, Scalar(128.0), aShifted)
     Core.subtract(bFloat, Scalar(128.0), bShifted)
 
-    // Compute chroma = sqrt(a^2 + b^2)
     val aSq = Mat()
     val bSq = Mat()
     Core.multiply(aShifted, aShifted, aSq)
@@ -85,34 +89,34 @@ fun isColoredDocument(
     val chroma = Mat()
     Core.sqrt(sumSq, chroma)
 
-    // Threshold chroma into a binary mask of "colored" pixels
     val colorMask = Mat()
-    Imgproc.threshold(chroma, colorMask, chromaThreshold, 1.0, Imgproc.THRESH_BINARY)
+    Imgproc.threshold(chroma, colorMask, chromaThreshold, 255.0, Imgproc.THRESH_BINARY)
+    colorMask.convertTo(colorMask, CvType.CV_8U)
 
-    // We now want to count only pixels where BOTH:
-    // - the segmentation mask is 255
-    // - colorMask == 1
-    //
-    // So we multiply elementwise: colorMask * (mask/255).
-    // This gives a binary mask of colored pixels restricted to document area.
+    // 6) Create luminance mask L ∈ [luminanceMin, luminanceMax]
+    val luminanceMaskLow = Mat()
+    Imgproc.threshold(luminance, luminanceMaskLow, luminanceMin, 255.0, Imgproc.THRESH_BINARY)
 
-    val maskFloat = Mat()
-    docMask.convertTo(maskFloat, CvType.CV_32F)
-    Core.divide(maskFloat, Scalar(255.0), maskFloat) // now 0.0 or 1.0
+    val luminanceMaskHigh = Mat()
+    Imgproc.threshold(luminance, luminanceMaskHigh, luminanceMax, 255.0, Imgproc.THRESH_BINARY_INV)
+
+    val luminanceMask = Mat()
+    Core.bitwise_and(luminanceMaskLow, luminanceMaskHigh, luminanceMask)
+
+    // 7) Combine colorMask & LMask & docMask
+    val docMask8 = Mat()
+    docMask.convertTo(docMask8, CvType.CV_8U)
+
+    val tmp = Mat()
+    Core.bitwise_and(colorMask, luminanceMask, tmp)
 
     val restrictedMask = Mat()
-    Core.multiply(colorMask, maskFloat, restrictedMask)
+    Core.bitwise_and(tmp, docMask8, restrictedMask)
 
     val coloredPixels = Core.countNonZero(restrictedMask)
+    val totalPixels = Core.countNonZero(docMask8)
 
-    val totalPixels = Core.countNonZero(docMask)
-
-    if (totalPixels == 0) {
-        return false
-    }
-
-    val proportion = coloredPixels.toDouble() / totalPixels.toDouble()
-
+    // 8) Cleanup
     whiteBalanced.release()
     lab.release()
     channels.forEach { it.release() }
@@ -125,10 +129,17 @@ fun isColoredDocument(
     sumSq.release()
     chroma.release()
     colorMask.release()
-    maskFloat.release()
+    luminanceMaskLow.release()
+    luminanceMaskHigh.release()
+    luminanceMask.release()
+    docMask8.release()
+    tmp.release()
     restrictedMask.release()
     docMask.release()
 
+    if (totalPixels == 0) return false
+
+    val proportion = coloredPixels.toDouble() / totalPixels.toDouble()
     return proportion > proportionThreshold
 }
 
