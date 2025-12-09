@@ -62,10 +62,7 @@ fun detectDocumentQuad(mask: Mask, isLiveAnalysis: Boolean, minQuadAreaRatio: Do
 }
 
 private fun biggestContour(mat: Mat): Pair<MatOfPoint2f?, Double> {
-    val mat8u = Mat()
-    mat.convertTo(mat8u, CvType.CV_8UC1, 255.0)
-
-    val refinedMask = refineMask(mat8u)
+    val refinedMask = refineMask(mat)
 
     val blurred = Mat()
     Imgproc.GaussianBlur(refinedMask, blurred, Size(5.0, 5.0), 0.0)
