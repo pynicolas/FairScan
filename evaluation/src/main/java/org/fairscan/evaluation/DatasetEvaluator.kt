@@ -31,7 +31,7 @@ class MatMask(private val mat: Mat) : Mask {
     override val width: Int get() = mat.width()
     override val height: Int get() = mat.height()
 
-    override fun toMat(): Mat = mat
+    override fun toMat(): Mat = mat.clone()
 }
 
 object DatasetEvaluator {
