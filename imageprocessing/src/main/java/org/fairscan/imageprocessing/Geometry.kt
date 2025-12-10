@@ -81,9 +81,9 @@ fun createQuad(vertices: List<Point>): Quad {
     return Quad(sorted[0], sorted[1], sorted[2], sorted[3])
 }
 
-fun Quad.scaledTo(fromWidth: Int, fromHeight: Int, toWidth: Int, toHeight: Int): Quad {
-    val scaleX = toWidth.toFloat() / fromWidth
-    val scaleY = toHeight.toFloat() / fromHeight
+fun Quad.scaledTo(fromWidth: Double, fromHeight: Double, toWidth: Double, toHeight: Double): Quad {
+    val scaleX = toWidth / fromWidth
+    val scaleY = toHeight / fromHeight
     return Quad(
         topLeft = topLeft.scaled(scaleX, scaleY),
         topRight = topRight.scaled(scaleX, scaleY),
@@ -92,6 +92,14 @@ fun Quad.scaledTo(fromWidth: Int, fromHeight: Int, toWidth: Int, toHeight: Int):
     )
 }
 
-fun Point.scaled(scaleX: Float, scaleY: Float): Point {
+fun Quad.scaledTo(fromWidth: Int, fromHeight: Int, toWidth: Int, toHeight: Int): Quad {
+    return scaledTo(
+        fromWidth.toDouble(),
+        fromHeight.toDouble(),
+        toWidth.toDouble(),
+        toHeight.toDouble())
+}
+
+fun Point.scaled(scaleX: Double, scaleY: Double): Point {
     return Point((x * scaleX), (y * scaleY))
 }

@@ -23,6 +23,7 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
     return if (isColored) {
@@ -48,17 +49,27 @@ fun isColoredDocument(
     luminanceMax: Double = 180.0
 ): Boolean {
 
+    // Work on a reasonable size (for correct performance)
+    val maxPixels = 1024.0 * 768.0
+    val scale = sqrt(maxPixels / (img.width() * img.height()))
+    val newWidth = (img.width() * scale)
+    val newHeight = (img.height() * scale)
+    val size = Size(newWidth, newHeight)
+    val resizedImg = Mat()
+    Imgproc.resize(img, resizedImg, size, 0.0, 0.0, Imgproc.INTER_AREA)
+
     // 1) Compute doc mask (mask ∩ quad)
-    val imgSize = Size(img.width().toDouble(), img.height().toDouble())
     val resizedMask = Mat()
-    Imgproc.resize(mask.toMat(), resizedMask, imgSize, 0.0, 0.0, Imgproc.INTER_AREA)
-    val erodedMask = erodeBorder(resizedMask, quad)
-    val docMask = quadMaskIntersection(erodedMask, quad)
+    val maskMat = mask.toMat()
+    Imgproc.resize(maskMat, resizedMask, size, 0.0, 0.0, Imgproc.INTER_AREA)
+    val resizedQuad = quad.scaledTo(img.size().width, img.size().height, size.width, size.height)
+    val erodedMask = erodeBorder(resizedMask, resizedQuad)
+    val docMask = quadMaskIntersection(erodedMask, resizedQuad)
     erodedMask.release()
     resizedMask.release()
 
     // 2) Apply white balance only inside document
-    val whiteBalanced = applyGrayWorldToDocument(img, docMask)
+    val whiteBalanced = applyGrayWorldToDocument(resizedImg, docMask)
 
     // 3) Convert to Lab, see https://en.wikipedia.org/wiki/CIELAB_color_space
     val lab = Mat()
@@ -107,6 +118,8 @@ fun isColoredDocument(
     val totalPixels = Core.countNonZero(docMask8)
 
     // 8) Cleanup
+    resizedImg.release()
+    maskMat.release()
     whiteBalanced.release()
     lab.release()
     channels.forEach { it.release() }
