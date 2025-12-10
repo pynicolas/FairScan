@@ -18,7 +18,6 @@ import org.fairscan.imageprocessing.quad.detectDocumentQuadFromProbmap
 import org.fairscan.imageprocessing.quad.findQuadFromRightAngles
 import org.fairscan.imageprocessing.quad.minAreaRect
 import org.opencv.core.Core
-import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.MatOfPoint
 import org.opencv.core.MatOfPoint2f

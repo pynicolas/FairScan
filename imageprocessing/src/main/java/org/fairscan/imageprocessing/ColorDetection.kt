@@ -70,17 +70,14 @@ fun isColoredDocument(
     Core.inRange(luminance, Scalar(luminanceMin), Scalar(luminanceMax), luminanceMask)
 
     // 7) Combine colorMask & luminanceMask & docMask
-    val docMask8 = Mat()
-    docMask.convertTo(docMask8, CvType.CV_8U)
-
     val tmp = Mat()
     Core.bitwise_and(colorMask, luminanceMask, tmp)
 
     val restrictedMask = Mat()
-    Core.bitwise_and(tmp, docMask8, restrictedMask)
+    Core.bitwise_and(tmp, docMask, restrictedMask)
 
     val coloredPixels = Core.countNonZero(restrictedMask)
-    val totalPixels = Core.countNonZero(docMask8)
+    val totalPixels = Core.countNonZero(docMask)
 
     // 8) Cleanup
     resizedImg.release()
@@ -90,7 +87,6 @@ fun isColoredDocument(
     chroma.release()
     colorMask.release()
     luminanceMask.release()
-    docMask8.release()
     tmp.release()
     restrictedMask.release()
     docMask.release()
