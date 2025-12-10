@@ -207,7 +207,7 @@ fun toBitmap(bgr: Mat): Bitmap {
     val rgba = Mat()
     Imgproc.cvtColor(bgr, rgba, Imgproc.COLOR_BGR2RGBA)
 
-    val bmp = createBitmap(bgr.cols(), bgr.rows())
+    val bmp = createBitmap(bgr.cols(), bgr.rows(), Bitmap.Config.ARGB_8888)
     Utils.matToBitmap(rgba, bmp)
 
     rgba.release()
