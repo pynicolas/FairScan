@@ -151,9 +151,17 @@ class ImageSegmentationService(private val context: Context, private val logger:
         }
 
         override fun toMat(): Mat {
-            val mat = Mat(height, width, CvType.CV_32FC1)
-            mat.put(0, 0, probmap)
-            return mat
+            val threshold = 0.5f
+
+            val mask = Mat(height, width, CvType.CV_8UC1)
+            val data = ByteArray(width * height)
+
+            for (i in probmap.indices) {
+                data[i] = if (probmap[i] >= threshold) 255.toByte() else 0.toByte()
+            }
+
+            mask.put(0, 0, data)
+            return mask
         }
     }
 

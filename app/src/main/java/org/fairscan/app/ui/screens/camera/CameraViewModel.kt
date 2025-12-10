@@ -31,12 +31,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
+import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.extractDocument
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.android.Utils
+import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
 import java.io.ByteArrayOutputStream
 
 sealed interface CameraEvent {
@@ -130,6 +133,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         if (segmentation != null) {
             val mask = segmentation.segmentation
             var quad = detectDocumentQuad(mask, isLiveAnalysis = false)
+            val rotationDegrees = imageProxy.imageInfo.rotationDegrees
             if (quad == null) {
                 val now = System.currentTimeMillis()
                 lastSuccessfulLiveAnalysisState?.timestamp?.let {
@@ -139,7 +143,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
                 val recentLive = lastSuccessfulLiveAnalysisState?.takeIf {
                     now - it.timestamp <= 1500
                 }
-                val rotations = (-imageProxy.imageInfo.rotationDegrees / 90) + 4
+                val rotations = (-rotationDegrees / 90) + 4
                 quad = recentLive?.documentQuad?.rotate90(rotations, mask.width, mask.height)
                 if (quad != null) {
                     Log.i("Quad", "Using quad taken in live analysis; rotations=$rotations")
@@ -147,7 +151,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
             }
             if (quad != null) {
                 val resizedQuad = quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
-                corrected = extractDocumentFromBitmap(bitmap, resizedQuad, imageProxy.imageInfo.rotationDegrees)
+                corrected = extractDocumentFromBitmap(bitmap, resizedQuad, rotationDegrees, mask)
             }
         }
         return@withContext corrected
@@ -180,18 +184,33 @@ sealed class CaptureState {
     data class CaptureError(override val frozenImage: Bitmap) : CaptureState()
     data class CapturePreview(
         override val frozenImage: Bitmap,
-        val processed: Bitmap
+        val processed: Bitmap,
     ) : CaptureState()
 }
 
-fun extractDocumentFromBitmap(originalBitmap: Bitmap, quad: Quad, rotationDegrees: Int): Bitmap {
-    val inputMat = Mat()
-    Utils.bitmapToMat(originalBitmap, inputMat)
-    return toBitmap(extractDocument(inputMat, quad, rotationDegrees))
+fun extractDocumentFromBitmap(image: Bitmap, quad: Quad, rotationDegrees: Int, mask: Mask): Bitmap {
+    val rgba = Mat()
+    Utils.bitmapToMat(image, rgba)
+    val bgr = Mat()
+    Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR) // CV_8UC4 → CV_8UC3
+    rgba.release()
+    val outBgr = extractDocument(bgr, quad, rotationDegrees, mask)
+    bgr.release()
+    val outBitmap = toBitmap(outBgr)
+    outBgr.release()
+    return outBitmap
 }
 
-private fun toBitmap(mat: Mat): Bitmap {
-    val outputBitmap = createBitmap(mat.cols(), mat.rows())
-    Utils.matToBitmap(mat, outputBitmap)
-    return outputBitmap
+fun toBitmap(bgr: Mat): Bitmap {
+    require(bgr.type() == CvType.CV_8UC3)
+
+    val rgba = Mat()
+    Imgproc.cvtColor(bgr, rgba, Imgproc.COLOR_BGR2RGBA)
+
+    val bmp = createBitmap(bgr.cols(), bgr.rows(), Bitmap.Config.ARGB_8888)
+    Utils.matToBitmap(rgba, bmp)
+
+    rgba.release()
+    return bmp
 }
+

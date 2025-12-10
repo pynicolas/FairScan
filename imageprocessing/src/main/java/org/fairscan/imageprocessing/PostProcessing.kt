@@ -22,8 +22,8 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 
-fun enhanceCapturedImage(img: Mat): Mat {
-    return if (isColoredDocument(img)) {
+fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
+    return if (isColored) {
         val result = Mat()
         Core.convertScaleAbs(img, result, 1.2, 10.0)
         result
@@ -35,63 +35,6 @@ fun enhanceCapturedImage(img: Mat): Mat {
         result
     }
 }
-
-fun isColoredDocument(
-    img: Mat,
-    chromaThreshold: Double = 20.0,
-    proportionThreshold: Double = 0.001
-): Boolean {
-    val lab = Mat()
-    Imgproc.cvtColor(img, lab, Imgproc.COLOR_BGR2Lab)
-
-    val channels = ArrayList<Mat>()
-    Core.split(lab, channels)
-    val a = channels[1]
-    val b = channels[2]
-
-    val aFloat = Mat()
-    val bFloat = Mat()
-    a.convertTo(aFloat, CvType.CV_32F)
-    b.convertTo(bFloat, CvType.CV_32F)
-
-    val aShifted = Mat()
-    val bShifted = Mat()
-    Core.subtract(aFloat, Scalar(128.0), aShifted)
-    Core.subtract(bFloat, Scalar(128.0), bShifted)
-
-    val aSq = Mat()
-    val bSq = Mat()
-    Core.multiply(aShifted, aShifted, aSq)
-    Core.multiply(bShifted, bShifted, bSq)
-
-    val sumSq = Mat()
-    Core.add(aSq, bSq, sumSq)
-
-    val chroma = Mat()
-    Core.sqrt(sumSq, chroma)
-
-    val mask = Mat()
-    Imgproc.threshold(chroma, mask, chromaThreshold, 1.0, Imgproc.THRESH_BINARY)
-    val coloredPixels = Core.countNonZero(mask)
-
-    val totalPixels = chroma.rows() * chroma.cols()
-    val proportion = coloredPixels.toDouble() / totalPixels.toDouble()
-
-    lab.release()
-    channels.forEach { it.release() }
-    aFloat.release()
-    bFloat.release()
-    aShifted.release()
-    bShifted.release()
-    aSq.release()
-    bSq.release()
-    sumSq.release()
-    chroma.release()
-    mask.release()
-
-    return proportion > proportionThreshold
-}
-
 
 private fun multiScaleRetinex(img: Mat): Mat {
     val imageSize = img.size()

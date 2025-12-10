@@ -31,7 +31,7 @@ class MatMask(private val mat: Mat) : Mask {
     override val width: Int get() = mat.width()
     override val height: Int get() = mat.height()
 
-    override fun toMat(): Mat = mat
+    override fun toMat(): Mat = mat.clone()
 }
 
 object DatasetEvaluator {
@@ -71,7 +71,7 @@ object DatasetEvaluator {
                 ?.scaledTo(mask.width, mask.height, inputMat.width(), inputMat.height())
 
             val corrected: Mat? = if (quad != null) {
-                extractDocument(inputMat, quad = quad, rotationDegrees = 0)
+                extractDocument(inputMat, quad = quad, rotationDegrees = 0, mask)
             } else null
 
             val inputOut = File(outputDir, "${e.name}_input.jpg")
