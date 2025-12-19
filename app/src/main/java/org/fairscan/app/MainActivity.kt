@@ -72,12 +72,14 @@ import org.fairscan.app.ui.screens.settings.SettingsScreen
 import org.fairscan.app.ui.screens.settings.SettingsViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
+import java.io.File
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initLibraries()
+        val launchMode = resolveLaunchMode(intent)
         val appContainer = (application as FairScanApp).appContainer
         val viewModel: MainViewModel by viewModels { appContainer.mainViewModelFactory }
         val homeViewModel: HomeViewModel by viewModels { appContainer.homeViewModelFactory }
@@ -131,6 +133,19 @@ class MainActivity : ComponentActivity() {
                             document = document,
                             initialPage = screen.initialPage,
                             navigation = navigation,
+                            onExportClick = if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
+                                {
+                                    lifecycleScope.launch {
+                                        val result = exportViewModel.generatePdfForExternalCall()
+                                        sendActivityResult(result)
+                                        viewModel.startNewDocument()
+                                        finish()
+                                    }
+                                    Unit
+                                }
+                            } else {
+                                navigation.toExportScreen
+                            },
                             onDeleteImage =  { id -> viewModel.deletePage(id) },
                             onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
@@ -145,12 +160,12 @@ class MainActivity : ComponentActivity() {
                                 setFilename = exportViewModel::setFilename,
                                 share = { share(exportViewModel.applyRenaming(), exportViewModel) },
                                 save = { exportViewModel.onSaveClicked() },
-                                open = { item -> openUri(item.uri, item.format.mimeType) }
+                                open = { item -> openUri(item.uri, item.format.mimeType) },
                             ),
                             onCloseScan = {
                                 viewModel.startNewDocument()
                                 viewModel.navigateTo(Screen.Main.Home)
-                            },
+                            }
                         )
                     }
                     is Screen.Overlay.About -> {
@@ -167,6 +182,13 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private fun resolveLaunchMode(intent: Intent?): LaunchMode {
+        return when (intent?.action) {
+            "org.fairscan.app.action.SCAN_TO_PDF" -> LaunchMode.EXTERNAL_SCAN_TO_PDF
+            else -> LaunchMode.NORMAL
         }
     }
 
@@ -265,10 +287,7 @@ class MainActivity : ComponentActivity() {
 
         viewModel.setAsShared()
 
-        val authority = "${applicationContext.packageName}.fileprovider"
-        val uris = result.files.map { file ->
-            FileProvider.getUriForFile(this, authority, file)
-        }
+        val uris = result.files.map(::uriForFile)
         val intent = Intent().apply {
             action = if (uris.size == 1) Intent.ACTION_SEND else Intent.ACTION_SEND_MULTIPLE
             type = result.format.mimeType
@@ -293,6 +312,24 @@ class MainActivity : ComponentActivity() {
         startActivity(chooser)
     }
 
+    private fun sendActivityResult(result: ExportResult?) {
+        val pdf = result as? ExportResult.Pdf ?: return
+
+        val uri = uriForFile(pdf.file)
+        val resultIntent = Intent().apply {
+            data = uri
+            clipData = ClipData.newRawUri(null, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        setResult(RESULT_OK, resultIntent)
+    }
+
+    private fun uriForFile(file: File): Uri {
+        val authority = "${applicationContext.packageName}.fileprovider"
+        return FileProvider.getUriForFile(this, authority, file)
+    }
+
     private fun checkPermissionThen(
         requestPermissionLauncher: ManagedActivityResultLauncher<String, Boolean>,
         action: () -> Unit
@@ -312,8 +349,7 @@ class MainActivity : ComponentActivity() {
             if (fileUri.scheme == ContentResolver.SCHEME_CONTENT) {
                 fileUri
             } else {
-                val authority = "${applicationContext.packageName}.fileprovider"
-                FileProvider.getUriForFile(this, authority, fileUri.toFile())
+                uriForFile(fileUri.toFile())
             }
         val openIntent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uriToOpen, mimeType)

@@ -21,7 +21,6 @@ data class ExportUiState(
     val format: ExportFormat = ExportFormat.PDF,
     val isGenerating: Boolean = false,
     val result: ExportResult? = null,
-    val desiredFilename: String = "",
     val savedBundle: SavedBundle? = null,
     val hasShared: Boolean = false,
     val errorMessage: String? = null,

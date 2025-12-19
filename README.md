@@ -62,6 +62,29 @@ FairScan works on any device that:
 
 ---
 
+## Experimental: Scan to PDF via intent
+
+FairScan can be invoked by other Android applications to perform a document scan and return a generated PDF.
+
+This feature is **experimental** and intended for developers who want to rely on FairScan as a
+simple, privacy-respecting scanning tool.
+The intent contract and behavior may change between versions, and backward compatibility
+is not guaranteed at this stage.
+
+Intent action: `org.fairscan.app.action.SCAN_TO_PDF`
+
+This is an **implicit intent** that launches FairScan in a dedicated external mode.
+
+When started via this intent:
+
+- FairScan opens directly in scan mode
+- the user scans one or more pages
+- FairScan generates a single PDF
+- the resulting PDF is returned to the calling application as a URI with a limited lifetime
+- the calling application should immediately copy the content of the URI as FairScan deletes it later
+
+---
+
 ## Technical details
 
 FairScan uses:

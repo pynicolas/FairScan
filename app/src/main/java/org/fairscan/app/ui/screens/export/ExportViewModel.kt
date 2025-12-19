@@ -66,6 +66,10 @@ class ExportViewModel(container: AppContainer): ViewModel() {
         return@withContext ExportResult.Pdf(pdf.file, pdf.sizeInBytes, pdf.pageCount)
     }
 
+    suspend fun generatePdfForExternalCall(): ExportResult.Pdf {
+        return generatePdf()
+    }
+
     private val _uiState = MutableStateFlow(ExportUiState())
     val uiState: StateFlow<ExportUiState> = _uiState.asStateFlow()
 
