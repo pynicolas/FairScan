@@ -30,11 +30,11 @@ import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
 
-class MainViewModel(appContainer: AppContainer): ViewModel() {
+class MainViewModel(appContainer: AppContainer, launchMode: LaunchMode): ViewModel() {
 
     private val imageRepository = appContainer.imageRepository
 
-    private val _navigationState = MutableStateFlow(NavigationState.initial())
+    private val _navigationState = MutableStateFlow(NavigationState.initial(launchMode))
     val currentScreen: StateFlow<Screen> = _navigationState.map { it.current }
         .stateIn(viewModelScope, SharingStarted.Eagerly, _navigationState.value.current)
 

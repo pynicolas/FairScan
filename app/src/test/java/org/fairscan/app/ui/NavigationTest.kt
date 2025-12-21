@@ -15,6 +15,7 @@
 package org.fairscan.app.ui
 
 import org.assertj.core.api.Assertions.assertThat
+import org.fairscan.app.LaunchMode
 import org.fairscan.app.ui.Screen.Main.Camera
 import org.fairscan.app.ui.Screen.Main.Document
 import org.fairscan.app.ui.Screen.Main.Export
@@ -27,14 +28,14 @@ class NavigationTest {
 
     @Test
     fun empty_ScreenStack() {
-        val empty = NavigationState.initial()
+        val empty = NavigationState.initial(LaunchMode.NORMAL)
         assertThat(empty.current).isEqualTo(Home)
         assertThat(empty.navigateBack()).isEqualTo(empty)
     }
 
     @Test
     fun navigate_between_fixed_screens() {
-        val atHome = NavigationState.initial()
+        val atHome = NavigationState.initial(LaunchMode.NORMAL)
         val atCamera = atHome.navigateTo(Camera)
         val atDocument = atHome.navigateTo(Document())
         val atExport = atHome.navigateTo(Export)
@@ -56,7 +57,7 @@ class NavigationTest {
 
     @Test
     fun navigate_to_secondary_screens() {
-        val atHome = NavigationState.initial()
+        val atHome = NavigationState.initial(LaunchMode.NORMAL)
         val atCamera = atHome.navigateTo(Camera)
 
         val atAboutAfterHome = atHome.navigateTo(About)
@@ -70,5 +71,12 @@ class NavigationTest {
         val atLibrariesAfterCameraAbout = atAboutAfterCamera.navigateTo(Libraries)
         assertThat(atLibrariesAfterCameraAbout.current).isEqualTo(Libraries)
         assertThat(atLibrariesAfterCameraAbout.navigateBack()).isEqualTo(atAboutAfterCamera)
+    }
+
+    @Test
+    fun external_call() {
+        val initial = NavigationState.initial(LaunchMode.EXTERNAL_SCAN_TO_PDF)
+        assertThat(initial.current).isEqualTo(Camera)
+        assertThat(initial.navigateBack().current).isEqualTo(Camera)
     }
 }

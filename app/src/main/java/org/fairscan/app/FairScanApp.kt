@@ -72,7 +72,8 @@ class AppContainer(context: Context) {
         }
     }
 
-    val mainViewModelFactory = viewModelFactory { MainViewModel(it) }
+    fun mainViewModelFactory(launchMode: LaunchMode) =
+        viewModelFactory { MainViewModel(it, launchMode) }
     val homeViewModelFactory = viewModelFactory { HomeViewModel(it, context) }
     val cameraViewModelFactory = viewModelFactory { CameraViewModel(it) }
     val exportViewModelFactory = viewModelFactory { ExportViewModel(it) }

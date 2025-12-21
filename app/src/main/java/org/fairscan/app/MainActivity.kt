@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
         initLibraries()
         val launchMode = resolveLaunchMode(intent)
         val appContainer = (application as FairScanApp).appContainer
-        val viewModel: MainViewModel by viewModels { appContainer.mainViewModelFactory }
+        val viewModel: MainViewModel by viewModels { appContainer.mainViewModelFactory(launchMode) }
         val homeViewModel: HomeViewModel by viewModels { appContainer.homeViewModelFactory }
         val cameraViewModel: CameraViewModel by viewModels { appContainer.cameraViewModelFactory }
         val exportViewModel: ExportViewModel by viewModels { appContainer.exportViewModelFactory }
@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity() {
             CollectAboutEvents(context, aboutViewModel)
 
             FairScanTheme {
-                val navigation = navigation(viewModel)
+                val navigation = navigation(viewModel, launchMode)
                 when (val screen = currentScreen) {
                     is Screen.Main.Home -> {
                         val recentDocs by homeViewModel.recentDocuments.collectAsStateWithLifecycle()
@@ -371,15 +371,24 @@ class MainActivity : ComponentActivity() {
             Log.d("OpenCV", "Initialization successful")
         }
     }
+
+    private fun navigation(viewModel: MainViewModel, launchMode: LaunchMode): Navigation = Navigation(
+        toHomeScreen = { viewModel.navigateTo(Screen.Main.Home) },
+        toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
+        toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
+        toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
+        toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
+        toLibrariesScreen = { viewModel.navigateTo(Screen.Overlay.Libraries) },
+        toSettingsScreen = { viewModel.navigateTo(Screen.Overlay.Settings) },
+        back = {
+            val origin = viewModel.currentScreen.value
+            viewModel.navigateBack()
+            val destination = viewModel.currentScreen.value
+            if (destination == origin && launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
+                setResult(RESULT_CANCELED)
+                finish()
+            }
+        }
+    )
 }
 
-private fun navigation(viewModel: MainViewModel): Navigation = Navigation(
-    toHomeScreen = { viewModel.navigateTo(Screen.Main.Home) },
-    toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
-    toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
-    toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
-    toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
-    toLibrariesScreen = { viewModel.navigateTo(Screen.Overlay.Libraries) },
-    toSettingsScreen = { viewModel.navigateTo(Screen.Overlay.Settings) },
-    back = { viewModel.navigateBack() }
-)
