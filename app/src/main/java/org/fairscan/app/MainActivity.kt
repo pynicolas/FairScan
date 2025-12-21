@@ -403,7 +403,11 @@ class MainActivity : ComponentActivity() {
         toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
         toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
         toLibrariesScreen = { viewModel.navigateTo(Screen.Overlay.Libraries) },
-        toSettingsScreen = { viewModel.navigateTo(Screen.Overlay.Settings) },
+        toSettingsScreen = if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) null else {
+            {
+                viewModel.navigateTo(Screen.Overlay.Settings)
+            }
+        },
         back = {
             val origin = viewModel.currentScreen.value
             viewModel.navigateBack()

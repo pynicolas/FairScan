@@ -37,7 +37,7 @@ data class Navigation(
     val toExportScreen: () -> Unit,
     val toAboutScreen: () -> Unit,
     val toLibrariesScreen: () -> Unit,
-    val toSettingsScreen: () -> Unit,
+    val toSettingsScreen: (() -> Unit)?,
     val back: () -> Unit,
 )
 
