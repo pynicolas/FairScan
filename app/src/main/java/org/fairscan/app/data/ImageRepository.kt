@@ -23,16 +23,16 @@ const val SCAN_DIR_NAME = "scanned_pages"
 const val THUMBNAIL_DIR_NAME = "thumbnails"
 
 class ImageRepository(
-    appFilesDir: File,
+    scanRootDir: File,
     val transformations: ImageTransformations,
     private val thumbnailSizePx: Int,
 ) {
 
-    private val scanDir: File = File(appFilesDir, SCAN_DIR_NAME).apply {
+    private val scanDir: File = File(scanRootDir, SCAN_DIR_NAME).apply {
         if (!exists()) mkdirs()
     }
 
-    private val thumbnailDir: File = File(appFilesDir, THUMBNAIL_DIR_NAME).apply {
+    private val thumbnailDir: File = File(scanRootDir, THUMBNAIL_DIR_NAME).apply {
         if (!exists()) mkdirs()
     }
 

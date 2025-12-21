@@ -73,18 +73,35 @@ import org.fairscan.app.ui.screens.settings.SettingsViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
 import java.io.File
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var sessionDir: File
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initLibraries()
-        val launchMode = resolveLaunchMode(intent)
         val appContainer = (application as FairScanApp).appContainer
-        val viewModel: MainViewModel by viewModels { appContainer.mainViewModelFactory(launchMode) }
+        val launchMode = resolveLaunchMode(intent)
+        sessionDir = when (launchMode) {
+            LaunchMode.NORMAL -> filesDir
+            LaunchMode.EXTERNAL_SCAN_TO_PDF ->
+                File(appContainer.sessionsRoot(), UUID.randomUUID().toString()).apply { mkdirs() }
+        }
+        val sessionContainer = ScanSessionContainer(this, sessionDir)
+        val viewModel: MainViewModel by viewModels {
+            appContainer.viewModelFactory {
+                MainViewModel(sessionContainer.imageRepository, launchMode)
+            }
+        }
+        val exportViewModel: ExportViewModel by viewModels {
+            appContainer.viewModelFactory {
+                ExportViewModel(appContainer, sessionContainer.imageRepository)
+            }
+        }
         val homeViewModel: HomeViewModel by viewModels { appContainer.homeViewModelFactory }
         val cameraViewModel: CameraViewModel by viewModels { appContainer.cameraViewModelFactory }
-        val exportViewModel: ExportViewModel by viewModels { appContainer.exportViewModelFactory }
         val aboutViewModel: AboutViewModel by viewModels { appContainer.aboutViewModelFactory }
         val settingsViewModel: SettingsViewModel
             by viewModels { appContainer.settingsViewModelFactory }
@@ -182,6 +199,13 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (resolveLaunchMode(intent) == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
+            sessionDir.deleteRecursively()
         }
     }
 

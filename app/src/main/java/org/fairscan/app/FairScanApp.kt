@@ -21,16 +21,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import org.fairscan.app.data.FileLogger
-import org.fairscan.app.data.ImageRepository
-import org.fairscan.app.data.LogRepository
 import org.fairscan.app.data.FileManager
+import org.fairscan.app.data.LogRepository
 import org.fairscan.app.data.recentDocumentsDataStore
 import org.fairscan.app.domain.ImageSegmentationService
 import org.fairscan.app.platform.AndroidPdfWriter
-import org.fairscan.app.platform.OpenCvTransformations
 import org.fairscan.app.ui.screens.about.AboutViewModel
 import org.fairscan.app.ui.screens.camera.CameraViewModel
-import org.fairscan.app.ui.screens.export.ExportViewModel
 import org.fairscan.app.ui.screens.home.HomeViewModel
 import org.fairscan.app.ui.screens.settings.SettingsRepository
 import org.fairscan.app.ui.screens.settings.SettingsViewModel
@@ -42,15 +39,14 @@ class FairScanApp : Application() {
     override fun onCreate() {
         super.onCreate()
         appContainer = AppContainer(this)
+        appContainer.cleanOrphanSessions()
     }
 }
 
 const val THUMBNAIL_SIZE_DP = 120
 
 class AppContainer(context: Context) {
-    private val density = context.resources.displayMetrics.density
-    private val thumbnailSizePx = (THUMBNAIL_SIZE_DP * density).toInt()
-    val imageRepository = ImageRepository(context.filesDir, OpenCvTransformations(), thumbnailSizePx)
+    private val cacheDir = context.cacheDir
     val preparationDir = File(context.cacheDir, "pdfs")
     val fileManager = FileManager(
         preparationDir,
@@ -72,11 +68,30 @@ class AppContainer(context: Context) {
         }
     }
 
-    fun mainViewModelFactory(launchMode: LaunchMode) =
-        viewModelFactory { MainViewModel(it, launchMode) }
     val homeViewModelFactory = viewModelFactory { HomeViewModel(it, context) }
     val cameraViewModelFactory = viewModelFactory { CameraViewModel(it) }
-    val exportViewModelFactory = viewModelFactory { ExportViewModel(it) }
     val aboutViewModelFactory = viewModelFactory { AboutViewModel(it) }
     val settingsViewModelFactory = viewModelFactory { SettingsViewModel(it) }
+
+    fun cleanOrphanSessions() {
+        val sessionsRoot = sessionsRoot()
+        if (!sessionsRoot.exists()) return
+
+        val now = System.currentTimeMillis()
+
+        sessionsRoot.listFiles()
+            ?.filter { it.isDirectory }
+            ?.forEach { dir ->
+                if (isOldSession(dir, now)) {
+                    dir.deleteRecursively()
+                }
+            }
+    }
+
+    fun sessionsRoot(): File = File(cacheDir, "sessions")
+
+    private fun isOldSession(dir: File, now: Long): Boolean {
+        val lastModified = dir.lastModified()
+        return now - lastModified > 24 * 60 * 60 * 1000 // 24h
+    }
 }

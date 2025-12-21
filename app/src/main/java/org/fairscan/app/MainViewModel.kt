@@ -26,13 +26,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
 
-class MainViewModel(appContainer: AppContainer, launchMode: LaunchMode): ViewModel() {
-
-    private val imageRepository = appContainer.imageRepository
+class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
 
     private val _navigationState = MutableStateFlow(NavigationState.initial(launchMode))
     val currentScreen: StateFlow<Screen> = _navigationState.map { it.current }
