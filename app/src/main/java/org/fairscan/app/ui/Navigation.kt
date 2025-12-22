@@ -14,6 +14,8 @@
  */
 package org.fairscan.app.ui
 
+import org.fairscan.app.LaunchMode
+
 sealed class Screen {
     sealed class Main : Screen() {
         object Home : Main()
@@ -35,15 +37,24 @@ data class Navigation(
     val toExportScreen: () -> Unit,
     val toAboutScreen: () -> Unit,
     val toLibrariesScreen: () -> Unit,
-    val toSettingsScreen: () -> Unit,
+    val toSettingsScreen: (() -> Unit)?,
     val back: () -> Unit,
 )
 
+fun startScreenFor(mode: LaunchMode): Screen.Main =
+    when (mode) {
+        LaunchMode.NORMAL -> Screen.Main.Home
+        LaunchMode.EXTERNAL_SCAN_TO_PDF -> Screen.Main.Camera
+    }
+
 @ConsistentCopyVisibility
-data class NavigationState private constructor(val stack: List<Screen>) {
+data class NavigationState private constructor(val stack: List<Screen>, val root: Screen.Main) {
 
     companion object {
-        fun initial() = NavigationState(listOf(Screen.Main.Home))
+        fun initial(mode: LaunchMode): NavigationState {
+            val root = startScreenFor(mode)
+            return NavigationState(listOf(root), root)
+        }
     }
 
     val current: Screen get() = stack.last()
@@ -58,6 +69,7 @@ data class NavigationState private constructor(val stack: List<Screen>) {
 
     fun navigateBack(): NavigationState {
         return when (current) {
+            root -> this // Back handled by system
             is Screen.Main.Home -> this // Back handled by system
             is Screen.Main.Camera -> copy(stack = listOf(Screen.Main.Home))
             is Screen.Main.Document -> copy(stack = listOf(Screen.Main.Camera))

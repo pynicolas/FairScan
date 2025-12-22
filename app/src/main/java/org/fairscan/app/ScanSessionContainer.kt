@@ -12,30 +12,23 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui.screens.export
+package org.fairscan.app
 
-import android.net.Uri
-import org.fairscan.app.ui.screens.settings.ExportFormat
+import android.content.Context
+import org.fairscan.app.data.ImageRepository
+import org.fairscan.app.platform.OpenCvTransformations
+import java.io.File
 
-data class ExportUiState(
-    val format: ExportFormat = ExportFormat.PDF,
-    val isGenerating: Boolean = false,
-    val result: ExportResult? = null,
-    val savedBundle: SavedBundle? = null,
-    val hasShared: Boolean = false,
-    val errorMessage: String? = null,
+class ScanSessionContainer(
+    context: Context,
+    scanRootDir: File
 ) {
-    val hasSavedOrShared get() = savedBundle != null || hasShared
+    private val density = context.resources.displayMetrics.density
+    private val thumbnailSizePx = (THUMBNAIL_SIZE_DP * density).toInt()
+
+    val imageRepository = ImageRepository(
+        scanRootDir,
+        OpenCvTransformations(),
+        thumbnailSizePx
+    )
 }
-
-data class SavedItem(
-    val uri: Uri,
-    val fileName: String,
-    val format: ExportFormat,
-)
-
-data class SavedBundle(
-    val items: List<SavedItem>,
-    val exportDir: Uri? = null,
-    val exportDirName: String? = null,
-)

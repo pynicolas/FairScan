@@ -75,7 +75,6 @@ import org.fairscan.app.ui.components.NewDocumentDialog
 import org.fairscan.app.ui.components.isLandscape
 import org.fairscan.app.ui.components.pageCountText
 import org.fairscan.app.ui.dummyNavigation
-import org.fairscan.app.ui.screens.settings.ExportFormat
 import org.fairscan.app.ui.screens.settings.ExportFormat.PDF
 import org.fairscan.app.ui.theme.FairScanTheme
 import java.io.File

@@ -35,6 +35,7 @@ import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.RecentDocument
 import org.fairscan.app.data.FileManager
+import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.screens.settings.ExportFormat
 import java.io.File
 import java.io.FileInputStream
@@ -46,11 +47,10 @@ sealed interface ExportEvent {
     data object SaveError : ExportEvent
 }
 
-class ExportViewModel(container: AppContainer): ViewModel() {
+class ExportViewModel(container: AppContainer, val imageRepository: ImageRepository): ViewModel() {
 
     private val preparationDir = container.preparationDir
     private val fileManager = container.fileManager
-    private val imageRepository = container.imageRepository
     private val settingsRepository = container.settingsRepository
     private val recentDocumentsDataStore = container.recentDocumentsDataStore
     private val logger = container.logger
@@ -64,6 +64,10 @@ class ExportViewModel(container: AppContainer): ViewModel() {
             .mapNotNull { id -> imageRepository.getContent(id) }
         val pdf = fileManager.generatePdf(jpegs)
         return@withContext ExportResult.Pdf(pdf.file, pdf.sizeInBytes, pdf.pageCount)
+    }
+
+    suspend fun generatePdfForExternalCall(): ExportResult.Pdf {
+        return generatePdf()
     }
 
     private val _uiState = MutableStateFlow(ExportUiState())

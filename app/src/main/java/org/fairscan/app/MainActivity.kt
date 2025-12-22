@@ -72,17 +72,36 @@ import org.fairscan.app.ui.screens.settings.SettingsScreen
 import org.fairscan.app.ui.screens.settings.SettingsViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
+import java.io.File
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var sessionDir: File
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initLibraries()
         val appContainer = (application as FairScanApp).appContainer
-        val viewModel: MainViewModel by viewModels { appContainer.mainViewModelFactory }
+        val launchMode = resolveLaunchMode(intent)
+        sessionDir = when (launchMode) {
+            LaunchMode.NORMAL -> filesDir
+            LaunchMode.EXTERNAL_SCAN_TO_PDF ->
+                File(appContainer.sessionsRoot(), UUID.randomUUID().toString()).apply { mkdirs() }
+        }
+        val sessionContainer = ScanSessionContainer(this, sessionDir)
+        val viewModel: MainViewModel by viewModels {
+            appContainer.viewModelFactory {
+                MainViewModel(sessionContainer.imageRepository, launchMode)
+            }
+        }
+        val exportViewModel: ExportViewModel by viewModels {
+            appContainer.viewModelFactory {
+                ExportViewModel(appContainer, sessionContainer.imageRepository)
+            }
+        }
         val homeViewModel: HomeViewModel by viewModels { appContainer.homeViewModelFactory }
         val cameraViewModel: CameraViewModel by viewModels { appContainer.cameraViewModelFactory }
-        val exportViewModel: ExportViewModel by viewModels { appContainer.exportViewModelFactory }
         val aboutViewModel: AboutViewModel by viewModels { appContainer.aboutViewModelFactory }
         val settingsViewModel: SettingsViewModel
             by viewModels { appContainer.settingsViewModelFactory }
@@ -102,7 +121,7 @@ class MainActivity : ComponentActivity() {
             CollectAboutEvents(context, aboutViewModel)
 
             FairScanTheme {
-                val navigation = navigation(viewModel)
+                val navigation = navigation(viewModel, launchMode)
                 when (val screen = currentScreen) {
                     is Screen.Main.Home -> {
                         val recentDocs by homeViewModel.recentDocuments.collectAsStateWithLifecycle()
@@ -131,6 +150,19 @@ class MainActivity : ComponentActivity() {
                             document = document,
                             initialPage = screen.initialPage,
                             navigation = navigation,
+                            onExportClick = if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
+                                {
+                                    lifecycleScope.launch {
+                                        val result = exportViewModel.generatePdfForExternalCall()
+                                        sendActivityResult(result)
+                                        viewModel.startNewDocument()
+                                        finish()
+                                    }
+                                    Unit
+                                }
+                            } else {
+                                navigation.toExportScreen
+                            },
                             onDeleteImage =  { id -> viewModel.deletePage(id) },
                             onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
@@ -145,12 +177,12 @@ class MainActivity : ComponentActivity() {
                                 setFilename = exportViewModel::setFilename,
                                 share = { share(exportViewModel.applyRenaming(), exportViewModel) },
                                 save = { exportViewModel.onSaveClicked() },
-                                open = { item -> openUri(item.uri, item.format.mimeType) }
+                                open = { item -> openUri(item.uri, item.format.mimeType) },
                             ),
                             onCloseScan = {
                                 viewModel.startNewDocument()
                                 viewModel.navigateTo(Screen.Main.Home)
-                            },
+                            }
                         )
                     }
                     is Screen.Overlay.About -> {
@@ -167,6 +199,20 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (resolveLaunchMode(intent) == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
+            sessionDir.deleteRecursively()
+        }
+    }
+
+    private fun resolveLaunchMode(intent: Intent?): LaunchMode {
+        return when (intent?.action) {
+            "org.fairscan.app.action.SCAN_TO_PDF" -> LaunchMode.EXTERNAL_SCAN_TO_PDF
+            else -> LaunchMode.NORMAL
         }
     }
 
@@ -265,10 +311,7 @@ class MainActivity : ComponentActivity() {
 
         viewModel.setAsShared()
 
-        val authority = "${applicationContext.packageName}.fileprovider"
-        val uris = result.files.map { file ->
-            FileProvider.getUriForFile(this, authority, file)
-        }
+        val uris = result.files.map(::uriForFile)
         val intent = Intent().apply {
             action = if (uris.size == 1) Intent.ACTION_SEND else Intent.ACTION_SEND_MULTIPLE
             type = result.format.mimeType
@@ -293,6 +336,24 @@ class MainActivity : ComponentActivity() {
         startActivity(chooser)
     }
 
+    private fun sendActivityResult(result: ExportResult?) {
+        val pdf = result as? ExportResult.Pdf ?: return
+
+        val uri = uriForFile(pdf.file)
+        val resultIntent = Intent().apply {
+            data = uri
+            clipData = ClipData.newRawUri(null, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        setResult(RESULT_OK, resultIntent)
+    }
+
+    private fun uriForFile(file: File): Uri {
+        val authority = "${applicationContext.packageName}.fileprovider"
+        return FileProvider.getUriForFile(this, authority, file)
+    }
+
     private fun checkPermissionThen(
         requestPermissionLauncher: ManagedActivityResultLauncher<String, Boolean>,
         action: () -> Unit
@@ -312,8 +373,7 @@ class MainActivity : ComponentActivity() {
             if (fileUri.scheme == ContentResolver.SCHEME_CONTENT) {
                 fileUri
             } else {
-                val authority = "${applicationContext.packageName}.fileprovider"
-                FileProvider.getUriForFile(this, authority, fileUri.toFile())
+                uriForFile(fileUri.toFile())
             }
         val openIntent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uriToOpen, mimeType)
@@ -335,15 +395,28 @@ class MainActivity : ComponentActivity() {
             Log.d("OpenCV", "Initialization successful")
         }
     }
+
+    private fun navigation(viewModel: MainViewModel, launchMode: LaunchMode): Navigation = Navigation(
+        toHomeScreen = { viewModel.navigateTo(Screen.Main.Home) },
+        toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
+        toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
+        toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
+        toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
+        toLibrariesScreen = { viewModel.navigateTo(Screen.Overlay.Libraries) },
+        toSettingsScreen = if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) null else {
+            {
+                viewModel.navigateTo(Screen.Overlay.Settings)
+            }
+        },
+        back = {
+            val origin = viewModel.currentScreen.value
+            viewModel.navigateBack()
+            val destination = viewModel.currentScreen.value
+            if (destination == origin && launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
+                setResult(RESULT_CANCELED)
+                finish()
+            }
+        }
+    )
 }
 
-private fun navigation(viewModel: MainViewModel): Navigation = Navigation(
-    toHomeScreen = { viewModel.navigateTo(Screen.Main.Home) },
-    toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
-    toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
-    toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
-    toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
-    toLibrariesScreen = { viewModel.navigateTo(Screen.Overlay.Libraries) },
-    toSettingsScreen = { viewModel.navigateTo(Screen.Overlay.Settings) },
-    back = { viewModel.navigateBack() }
-)

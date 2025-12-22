@@ -181,14 +181,16 @@ fun AppOverflowMenu(
                 .background(MaterialTheme.colorScheme.surface)
         ) {
 
-            DropdownMenuItem(
-                leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                text = { Text(stringResource(R.string.settings)) },
-                onClick = {
-                    expanded = false
-                    navigation.toSettingsScreen()
-                }
-            )
+            navigation.toSettingsScreen?.let { toSettings ->
+                DropdownMenuItem(
+                    leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                    text = { Text(stringResource(R.string.settings)) },
+                    onClick = {
+                        expanded = false
+                        toSettings()
+                    }
+                )
+            }
 
             DropdownMenuItem(
                 leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },

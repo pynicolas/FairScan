@@ -73,6 +73,7 @@ fun DocumentScreen(
     document: DocumentUiModel,
     initialPage: Int,
     navigation: Navigation,
+    onExportClick: () -> Unit,
     onDeleteImage: (String) -> Unit,
     onRotateImage: (String, Boolean) -> Unit,
     onPageReorder: (String, Int) -> Unit,
@@ -105,7 +106,7 @@ fun DocumentScreen(
         ),
         onBack = navigation.back,
         bottomBar = {
-            BottomBar(navigation)
+            BottomBar(onExportClick)
         },
         pageListButton = {
             SecondaryActionButton(
@@ -217,7 +218,7 @@ fun RotationButtons(
 
 @Composable
 private fun BottomBar(
-    navigation: Navigation,
+    onExportClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -225,7 +226,7 @@ private fun BottomBar(
         horizontalArrangement = Arrangement.End
     ) {
         MainActionButton(
-            onClick = navigation.toExportScreen,
+            onClick = onExportClick,
             icon = Icons.Default.Description,
             text = stringResource(R.string.export),
         )
@@ -243,6 +244,7 @@ fun DocumentScreenPreview() {
             ),
             initialPage = 1,
             navigation = dummyNavigation(),
+            onExportClick = {},
             onDeleteImage = { _ -> },
             onRotateImage = { _,_ -> },
             onPageReorder = { _,_ -> },
