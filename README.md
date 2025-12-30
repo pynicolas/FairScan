@@ -83,6 +83,8 @@ When started via this intent:
 - the resulting PDF is returned to the calling application as a URI with a limited lifetime
 - the calling application should immediately copy the content of the URI as FairScan deletes it later
 
+See an example app: [fairscan-intent-sample](https://github.com/pynicolas/fairscan-intent-sample)
+
 ---
 
 ## Technical details
