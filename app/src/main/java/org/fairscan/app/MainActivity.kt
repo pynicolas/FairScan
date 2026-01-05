@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.fairscan.app.data.FileLogger
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
@@ -195,7 +196,7 @@ class MainActivity : ComponentActivity() {
                         LibrariesScreen(onBack = navigation.back)
                     }
                     is Screen.Overlay.Settings -> {
-                        SettingsScreenWrapper(settingsViewModel, navigation)
+                        SettingsScreenWrapper(settingsViewModel, navigation, appContainer.logger)
                     }
                 }
             }
@@ -217,21 +218,39 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun SettingsScreenWrapper(settingsViewModel: SettingsViewModel, nav: Navigation) {
+    private fun SettingsScreenWrapper(
+        settingsViewModel: SettingsViewModel,
+        nav: Navigation,
+        logger: FileLogger,
+    ) {
         val launcher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.OpenDocumentTree()
         ) { uri ->
             if (uri != null) {
                 val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                contentResolver.takePersistableUriPermission(uri, flags)
-                settingsViewModel.setExportDirUri(uri.toString())
+                try {
+                    contentResolver.takePersistableUriPermission(uri, flags)
+                    settingsViewModel.setExportDirUri(uri.toString())
+                } catch (e: Exception) {
+                    logger.e("Settings", "Failed to set export dir to $uri", e)
+                    val text = getString(R.string.error_file_picker_result)
+                    Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+                }
             }
         }
         val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
         SettingsScreen(
             settingsUiState,
-            onChooseDirectoryClick = { launcher.launch(null) },
+            onChooseDirectoryClick = {
+                try {
+                    launcher.launch(null)
+                } catch (e: Exception) {
+                    val message = getString(R.string.error_file_picker_launch)
+                    logger.e("Settings", message, e)
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                }
+            },
             onResetExportDirClick = { settingsViewModel.setExportDirUri(null) },
             onExportFormatChanged = { format -> settingsViewModel.setExportFormat(format) },
             onBack = nav.back,
