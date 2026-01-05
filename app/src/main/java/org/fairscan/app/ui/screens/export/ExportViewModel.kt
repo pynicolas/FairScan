@@ -14,9 +14,14 @@
  */
 package org.fairscan.app.ui.screens.export
 
+import android.content.ContentValues
 import android.content.Context
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
@@ -39,6 +44,7 @@ import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.screens.settings.ExportFormat
 import java.io.File
 import java.io.FileInputStream
+import java.io.IOException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -184,11 +190,21 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 
         for (file in result.files) {
             val saved = if (exportDir == null) {
-                val out = fileManager.copyToExternalDir(file)
-                filesForMediaScan.add(out)
-                SavedItem(out.toUri(), out.name, exportFormat)
+                // No export dir defined -> save to Downloads
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Android 10+: use MediaStore API
+                    val uri = saveViaMediaStore(context, file, exportFormat)
+                    SavedItem(uri, file.name, exportFormat)
+                } else {
+                    // Android 8 and 9: use File API
+                    // (MediaStore doesn't allow to choose Downloads for Android<10)
+                    val out = fileManager.copyToExternalDir(file)
+                    filesForMediaScan.add(out)
+                    SavedItem(out.toUri(), out.name, exportFormat)
+                }
             } else {
-                val safFile = copyViaSaf(context, file, exportDir, exportFormat)
+                // Use Storage Access Framework to save to the chosen directory
+                val safFile = saveViaSaf(context, file, exportDir, exportFormat)
                 SavedItem(safFile.uri, safFile.name ?: file.name, exportFormat)
             }
             savedItems += saved
@@ -221,7 +237,34 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         }
     }
 
-    private fun copyViaSaf(
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun saveViaMediaStore(
+        context: Context,
+        source: File,
+        format: ExportFormat
+    ): Uri {
+        val resolver = context.contentResolver
+
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, source.name)
+            put(MediaStore.MediaColumns.MIME_TYPE, format.mimeType)
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+        }
+
+        val collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
+        val uri = resolver.insert(collection, values)
+            ?: throw IOException("Failed to create MediaStore entry")
+
+        resolver.openOutputStream(uri)?.use { out ->
+            source.inputStream().use { input ->
+                input.copyTo(out)
+            }
+        } ?: throw IOException("Failed to open output stream")
+
+        return uri
+    }
+
+    private fun saveViaSaf(
         context: Context,
         source: File,
         exportDirUri: Uri,
