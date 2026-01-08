@@ -319,7 +319,7 @@ class MainActivity : ComponentActivity() {
         LaunchedEffect(Unit) {
             cameraViewModel.events.collect { event ->
                 when (event) {
-                    is CameraEvent.ImageCaptured -> viewModel.handleImageCaptured(event.jpegBytes)
+                    is CameraEvent.ImageCaptured -> viewModel.handleImageCaptured(event.page)
                 }
             }
         }

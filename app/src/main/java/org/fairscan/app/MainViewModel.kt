@@ -27,9 +27,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.fairscan.app.data.ImageRepository
+import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
+import java.io.ByteArrayOutputStream
 
 class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
 
@@ -67,13 +69,17 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
     }
 
     fun movePage(id: String, newIndex: Int) {
-        imageRepository.movePage(id, newIndex)
-        _pageIds.value = imageRepository.imageIds()
+        viewModelScope.launch {
+            imageRepository.movePage(id, newIndex)
+            _pageIds.value = imageRepository.imageIds()
+        }
     }
 
     fun deletePage(id: String) {
-        imageRepository.delete(id)
-        _pageIds.value = imageRepository.imageIds()
+        viewModelScope.launch {
+            imageRepository.delete(id)
+            _pageIds.value = imageRepository.imageIds()
+        }
     }
 
     fun startNewDocument() {
@@ -93,8 +99,19 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         return bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
     }
 
-    fun handleImageCaptured(jpegBytes: ByteArray) {
-        imageRepository.add(jpegBytes)
-        _pageIds.value = imageRepository.imageIds()
+    fun handleImageCaptured(capturedPage: CapturedPage) {
+        viewModelScope.launch {
+            imageRepository.add(
+                compressJpeg(capturedPage.page, 75),
+                compressJpeg(capturedPage.source, 90)
+            )
+            _pageIds.value = imageRepository.imageIds()
+        }
+    }
+
+    private fun compressJpeg(bitmap: Bitmap, quality: Int): ByteArray {
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+        return outputStream.toByteArray()
     }
 }

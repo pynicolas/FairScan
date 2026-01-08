@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
+import org.fairscan.app.domain.CapturedPage
 import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
@@ -40,10 +41,9 @@ import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
-import java.io.ByteArrayOutputStream
 
 sealed interface CameraEvent {
-    data class ImageCaptured(val jpegBytes: ByteArray) : CameraEvent
+    data class ImageCaptured(val page: CapturedPage) : CameraEvent
 }
 
 class CameraViewModel(appContainer: AppContainer): ViewModel() {
@@ -88,7 +88,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         _captureState.value = CaptureState.Capturing(frozenImage)
     }
 
-    private fun onCaptureProcessed(captured: Bitmap?) {
+    private fun onCaptureProcessed(captured: CapturedPage?) {
         val current = _captureState.value
         _captureState.value = when {
             current is CaptureState.Capturing && captured != null ->
@@ -117,23 +117,25 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     fun onImageCaptured(imageProxy: ImageProxy?) {
         if (imageProxy != null) {
             viewModelScope.launch {
-                val image = processCapturedImage(imageProxy)
+                val source = imageProxy.toBitmap()
+                val processed = processCapturedImage(source, imageProxy.imageInfo.rotationDegrees)
                 imageProxy.close()
-                onCaptureProcessed(image)
+                onCaptureProcessed(processed?.let { CapturedPage(processed, source) })
             }
         } else {
             onCaptureProcessed(null)
         }
     }
 
-    private suspend fun processCapturedImage(imageProxy: ImageProxy): Bitmap? = withContext(Dispatchers.IO) {
+    private suspend fun processCapturedImage(
+        bitmap: Bitmap,
+        rotationDegrees: Int
+    ): Bitmap? = withContext(Dispatchers.IO) {
         var corrected: Bitmap? = null
-        val bitmap = imageProxy.toBitmap()
         val segmentation = imageSegmentationService.runSegmentationAndReturn(bitmap, 0)
         if (segmentation != null) {
             val mask = segmentation.segmentation
             var quad = detectDocumentQuad(mask, isLiveAnalysis = false)
-            val rotationDegrees = imageProxy.imageInfo.rotationDegrees
             if (quad == null) {
                 val now = System.currentTimeMillis()
                 lastSuccessfulLiveAnalysisState?.timestamp?.let {
@@ -157,14 +159,11 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         return@withContext corrected
     }
 
-    fun addProcessedImage(quality: Int = 75) {
+    fun addProcessedImage() {
         val current = _captureState.value
         if (current is CaptureState.CapturePreview) {
-            val outputStream = ByteArrayOutputStream()
-            current.processed.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-            val jpegBytes = outputStream.toByteArray()
             viewModelScope.launch {
-                _events.emit(CameraEvent.ImageCaptured(jpegBytes))
+                _events.emit(CameraEvent.ImageCaptured(current.capturedPage))
             }
         }
         _captureState.value = CaptureState.Idle
@@ -184,7 +183,7 @@ sealed class CaptureState {
     data class CaptureError(override val frozenImage: Bitmap) : CaptureState()
     data class CapturePreview(
         override val frozenImage: Bitmap,
-        val processed: Bitmap,
+        val capturedPage: CapturedPage,
     ) : CaptureState()
 }
 
