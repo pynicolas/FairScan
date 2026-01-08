@@ -19,6 +19,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 import java.io.File
 
+const val SOURCE_DIR_NAME = "sources"
 const val SCAN_DIR_NAME = "scanned_pages"
 const val THUMBNAIL_DIR_NAME = "thumbnails"
 
@@ -27,6 +28,10 @@ class ImageRepository(
     val transformations: ImageTransformations,
     private val thumbnailSizePx: Int,
 ) {
+
+    private val sourceDir: File = File(scanRootDir, SOURCE_DIR_NAME).apply {
+        if (!exists()) mkdirs()
+    }
 
     private val scanDir: File = File(scanRootDir, SCAN_DIR_NAME).apply {
         if (!exists()) mkdirs()
@@ -76,11 +81,12 @@ class ImageRepository(
 
     fun imageIds(): ImmutableList<String> = fileNames.toImmutableList()
 
-    fun add(bytes: ByteArray) {
+    fun add(pageBytes: ByteArray, sourceBytes: ByteArray? = null) {
         val fileName = "${System.currentTimeMillis()}.jpg"
         val file = File(scanDir, fileName)
-        file.writeBytes(bytes)
+        file.writeBytes(pageBytes)
         writeThumbnail(file)
+        sourceBytes?.let { File(sourceDir, fileName).writeBytes(sourceBytes) }
         fileNames.add(fileName)
         saveMetadata()
     }
@@ -156,6 +162,9 @@ class ImageRepository(
             file -> file.delete()
         }
         scanDir.listFiles()?.forEach {
+            file -> file.delete()
+        }
+        sourceDir.listFiles()?.forEach {
             file -> file.delete()
         }
         saveMetadata() // "empty" json file

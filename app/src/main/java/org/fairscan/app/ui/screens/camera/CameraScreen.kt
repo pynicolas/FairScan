@@ -84,6 +84,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import org.fairscan.app.MainViewModel
 import org.fairscan.app.R
+import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.CameraPermissionState
@@ -235,7 +236,8 @@ private fun CameraScreenScaffold(
             )
         }
         if (cameraUiState.captureState is CaptureState.CapturePreview) {
-            CapturedImage(cameraUiState.captureState.processed.asImageBitmap(), thumbnailCoords)
+            val page = cameraUiState.captureState.capturedPage.page
+            CapturedImage(page.asImageBitmap(), thumbnailCoords)
         }
     }
 }
@@ -461,7 +463,9 @@ fun CameraScreenPreview() {
 fun CameraScreenPreviewWithProcessedImage() {
     ScreenPreview(CaptureState.CapturePreview(
         debugImage("uncropped/img01.jpg"),
-        debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg")))
+        CapturedPage(
+            debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
+            debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"))))
 }
 
 @Preview(showBackground = true, widthDp = 640, heightDp = 320)
