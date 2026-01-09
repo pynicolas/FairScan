@@ -85,6 +85,7 @@ import kotlinx.coroutines.delay
 import org.fairscan.app.MainViewModel
 import org.fairscan.app.R
 import org.fairscan.app.domain.CapturedPage
+import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.CameraPermissionState
@@ -95,6 +96,8 @@ import org.fairscan.app.ui.components.pageCountText
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.fakeDocument
 import org.fairscan.app.ui.theme.FairScanTheme
+import org.fairscan.imageprocessing.Point
+import org.fairscan.imageprocessing.Quad
 
 const val CAPTURED_IMAGE_DISPLAY_DURATION = 1500L
 const val ANIMATION_DURATION = 200
@@ -461,11 +464,14 @@ fun CameraScreenPreview() {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun CameraScreenPreviewWithProcessedImage() {
+    val p = Point(0 , 0)
+    val quad = Quad(p, p, p, p)
     ScreenPreview(CaptureState.CapturePreview(
         debugImage("uncropped/img01.jpg"),
         CapturedPage(
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
-            debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"))))
+            debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
+            PageMetadata(quad, 0, false))))
 }
 
 @Preview(showBackground = true, widthDp = 640, heightDp = 320)

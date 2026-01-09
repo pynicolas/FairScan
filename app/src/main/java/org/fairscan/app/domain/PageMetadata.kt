@@ -12,34 +12,12 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.data
+package org.fairscan.app.domain
 
-import kotlinx.serialization.Serializable
+import org.fairscan.imageprocessing.Quad
 
-@Serializable
-data class DocumentMetadata(
-    val version: Int = 1,
-    val pages: List<Page>
-)
-
-@Serializable
-data class Page(
-    val file: String,
-    val quad: NormalizedQuad? = null,
-    val rotationDegrees: Int = 0,
-    val isColored: Boolean? = null
-)
-
-@Serializable
-data class NormalizedQuad(
-    val topLeft: PointD,
-    val topRight: PointD,
-    val bottomRight: PointD,
-    val bottomLeft: PointD
-)
-
-@Serializable
-data class PointD(
-    val x: Double,
-    val y: Double
+data class PageMetadata(
+    val normalizedQuad: Quad,
+    val rotationDegrees: Int,
+    val isColored: Boolean,
 )

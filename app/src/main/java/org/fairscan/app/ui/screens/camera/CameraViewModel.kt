@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.CapturedPage
+import org.fairscan.app.domain.PageMetadata
 import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
@@ -118,9 +119,9 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         if (imageProxy != null) {
             viewModelScope.launch {
                 val source = imageProxy.toBitmap()
-                val processed = processCapturedImage(source, imageProxy.imageInfo.rotationDegrees)
+                val page = processCapturedImage(source, imageProxy.imageInfo.rotationDegrees)
                 imageProxy.close()
-                onCaptureProcessed(processed?.let { CapturedPage(processed, source) })
+                onCaptureProcessed(page)
             }
         } else {
             onCaptureProcessed(null)
@@ -128,11 +129,11 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     }
 
     private suspend fun processCapturedImage(
-        bitmap: Bitmap,
+        source: Bitmap,
         rotationDegrees: Int
-    ): Bitmap? = withContext(Dispatchers.IO) {
-        var corrected: Bitmap? = null
-        val segmentation = imageSegmentationService.runSegmentationAndReturn(bitmap, 0)
+    ): CapturedPage? = withContext(Dispatchers.IO) {
+        var result: CapturedPage? = null
+        val segmentation = imageSegmentationService.runSegmentationAndReturn(source, 0)
         if (segmentation != null) {
             val mask = segmentation.segmentation
             var quad = detectDocumentQuad(mask, isLiveAnalysis = false)
@@ -152,11 +153,11 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
                 }
             }
             if (quad != null) {
-                val resizedQuad = quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
-                corrected = extractDocumentFromBitmap(bitmap, resizedQuad, rotationDegrees, mask)
+                val resizedQuad = quad.scaledTo(mask.width, mask.height, source.width, source.height)
+                result = extractDocumentFromBitmap(source, resizedQuad, rotationDegrees, mask)
             }
         }
-        return@withContext corrected
+        return@withContext result
     }
 
     fun addProcessedImage() {
@@ -187,17 +188,22 @@ sealed class CaptureState {
     ) : CaptureState()
 }
 
-fun extractDocumentFromBitmap(image: Bitmap, quad: Quad, rotationDegrees: Int, mask: Mask): Bitmap {
+fun extractDocumentFromBitmap(
+    source: Bitmap, quad: Quad, rotationDegrees: Int, mask: Mask
+): CapturedPage {
     val rgba = Mat()
-    Utils.bitmapToMat(image, rgba)
+    Utils.bitmapToMat(source, rgba)
     val bgr = Mat()
     Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR) // CV_8UC4 → CV_8UC3
     rgba.release()
-    val outBgr = extractDocument(bgr, quad, rotationDegrees, mask)
+    val page = extractDocument(bgr, quad, rotationDegrees, mask)
+    val outBgr = page.image
     bgr.release()
     val outBitmap = toBitmap(outBgr)
     outBgr.release()
-    return outBitmap
+    val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
+    val metadata = PageMetadata(normalizedQuad, rotationDegrees, page.pageAnalysis.isColored)
+    return CapturedPage(outBitmap, source, metadata)
 }
 
 fun toBitmap(bgr: Mat): Bitmap {
