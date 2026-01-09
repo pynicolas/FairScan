@@ -32,6 +32,15 @@ interface Mask {
     fun toMat(): Mat
 }
 
+data class PageAnalysis(
+    val isColored: Boolean,
+)
+
+data class ExtractedDocument(
+    val image: Mat,
+    val pageAnalysis: PageAnalysis,
+)
+
 fun detectDocumentQuad(mask: Mask, isLiveAnalysis: Boolean, minQuadAreaRatio: Double = 0.02): Quad? {
     val mat = mask.toMat()
     val (biggest: MatOfPoint2f?, area) = biggestContour(mat)
@@ -117,7 +126,7 @@ fun extractDocument(
     quad: Quad,
     rotationDegrees: Int,
     mask: Mask,
-): Mat {
+): ExtractedDocument {
     val widthTop = norm(quad.topLeft, quad.topRight)
     val widthBottom = norm(quad.bottomLeft, quad.bottomRight)
     val targetWidth = (widthTop + widthBottom) / 2
@@ -134,14 +143,14 @@ fun extractDocument(
     )
     val dstPoints = MatOfPoint2f(
         org.opencv.core.Point(0.0, 0.0),
-        org.opencv.core.Point(targetWidth.toDouble(), 0.0),
-        org.opencv.core.Point(targetWidth.toDouble(), targetHeight.toDouble()),
-        org.opencv.core.Point(0.0, targetHeight.toDouble())
+        org.opencv.core.Point(targetWidth, 0.0),
+        org.opencv.core.Point(targetWidth, targetHeight),
+        org.opencv.core.Point(0.0, targetHeight)
     )
     val transform = Imgproc.getPerspectiveTransform(srcPoints, dstPoints)
 
     val outputMat = Mat()
-    val outputSize = Size(targetWidth.toDouble(), targetHeight.toDouble())
+    val outputSize = Size(targetWidth, targetHeight)
     Imgproc.warpPerspective(inputMat, outputMat, transform, outputSize)
 
     val resized = resize(outputMat, 1500.0)
@@ -149,7 +158,7 @@ fun extractDocument(
     val enhanced = enhanceCapturedImage(resized, isColored)
     val rotated = rotate(enhanced, rotationDegrees)
 
-    return rotated
+    return ExtractedDocument(rotated, PageAnalysis(isColored))
 }
 
 fun resize(original: Mat, targetMax: Double): Mat {

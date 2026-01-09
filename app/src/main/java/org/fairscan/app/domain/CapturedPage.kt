@@ -19,5 +19,6 @@ import android.graphics.Bitmap
 
 data class CapturedPage(
     val page: Bitmap,
-    val source: Bitmap
+    val source: Bitmap,
+    val metadata: PageMetadata,
 )

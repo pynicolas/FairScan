@@ -103,7 +103,8 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         viewModelScope.launch {
             imageRepository.add(
                 compressJpeg(capturedPage.page, 75),
-                compressJpeg(capturedPage.source, 90)
+                compressJpeg(capturedPage.source, 90),
+                capturedPage.metadata,
             )
             _pageIds.value = imageRepository.imageIds()
         }

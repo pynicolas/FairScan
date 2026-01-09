@@ -15,7 +15,9 @@
 package org.fairscan.app.data
 
 import org.assertj.core.api.Assertions.assertThat
-import org.fairscan.app.data.ImageTransformations
+import org.fairscan.app.domain.PageMetadata
+import org.fairscan.imageprocessing.Point
+import org.fairscan.imageprocessing.Quad
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -27,6 +29,9 @@ class ImageRepositoryTest {
     var folder: TemporaryFolder = TemporaryFolder()
 
     private var _filesDir: File? = null
+
+    val quad1 = Quad(Point(.01, .02), Point(.1, .03), Point(.11, .12), Point(.03, .09))
+    val metadata1 = PageMetadata(quad1, 90, true)
 
     fun getFilesDir(): File {
         if (_filesDir == null) {
@@ -52,17 +57,25 @@ class ImageRepositoryTest {
         val repo = repo()
         assertThat(repo.imageIds()).isEmpty()
         val bytes = byteArrayOf(101, 102, 103)
-        repo.add(bytes)
+        repo.add(bytes, byteArrayOf(51), metadata1)
         assertThat(repo.imageIds()).hasSize(1)
-        assertThat(repo.getContent(repo.imageIds()[0])).isEqualTo(bytes)
-        assertThat(repo.getThumbnail(repo.imageIds()[0])).isEqualTo(byteArrayOf(101))
+        val id = repo.imageIds()[0]
+        assertThat(repo.getContent(id)).isEqualTo(bytes)
+        assertThat(repo.getThumbnail(id)).isEqualTo(byteArrayOf(101))
+
+        assertThat(repo().getPageMetadata("x")).isNull()
+        val metadata = repo.getPageMetadata(id)
+        assertThat(metadata).isNotNull()
+        assertThat(metadata!!.normalizedQuad).isEqualTo(quad1)
+        assertThat(metadata.rotationDegrees).isEqualTo(metadata1.rotationDegrees)
+        assertThat(metadata.isColored).isEqualTo(metadata1.isColored)
     }
 
     @Test
     fun delete_image() {
         val repo = repo()
         val bytes = byteArrayOf(101, 102, 103)
-        repo.add(bytes)
+        repo.add(bytes, byteArrayOf(51), metadata1)
         assertThat(repo.imageIds()).hasSize(1)
         repo.delete(repo.imageIds()[0])
         assertThat(repo.imageIds()).isEmpty()
@@ -106,7 +119,7 @@ class ImageRepositoryTest {
     fun `clear should delete pages`() {
         val bytes = byteArrayOf(101, 102, 103)
         val repo1 = repo()
-        repo1.add(bytes)
+        repo1.add(bytes, byteArrayOf(51), metadata1)
         assertThat(repo1.imageIds()).isNotEmpty()
         repo1.clear()
         assertThat(repo1.imageIds()).isEmpty()
@@ -123,7 +136,7 @@ class ImageRepositoryTest {
     @Test
     fun rotate() {
         val repo = repo()
-        repo.add(byteArrayOf(101, 102, 103))
+        repo.add(byteArrayOf(101, 102, 103), byteArrayOf(51), metadata1)
         val id0 = repo.imageIds().last()
         val baseId = id0.substring(0, id0.length - 4)
 
@@ -151,9 +164,9 @@ class ImageRepositoryTest {
     @Test
     fun movePage() {
         val repo = repo()
-        repo.add(byteArrayOf(101))
+        repo.add(byteArrayOf(101), byteArrayOf(51), metadata1)
         Thread.sleep(1L) // to avoid file name clashes
-        repo.add(byteArrayOf(110))
+        repo.add(byteArrayOf(110), byteArrayOf(51), metadata1)
         val id0 = repo.imageIds().first()
         val id1 = repo.imageIds().last()
         repo.movePage(id1, 0)
@@ -161,5 +174,19 @@ class ImageRepositoryTest {
 
         val repo2 = repo()
         assertThat(repo2.imageIds()).containsExactly(id1, id0)
+    }
+
+    @Test
+    fun metadata() {
+        val quad = quad1.toSerializable()
+
+        assertThat(Page("f1", null, 0, true).toMetadata()).isNull()
+        assertThat(Page("f1", quad, 0, null).toMetadata()).isNull()
+
+        listOf(true, false).forEach { isColored ->
+            val metadata = Page("f1", quad, 0, isColored).toMetadata()
+            assertThat(metadata).isNotNull()
+            assertThat(metadata!!.isColored).isEqualTo(isColored)
+        }
     }
 }
