@@ -19,10 +19,12 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.fairscan.app.AppContainer
+import org.fairscan.app.domain.ExportQuality
 
 data class SettingsUiState(
     val exportDirUri: String? = null,
     val exportFormat: ExportFormat = ExportFormat.PDF,
+    val exportQuality: ExportQuality = ExportQuality.BALANCED,
 )
 
 class SettingsViewModel(container: AppContainer) : ViewModel() {
@@ -32,10 +34,12 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
     val uiState = combine(
         repo.exportDirUri,
         repo.exportFormat,
-    ) { dir, format ->
+        repo.exportQuality,
+    ) { dir, format, quality ->
         SettingsUiState(
             exportDirUri = dir,
             exportFormat = format,
+            exportQuality = quality,
         )
     }.stateIn(
         viewModelScope,
@@ -52,6 +56,12 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
     fun setExportFormat(format: ExportFormat) {
         viewModelScope.launch {
             repo.setExportFormat(format)
+        }
+    }
+
+    fun setExportQuality(quality: ExportQuality) {
+        viewModelScope.launch {
+            repo.setExportQuality(quality)
         }
     }
 }

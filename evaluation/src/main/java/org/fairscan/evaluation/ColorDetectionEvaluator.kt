@@ -14,9 +14,9 @@
  */
 package org.fairscan.evaluation
 
-import org.fairscan.imageprocessing.ExtractedDocument
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.extractDocument
+import org.fairscan.imageprocessing.isColoredDocument
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.imgcodecs.Imgcodecs
 import java.io.File
@@ -60,11 +60,11 @@ object ColorDetectionEvaluator {
             val quad = detectDocumentQuad(mask, isLiveAnalysis = false)
                 ?.scaledTo(mask.width, mask.height, mat.width(), mat.height())
 
-            val extracted: ExtractedDocument = if (quad != null) {
-                extractDocument(mat, quad, 0, mask)
-            } else continue
+            if (quad == null) continue
+            val isColored = isColoredDocument(mat, mask, quad)
+            val extracted = extractDocument(mat, quad, 0, isColored, 2_000_000)
 
-            val detected = extracted.pageAnalysis.isColored
+            val detected = isColored
 
             nbProcessedImages++
 
@@ -72,7 +72,7 @@ object ColorDetectionEvaluator {
             Imgcodecs.imwrite(inputOut.absolutePath, mat)
 
             val outputOut = File(outputDir, "${imgName}_output.jpg")
-            Imgcodecs.imwrite(outputOut.absolutePath, extracted.image)
+            Imgcodecs.imwrite(outputOut.absolutePath, extracted)
 
             results += ColorResult(
                 imgName,

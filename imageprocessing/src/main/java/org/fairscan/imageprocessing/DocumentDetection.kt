@@ -32,15 +32,6 @@ interface Mask {
     fun toMat(): Mat
 }
 
-data class PageAnalysis(
-    val isColored: Boolean,
-)
-
-data class ExtractedDocument(
-    val image: Mat,
-    val pageAnalysis: PageAnalysis,
-)
-
 fun detectDocumentQuad(mask: Mask, isLiveAnalysis: Boolean, minQuadAreaRatio: Double = 0.02): Quad? {
     val mat = mask.toMat()
     val (biggest: MatOfPoint2f?, area) = biggestContour(mat)
@@ -125,8 +116,9 @@ fun extractDocument(
     inputMat: Mat,
     quad: Quad,
     rotationDegrees: Int,
-    mask: Mask,
-): ExtractedDocument {
+    isColored: Boolean,
+    maxPixels: Long,
+): Mat {
     val widthTop = norm(quad.topLeft, quad.topRight)
     val widthBottom = norm(quad.bottomLeft, quad.bottomRight)
     val targetWidth = (widthTop + widthBottom) / 2
@@ -153,27 +145,11 @@ fun extractDocument(
     val outputSize = Size(targetWidth, targetHeight)
     Imgproc.warpPerspective(inputMat, outputMat, transform, outputSize)
 
-    val resized = resize(outputMat, 1500.0)
-    val isColored = isColoredDocument(inputMat, mask, quad)
+    val resized = resizeForMaxPixels(outputMat, maxPixels.toDouble())
     val enhanced = enhanceCapturedImage(resized, isColored)
     val rotated = rotate(enhanced, rotationDegrees)
 
-    return ExtractedDocument(rotated, PageAnalysis(isColored))
-}
-
-fun resize(original: Mat, targetMax: Double): Mat {
-    val origSize = original.size()
-    if (max(origSize.width, origSize.height) < targetMax)
-        return original;
-    var targetWidth = targetMax
-    var targetHeight = origSize.height * targetWidth / origSize.width
-    if (origSize.width < origSize.height) {
-        targetHeight = targetMax
-        targetWidth = origSize.width * targetHeight / origSize.height
-    }
-    val result = Mat()
-    Imgproc.resize(original, result, Size(targetWidth, targetHeight), 0.0, 0.0, Imgproc.INTER_AREA)
-    return result
+    return rotated
 }
 
 fun rotate(input: Mat, degrees: Int): Mat {

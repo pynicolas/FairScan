@@ -21,6 +21,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
@@ -41,6 +42,8 @@ import org.fairscan.app.AppContainer
 import org.fairscan.app.RecentDocument
 import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.ImageRepository
+import org.fairscan.app.domain.ExportQuality
+import org.fairscan.app.domain.jpegsForExport
 import org.fairscan.app.ui.screens.settings.ExportFormat
 import java.io.File
 import java.io.FileInputStream
@@ -64,16 +67,16 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private val _events = MutableSharedFlow<ExportEvent>()
     val events = _events.asSharedFlow()
 
-    private suspend fun generatePdf(): ExportResult.Pdf = withContext(Dispatchers.IO) {
-        val imageIds = imageRepository.imageIds()
-        val jpegs = imageIds.asSequence()
-            .mapNotNull { id -> imageRepository.getContent(id) }
+    private suspend fun generatePdf(
+        exportQuality: ExportQuality
+    ): ExportResult.Pdf = withContext(Dispatchers.IO) {
+        val jpegs = jpegsForExport(imageRepository, exportQuality)
         val pdf = fileManager.generatePdf(jpegs)
         return@withContext ExportResult.Pdf(pdf.file, pdf.sizeInBytes, pdf.pageCount)
     }
 
     suspend fun generatePdfForExternalCall(): ExportResult.Pdf {
-        return generatePdf()
+        return generatePdf(ExportQuality.BALANCED)
     }
 
     private val _uiState = MutableStateFlow(ExportUiState())
@@ -91,21 +94,21 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         cancelPreparation()
 
         preparationJob = viewModelScope.launch {
+            val exportQuality = settingsRepository.exportQuality.first()
             exportFormat = settingsRepository.exportFormat.first()
             _uiState.update { it.copy(format = exportFormat) }
             try {
+                val t1 = System.currentTimeMillis()
                 val result = if (exportFormat == ExportFormat.JPEG) {
-                    val jpegFiles = imageRepository.imageIds()
-                        .mapNotNull { id -> imageRepository.getFileFor(id) }
-                        .map { f -> f.copyTo(File(preparationDir, f.name), overwrite = true) }
-                    val sizeInBytes = jpegFiles.sumOf { it.length() }
-                    ExportResult.Jpeg(jpegFiles, sizeInBytes)
+                    generateJpegs(exportQuality)
                 } else {
-                    generatePdf()
+                    generatePdf(exportQuality)
                 }
                 _uiState.update {
                     it.copy(isGenerating = false, result = result)
                 }
+                val t2 = System.currentTimeMillis()
+                Log.i("Export", "Generation time: ${t2-t1} ms")
             } catch (e: Exception) {
                 val message = "Failed to prepare $exportFormat export"
                 logger.e("FairScan", message, e)
@@ -117,6 +120,20 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                 }
             }
         }
+    }
+
+    private suspend fun generateJpegs(
+        exportQuality: ExportQuality
+    ): ExportResult.Jpeg = withContext(Dispatchers.IO) {
+        val jpegs = jpegsForExport(imageRepository, exportQuality)
+        val timestamp = System.currentTimeMillis()
+        val files = jpegs.mapIndexed { index, bytes ->
+            val file = File(preparationDir, "$timestamp-${index + 1}.jpg")
+            file.writeBytes(bytes)
+            file
+        }.toList()
+        val sizeInBytes = files.sumOf { it.length() }
+        ExportResult.Jpeg(files, sizeInBytes)
     }
 
     fun cancelPreparation() {

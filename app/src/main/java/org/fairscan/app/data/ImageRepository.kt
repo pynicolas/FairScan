@@ -146,6 +146,11 @@ class ImageRepository(
         return if (file.exists()) file else null
     }
 
+    fun getSourceFor(id: String): ByteArray? {
+        val file = File(sourceDir, id)
+        return if (file.exists()) file.readBytes() else null
+    }
+
     fun getThumbnail(id: String): ByteArray? {
         val thumbFile = getThumbnailFile(id)
         if (!thumbFile.exists()) {
