@@ -25,7 +25,6 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import org.opencv.imgproc.Imgproc.fillConvexPoly
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 fun isColoredDocument(
     img: Mat,
@@ -95,18 +94,6 @@ fun isColoredDocument(
 
     val proportion = coloredPixels.toDouble() / totalPixels.toDouble()
     return proportion > proportionThreshold
-}
-
-private fun resizeForMaxPixels(img: Mat, maxPixels: Double): Mat {
-    val origPixels = img.width() * img.height()
-    if (origPixels <= maxPixels) {
-        return img.clone()
-    }
-    val scale = sqrt(maxPixels / origPixels)
-    val size = Size(img.width() * scale, img.height() * scale)
-    val resizedImg = Mat()
-    Imgproc.resize(img, resizedImg, size, 0.0, 0.0, Imgproc.INTER_AREA)
-    return resizedImg
 }
 
 private fun chroma(a: Mat, b: Mat): Mat {

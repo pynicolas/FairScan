@@ -20,6 +20,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.fairscan.app.domain.ExportQuality
 
 private val Context.dataStore by preferencesDataStore(name = "fairscan_settings")
 
@@ -27,6 +28,7 @@ class SettingsRepository(private val context: Context) {
 
     private val EXPORT_DIR_URI = stringPreferencesKey("export_dir_uri")
     private val EXPORT_FORMAT = stringPreferencesKey("export_format")
+    private val EXPORT_QUALITY = stringPreferencesKey("export_quality")
 
     val exportDirUri: Flow<String?> =
         context.dataStore.data.map { prefs ->
@@ -39,6 +41,16 @@ class SettingsRepository(private val context: Context) {
                 "JPEG" -> ExportFormat.JPEG
                 "PDF", null -> ExportFormat.PDF
                 else -> ExportFormat.PDF
+            }
+        }
+
+    val exportQuality: Flow<ExportQuality> =
+        context.dataStore.data.map { prefs ->
+            when (prefs[EXPORT_QUALITY]) {
+                "LOW" -> ExportQuality.LOW
+                "HIGH" -> ExportQuality.HIGH
+                "BALANCED", null -> ExportQuality.BALANCED
+                else -> ExportQuality.BALANCED
             }
         }
 
@@ -55,6 +67,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setExportFormat(format: ExportFormat) {
         context.dataStore.edit { prefs ->
             prefs[EXPORT_FORMAT] = format.name
+        }
+    }
+
+    suspend fun setExportQuality(quality: ExportQuality) {
+        context.dataStore.edit { prefs ->
+            prefs[EXPORT_QUALITY] = quality.name
         }
     }
 }

@@ -253,6 +253,7 @@ class MainActivity : ComponentActivity() {
             },
             onResetExportDirClick = { settingsViewModel.setExportDirUri(null) },
             onExportFormatChanged = { format -> settingsViewModel.setExportFormat(format) },
+            onExportQualityChanged = { quality -> settingsViewModel.setExportQuality(quality) },
             onBack = nav.back,
         )
     }

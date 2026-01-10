@@ -50,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import org.fairscan.app.R
+import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.ui.components.BackButton
 import org.fairscan.app.ui.theme.FairScanTheme
 
@@ -60,6 +61,7 @@ fun SettingsScreen(
     onChooseDirectoryClick: () -> Unit,
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
+    onExportQualityChanged: (ExportQuality) -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler { onBack() }
@@ -76,6 +78,7 @@ fun SettingsScreen(
             onChooseDirectoryClick,
             onResetExportDirClick,
             onExportFormatChanged,
+            onExportQualityChanged,
             modifier = Modifier.padding(paddingValues))
     }
 }
@@ -86,6 +89,7 @@ private fun SettingsContent(
     onChooseDirectoryClick: () -> Unit,
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
+    onExportQualityChanged: (ExportQuality) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -113,6 +117,26 @@ private fun SettingsContent(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             ) {
                 Text(stringResource(R.string.reset_to_default))
+            }
+        }
+
+        Spacer(Modifier.height(32.dp))
+
+        Text("Export quality", style = MaterialTheme.typography.titleLarge)
+
+        ExportQuality.entries.forEach { quality ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = uiState.exportQuality == quality,
+                    onClick = { onExportQualityChanged(quality) },
+                )
+                Text(
+                    when (quality) {
+                        ExportQuality.LOW -> "Low (smaller files)"
+                        ExportQuality.BALANCED -> "Balanced"
+                        ExportQuality.HIGH -> "High (best quality)"
+                    }
+                )
             }
         }
 
@@ -207,6 +231,7 @@ fun SettingsScreenPreview(uiState: SettingsUiState) {
             onChooseDirectoryClick = {},
             onResetExportDirClick = {},
             onExportFormatChanged = {},
+            onExportQualityChanged = {},
             onBack = {}
         )
     }
