@@ -96,7 +96,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         preparationJob = viewModelScope.launch {
             val exportQuality = settingsRepository.exportQuality.first()
             exportFormat = settingsRepository.exportFormat.first()
-            _uiState.update { it.copy(format = exportFormat) }
+            _uiState.update { it.copy(format = exportFormat, isGenerating = true) }
             try {
                 val t1 = System.currentTimeMillis()
                 val result = if (exportFormat == ExportFormat.JPEG) {
@@ -108,7 +108,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                     it.copy(isGenerating = false, result = result)
                 }
                 val t2 = System.currentTimeMillis()
-                Log.i("Export", "Generation time: ${t2-t1} ms")
+                val pageCount = result.pageCount
+                Log.i("Export", "Generation: $pageCount pages, $exportQuality, ${t2-t1} ms")
             } catch (e: Exception) {
                 val message = "Failed to prepare $exportFormat export"
                 logger.e("FairScan", message, e)
