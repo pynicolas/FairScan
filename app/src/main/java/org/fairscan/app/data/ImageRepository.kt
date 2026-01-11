@@ -180,6 +180,7 @@ class ImageRepository(
 
     fun delete(id: String) {
         File(scanDir, id).delete()
+        File(sourceDir, id).delete()
         getThumbnailFile(id).delete()
         pages.removeAll { it.file == id }
         saveMetadata()

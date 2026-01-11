@@ -76,9 +76,13 @@ class ImageRepositoryTest {
         val repo = repo()
         val bytes = byteArrayOf(101, 102, 103)
         repo.add(bytes, byteArrayOf(51), metadata1)
+        assertThat(jpegFiles(scanDir())).hasSize(1)
+        assertThat(jpegFiles(sourceDir())).hasSize(1)
         assertThat(repo.imageIds()).hasSize(1)
         repo.delete(repo.imageIds()[0])
         assertThat(repo.imageIds()).isEmpty()
+        assertThat(jpegFiles(scanDir())).hasSize(0)
+        assertThat(jpegFiles(sourceDir())).hasSize(0)
         val repo2 = repo()
         assertThat(repo2.imageIds()).isEmpty()
     }
@@ -92,19 +96,17 @@ class ImageRepositoryTest {
 
     @Test
     fun `should find existing files at initialization with no json`() {
-        val scanDir = File(getFilesDir(), SCAN_DIR_NAME)
-        scanDir.mkdirs()
-        File(scanDir, "1.jpg").writeBytes(byteArrayOf(101, 102, 103))
+        scanDir().mkdirs()
+        File(scanDir(), "1.jpg").writeBytes(byteArrayOf(101, 102, 103))
         assertThat(repo().imageIds()).containsExactly("1.jpg")
     }
 
     @Test
     fun `should filter pages in json at initialization`() {
-        val scanDir = File(getFilesDir(), SCAN_DIR_NAME)
-        scanDir.mkdirs()
+        scanDir().mkdirs()
         val json = """{"pages":[{"file":"1.jpg"}, {"file":"2.jpg"}]}"""
-        File(scanDir, "document.json").writeText(json)
-        File(scanDir, "2.jpg").writeBytes(byteArrayOf(101, 102, 103))
+        File(scanDir(), "document.json").writeText(json)
+        File(scanDir(), "2.jpg").writeBytes(byteArrayOf(101, 102, 103))
         assertThat(repo().imageIds()).containsExactly("2.jpg")
     }
 
@@ -123,12 +125,9 @@ class ImageRepositoryTest {
         assertThat(repo1.imageIds()).isNotEmpty()
         repo1.clear()
         assertThat(repo1.imageIds()).isEmpty()
-        assertThat(File(getFilesDir(), SCAN_DIR_NAME)
-            .listFiles { f -> f.name.endsWith(".jpg") })
-            .isEmpty()
-        assertThat(File(getFilesDir(), THUMBNAIL_DIR_NAME)
-            .listFiles { f -> f.name.endsWith(".jpg") })
-            .isEmpty()
+        assertThat(jpegFiles(scanDir())).isEmpty()
+        assertThat(jpegFiles(sourceDir())).isEmpty()
+        assertThat(jpegFiles(File(getFilesDir(), THUMBNAIL_DIR_NAME))).isEmpty()
         val repo2 = repo()
         assertThat(repo2.imageIds()).isEmpty()
     }
@@ -189,4 +188,10 @@ class ImageRepositoryTest {
             assertThat(metadata!!.isColored).isEqualTo(isColored)
         }
     }
+
+    private fun scanDir(): File = File(getFilesDir(), SCAN_DIR_NAME)
+    private fun sourceDir(): File = File(getFilesDir(), SOURCE_DIR_NAME)
+
+    private fun jpegFiles(dir: File): Array<out File?>?
+        = dir.listFiles { f -> f.name.endsWith(".jpg") }
 }
