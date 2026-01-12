@@ -14,8 +14,15 @@
  */
 package org.fairscan.app.data
 
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.toPersistentList
 import org.assertj.core.api.Assertions.assertThat
 import org.fairscan.app.domain.PageMetadata
+import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.domain.Rotation.R0
+import org.fairscan.app.domain.Rotation.R180
+import org.fairscan.app.domain.Rotation.R270
+import org.fairscan.app.domain.Rotation.R90
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.junit.Rule
@@ -31,7 +38,7 @@ class ImageRepositoryTest {
     private var _filesDir: File? = null
 
     val quad1 = Quad(Point(.01, .02), Point(.1, .03), Point(.11, .12), Point(.03, .09))
-    val metadata1 = PageMetadata(quad1, 90, true)
+    val metadata1 = PageMetadata(quad1, R90, R0, true)
 
     fun getFilesDir(): File {
         if (_filesDir == null) {
@@ -60,14 +67,17 @@ class ImageRepositoryTest {
         repo.add(bytes, byteArrayOf(51), metadata1)
         assertThat(repo.imageIds()).hasSize(1)
         val id = repo.imageIds()[0]
-        assertThat(repo.getContent(id)).isEqualTo(bytes)
-        assertThat(repo.getThumbnail(id)).isEqualTo(byteArrayOf(101))
+        val key = PageViewKey(id, R0)
+        assertThat(repo.jpegBytes(key)).isEqualTo(bytes)
+        assertThat(repo.getThumbnail(key)).isEqualTo(byteArrayOf(101))
 
-        assertThat(repo().getPageMetadata("x")).isNull()
-        val metadata = repo.getPageMetadata(id)
+        val page = repo.pages().first()
+        assertThat(page.id).isEqualTo(id)
+        val metadata = page.metadata
         assertThat(metadata).isNotNull()
         assertThat(metadata!!.normalizedQuad).isEqualTo(quad1)
-        assertThat(metadata.rotationDegrees).isEqualTo(metadata1.rotationDegrees)
+        assertThat(metadata.baseRotation).isEqualTo(metadata1.baseRotation)
+        assertThat(metadata.manualRotation).isEqualTo(metadata1.manualRotation)
         assertThat(metadata.isColored).isEqualTo(metadata1.isColored)
     }
 
@@ -98,7 +108,17 @@ class ImageRepositoryTest {
     fun `should find existing files at initialization with no json`() {
         scanDir().mkdirs()
         File(scanDir(), "1.jpg").writeBytes(byteArrayOf(101, 102, 103))
-        assertThat(repo().imageIds()).containsExactly("1.jpg")
+        assertThat(repo().imageIds()).containsExactly("1")
+    }
+
+    @Test
+    fun `should find existing files at initialization with no json and with rotation`() {
+        scanDir().mkdirs()
+        val bytes = byteArrayOf(101, 102, 103)
+        File(scanDir(), "1-90.jpg").writeBytes(bytes)
+        val repo = repo()
+        assertThat(repo.imageIds()).containsExactly("1")
+        assertThat(repo.jpegBytes("1")).isEqualTo(bytes)
     }
 
     @Test
@@ -107,14 +127,14 @@ class ImageRepositoryTest {
         val json = """{"pages":[{"file":"1.jpg"}, {"file":"2.jpg"}]}"""
         File(scanDir(), "document.json").writeText(json)
         File(scanDir(), "2.jpg").writeBytes(byteArrayOf(101, 102, 103))
-        assertThat(repo().imageIds()).containsExactly("2.jpg")
+        assertThat(repo().imageIds()).containsExactly("2")
     }
 
     @Test
     fun `should return null on invalid id`() {
         val repo = repo()
         assertThat(repo.imageIds()).isEmpty()
-        assertThat(repo.getContent("x")).isNull()
+        assertThat(repo.jpegBytes("x")).isNull()
     }
 
     @Test
@@ -136,28 +156,19 @@ class ImageRepositoryTest {
     fun rotate() {
         val repo = repo()
         repo.add(byteArrayOf(101, 102, 103), byteArrayOf(51), metadata1)
-        val id0 = repo.imageIds().last()
-        val baseId = id0.substring(0, id0.length - 4)
-
-        repo.rotate(id0, true)
-        val id1 = repo.imageIds().last()
-        assertThat(id1).isEqualTo("$baseId-90.jpg")
-
-        repo.rotate(id1, true)
-        val id2 = repo.imageIds().last()
-        assertThat(id2).isEqualTo("$baseId-180.jpg")
-
-        repo.rotate(id2, true)
-        val id3 = repo.imageIds().last()
-        assertThat(id3).isEqualTo("$baseId-270.jpg")
-
-        repo.rotate(id3, true)
-        val id4 = repo.imageIds().last()
-        assertThat(id4).isEqualTo("$baseId.jpg")
-
-        repo.rotate(id4, false)
-        val id5 = repo.imageIds().last()
-        assertThat(id5).isEqualTo("$baseId-270.jpg")
+        assertThat(metadata1.manualRotation).isEqualTo(R0)
+        assertThat(repo.pages().last().metadata).isEqualTo(metadata1)
+        val id = repo.pages().last().id
+        repo.rotate(id, true)
+        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R90))
+        repo.rotate(id, true)
+        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R180))
+        repo.rotate(id, true)
+        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R270))
+        repo.rotate(id, true)
+        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R0))
+        repo.rotate(id, false)
+        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R270))
     }
 
     @Test
@@ -179,14 +190,16 @@ class ImageRepositoryTest {
     fun metadata() {
         val quad = quad1.toSerializable()
 
-        assertThat(Page("f1", null, 0, true).toMetadata()).isNull()
-        assertThat(Page("f1", quad, 0, null).toMetadata()).isNull()
+        assertThat(PageV2("1", 0, 0, null,true).toMetadata()).isNull()
+        assertThat(PageV2("1", 0, 0, quad, null).toMetadata()).isNull()
 
         listOf(true, false).forEach { isColored ->
-            val metadata = Page("f1", quad, 0, isColored).toMetadata()
+            val metadata = PageV2("1", 0, 0, quad, isColored).toMetadata()
             assertThat(metadata).isNotNull()
             assertThat(metadata!!.isColored).isEqualTo(isColored)
         }
+
+        assertThat(PageV2("1", 42, 0, quad, true).toMetadata()).isNull()
     }
 
     private fun scanDir(): File = File(getFilesDir(), SCAN_DIR_NAME)
@@ -194,4 +207,7 @@ class ImageRepositoryTest {
 
     private fun jpegFiles(dir: File): Array<out File?>?
         = dir.listFiles { f -> f.name.endsWith(".jpg") }
+
+    fun ImageRepository.imageIds(): PersistentList<String> =
+        pages().map { it.id }.toPersistentList()
 }

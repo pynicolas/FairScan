@@ -16,28 +16,29 @@ package org.fairscan.app.ui.state
 
 import android.graphics.Bitmap
 import kotlinx.collections.immutable.ImmutableList
+import org.fairscan.app.domain.PageViewKey
 
 data class DocumentUiModel(
-    val pageIds: ImmutableList<String>,
-    private val imageLoader: (String) -> Bitmap?,
-    private val thumbnailLoader: (String) -> Bitmap?
+    val pageKeys: ImmutableList<PageViewKey>,
+    private val imageLoader: (PageViewKey) -> Bitmap?,
+    private val thumbnailLoader: (PageViewKey) -> Bitmap?
 ) {
     fun pageCount(): Int {
-        return pageIds.size
+        return pageKeys.size
     }
     fun pageId(index: Int): String {
-        return pageIds[index]
+        return pageKeys[index].pageId
     }
     fun isEmpty(): Boolean {
-        return pageIds.isEmpty()
+        return pageKeys.isEmpty()
     }
     fun lastIndex(): Int {
-        return pageIds.lastIndex
+        return pageKeys.lastIndex
     }
     fun load(index: Int): Bitmap? {
-        return imageLoader(pageIds[index])
+        return imageLoader(pageKeys[index])
     }
     fun loadThumbnail(index: Int): Bitmap? {
-        return thumbnailLoader(pageIds[index])
+        return thumbnailLoader(pageKeys[index])
     }
 }

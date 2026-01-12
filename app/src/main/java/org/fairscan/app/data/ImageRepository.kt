@@ -14,10 +14,15 @@
  */
 package org.fairscan.app.data
 
-import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.fairscan.app.domain.PageMetadata
+import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.domain.Rotation
+import org.fairscan.app.domain.ScanPage
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import java.io.File
@@ -46,127 +51,186 @@ class ImageRepository(
 
     private val metadataFile = File(scanDir, "document.json")
 
-    private var pages: MutableList<Page> = loadPages()
+    private var pages: MutableList<PageV2> = loadPages()
 
-    private fun loadPages(): MutableList<Page> {
+    private val json = Json {
+        prettyPrint = false
+        encodeDefaults = true
+    }
+
+    private fun loadPages(): MutableList<PageV2> {
         val filesOnDisk = scanDir.listFiles()
             ?.filter { it.extension == "jpg" }
             ?.map { it.name }
             ?.toSet()
             ?: emptySet()
 
-        val metadataPages = loadMetadata()?.pages
+        val metadataPages = if (metadataFile.exists()) {
+            runCatching { loadMetadata() }.getOrNull()
+        } else null
 
         return when {
             metadataPages != null ->
                 metadataPages
-                    .filter { it.file in filesOnDisk }
+                    .filter { it.workFileName() in filesOnDisk }
                     .toMutableList()
             else ->
                 filesOnDisk
                     .sorted()
-                    .map { Page(file = it) }
+                    .map { pageFromFileName(it) }
                     .toMutableList()
         }
     }
 
     private fun indexOfPage(id: String): Int =
-        pages.indexOfFirst { it.file == id }
+        pages.indexOfFirst { it.id == id }
 
-    private fun loadMetadata(): DocumentMetadata? =
-        if (metadataFile.exists()) {
-            runCatching {
-                Json.decodeFromString<DocumentMetadata>(metadataFile.readText())
-            }.getOrNull()
-        } else null
+    private fun loadMetadata(): List<PageV2> {
+        val json = metadataFile.readText()
+
+        val jsonElement = Json.parseToJsonElement(json)
+        val version = jsonElement.jsonObject["version"]?.jsonPrimitive?.int ?: 1
+
+        return when (version) {
+            1 -> migrateFromV1(Json.decodeFromJsonElement<DocumentMetadataV1>(jsonElement))
+            2 -> Json.decodeFromJsonElement<DocumentMetadataV2>(jsonElement).pages
+            else -> error("Unsupported metadata version: $version")
+        }
+    }
+
+    private fun migrateFromV1(meta: DocumentMetadataV1): MutableList<PageV2> {
+        return meta.pages.map {
+            old -> pageFromFileName(old.file)
+        }.toMutableList()
+    }
+
+    private fun pageFromFileName(fileName: String): PageV2 {
+        val fileName = fileName.removeSuffix(".jpg")
+        val dashIndex = fileName.lastIndexOf('-')
+        val rotation = if (dashIndex >= 0)
+            fileName.substring(dashIndex + 1).toInt()
+        else
+            0
+        val id = if (dashIndex >= 0) fileName.substring(0, dashIndex) else fileName
+        return PageV2(id, manualRotationDegrees = rotation)
+    }
 
     private fun saveMetadata() {
-        val metadata = DocumentMetadata(version = 1, pages = pages)
-        metadataFile.writeText(Json.encodeToString(metadata))
+        val metadata = DocumentMetadataV2(pages = pages)
+        metadataFile.writeText(json.encodeToString(metadata))
     }
 
-    fun imageIds(): PersistentList<String> =
-        pages.map { it.file }.toPersistentList()
+    fun pages(): List<ScanPage> =
+        pages.map {
+            ScanPage(it.id, it.toMetadata())
+        }
 
-    fun getPageMetadata(id: String): PageMetadata? {
-        val index = indexOfPage(id)
-        if (index < 0) return null
-        return pages[index].toMetadata()
-    }
+    // TODO time complexity should be constant
+    private fun page(id: String): PageV2? = pages.find { p -> p.id == id }
 
     fun add(pageBytes: ByteArray, sourceBytes: ByteArray, metadata: PageMetadata) {
-        val fileName = "${System.currentTimeMillis()}.jpg"
+        val id = "${System.currentTimeMillis()}"
+        val fileName = "$id.jpg"
         val file = File(scanDir, fileName)
         file.writeBytes(pageBytes)
         writeThumbnail(file)
         File(sourceDir, fileName).writeBytes(sourceBytes)
         pages.add(
-            Page(
-                file = fileName,
+            PageV2(
+                id = id,
                 quad = metadata.normalizedQuad.toSerializable(),
-                rotationDegrees = metadata.rotationDegrees,
+                baseRotationDegrees = metadata.baseRotation.degrees,
+                manualRotationDegrees = metadata.manualRotation.degrees,
                 isColored = metadata.isColored
             )
         )
         saveMetadata()
     }
 
-    val idRegex = Regex("([0-9]+)(-(90|180|270))?\\.jpg")
+    private fun workFileName(key: PageViewKey): String =
+        workFileName(key.pageId, key.rotation)
+
+    private fun workFileName(pageId: String, manualRotation: Rotation): String =
+        workFileName(pageId, manualRotation.degrees)
+
+    private fun workFileName(pageId: String, manualRotationDegrees: Int): String =
+        when (manualRotationDegrees) {
+            0 -> "$pageId.jpg"
+            else -> "$pageId-${manualRotationDegrees}.jpg"
+        }
+
+    fun PageV2.workFileName() = workFileName(id, manualRotationDegrees)
 
     fun rotate(id: String, clockwise: Boolean) {
-        val originalFile = File(scanDir, id)
-        if (!originalFile.exists()) {
+        val index = indexOfPage(id)
+        if (index < 0)
             return
+        val page = pages[index]
+
+        val delta = if (clockwise) Rotation.R90 else Rotation.R270
+        val currentManualRotation = Rotation.fromDegrees(page.manualRotationDegrees)
+        val newManualRotation = currentManualRotation.add(delta)
+        if (newManualRotation == currentManualRotation) {
+            return // no-op
         }
-        idRegex.matchEntire(id)?.let {
-            val baseId = it.groupValues[1]
-            val degrees = it.groupValues[3].ifEmpty { "0" }.toInt()
-            val targetDegrees = (degrees + (if (clockwise) 90 else 270)) % 360
-            val rotatedId = if (targetDegrees == 0) "$baseId.jpg" else "$baseId-$targetDegrees.jpg"
-            val rotatedFile = File(scanDir, rotatedId)
-            transformations.rotate(originalFile, rotatedFile, clockwise)
-            if (rotatedFile.exists()) {
-                val index = indexOfPage(id)
-                if (index >= 0) {
-                    val oldPage = pages[index]
-                    pages[index] = oldPage.copy(file = rotatedId)
-                    saveMetadata()
-                }
-                delete(id)
-            }
+
+        val targetFileName = workFileName(page.id, newManualRotation)
+        val outputFile = File(scanDir, targetFileName)
+        if (!outputFile.exists()) {
+            val inputFile = File(scanDir, page.workFileName())
+            if (!inputFile.exists())
+                return
+            transformations.rotate(inputFile, outputFile, clockwise)
         }
+
+        pages[index] = page.copy(
+            manualRotationDegrees = newManualRotation.degrees,
+        )
+        saveMetadata()
     }
 
-    fun getContent(id: String): ByteArray? {
-        return getFileFor(id)?.readBytes()
+    fun jpegBytes(key: PageViewKey): ByteArray? {
+        val file = File(scanDir, workFileName(key))
+        return (if (file.exists()) file else null)?.readBytes()
     }
 
-    fun getFileFor(id: String): File? {
-        val file = File(scanDir, id)
-        return if (file.exists()) file else null
+    fun jpegBytes(id: String): ByteArray? {
+        val page = page(id)
+        if (page == null) return null
+        val file =  File(scanDir, page.workFileName())
+        return (if (file.exists()) file else null)?.readBytes()
     }
 
-    fun getSourceFor(id: String): ByteArray? {
-        val file = File(sourceDir, id)
+    fun sourceJpegBytes(id: String): ByteArray? {
+        val file = getSourceFile(id)
         return if (file.exists()) file.readBytes() else null
     }
 
-    fun getThumbnail(id: String): ByteArray? {
-        val thumbFile = getThumbnailFile(id)
+    private fun getSourceFile(id: String): File {
+        return File(sourceDir, "$id.jpg")
+    }
+
+    fun getThumbnail(key: PageViewKey): ByteArray? {
+        val thumbFile = getThumbnailFile(key)
+        if (thumbFile == null) {
+            return null
+        }
         if (!thumbFile.exists()) {
-            val originalFile = File(scanDir, id)
-            if (!originalFile.exists()) return null
-            writeThumbnail(originalFile)
+            val workFile = File(scanDir, workFileName(key))
+            if (!workFile.exists()) return null
+            writeThumbnail(workFile)
         }
         return if (thumbFile.exists()) thumbFile.readBytes() else null
     }
 
     private fun writeThumbnail(originalFile: File) {
-        val thumbFile = getThumbnailFile(originalFile.name)
+        val thumbFile = File(thumbnailDir, originalFile.name)
         transformations.resize(originalFile, thumbFile, thumbnailSizePx)
     }
 
-    private fun getThumbnailFile(id: String): File = File(thumbnailDir, id)
+    private fun getThumbnailFile(key: PageViewKey): File? {
+        return File(thumbnailDir, workFileName(key))
+    }
 
     fun movePage(id: String, newIndex: Int) {
         val index = indexOfPage(id)
@@ -179,15 +243,24 @@ class ImageRepository(
     }
 
     fun delete(id: String) {
-        File(scanDir, id).delete()
-        File(sourceDir, id).delete()
-        getThumbnailFile(id).delete()
-        pages.removeAll { it.file == id }
+        val index = indexOfPage(id)
+        if (index < 0)
+            return
+        pages.removeAt(index)
         saveMetadata()
+
+        getSourceFile(id).delete()
+        scanDir.listFiles()
+            ?.filter { it.name.startsWith("${id}.") || it.name.startsWith("$id-") }
+            ?.forEach { it.delete() }
+        thumbnailDir.listFiles()
+            ?.filter { it.name.startsWith("${id}.") || it.name.startsWith("$id-") }
+            ?.forEach { it.delete() }
     }
 
     fun clear() {
         pages.clear()
+        saveMetadata() // "empty" json file
         thumbnailDir.listFiles()?.forEach {
             file -> file.delete()
         }
@@ -197,7 +270,6 @@ class ImageRepository(
         sourceDir.listFiles()?.forEach {
             file -> file.delete()
         }
-        saveMetadata() // "empty" json file
     }
 }
 
@@ -215,9 +287,16 @@ fun NormalizedQuad.toQuad(): Quad =
         Point(topRight.x, topRight.y),
         Point(bottomRight.x, bottomRight.y),
         Point(bottomLeft.x, bottomLeft.y)
-)
+    )
 
-fun Page.toMetadata(): PageMetadata? {
-    if (quad == null || isColored == null) return null
-    return PageMetadata(quad.toQuad(), rotationDegrees, isColored)
+fun PageV2.toMetadata(): PageMetadata? {
+    return runCatching {
+        if (quad == null || isColored == null) return null
+        PageMetadata(
+            quad.toQuad(),
+            Rotation.fromDegrees(baseRotationDegrees),
+            Rotation.fromDegrees(manualRotationDegrees),
+            isColored
+        )
+    }.getOrNull()
 }

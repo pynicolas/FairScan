@@ -18,6 +18,34 @@ import org.fairscan.imageprocessing.Quad
 
 data class PageMetadata(
     val normalizedQuad: Quad,
-    val rotationDegrees: Int,
+    val baseRotation: Rotation,
+    val manualRotation: Rotation,
     val isColored: Boolean,
 )
+
+data class ScanPage(
+    val id: String,
+    val metadata: PageMetadata?,
+)
+
+data class PageViewKey(
+    val pageId: String,
+    val rotation: Rotation,
+) {
+    val saveKey: String get() = "$pageId-${rotation.degrees}"
+}
+
+enum class Rotation(val degrees: Int) {
+    R0(0),
+    R90(90),
+    R180(180),
+    R270(270);
+
+    fun add(other: Rotation): Rotation =
+        fromDegrees((degrees + other.degrees) % 360)
+
+    companion object {
+        fun fromDegrees(deg: Int): Rotation =
+            entries.first { it.degrees == ((deg % 360 + 360) % 360) }
+    }
+}

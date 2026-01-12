@@ -28,26 +28,27 @@ fun jpegsForExport(
     exportQuality: ExportQuality
 ): Sequence<ByteArray> {
 
-    val imageIds = imageRepository.imageIds()
-    val baseJpegs = imageIds.asSequence().mapNotNull { id -> imageRepository.getContent(id) }
+    val pages = imageRepository.pages().asSequence()
     return when (exportQuality) {
-        ExportQuality.BALANCED -> baseJpegs
-        ExportQuality.LOW -> baseJpegs.mapNotNull { jpeg ->
-            resizeJpegBytesForMaxPixels(
-                jpegBytes = jpeg,
-                maxPixels = exportQuality.maxPixels.toDouble(),
-                jpegQuality = exportQuality.jpegQuality
-            )
-        }
-        ExportQuality.HIGH -> {
-            imageIds.asSequence().mapNotNull { id ->
-                val sourceJpegBytes = imageRepository.getSourceFor(id)
-                val pageMetadata = imageRepository.getPageMetadata(id)
-                if (sourceJpegBytes != null && pageMetadata != null)
-                    prepareJpegForHigh(sourceJpegBytes, pageMetadata, ExportQuality.HIGH)
-                else
-                    imageRepository.getContent(id)
+        ExportQuality.BALANCED -> pages.mapNotNull { imageRepository.jpegBytes(it.id) }
+
+        ExportQuality.LOW -> pages.mapNotNull { page ->
+            imageRepository.jpegBytes(page.id)?.let { jpeg ->
+                resizeJpegBytesForMaxPixels(
+                    jpegBytes = jpeg,
+                    maxPixels = exportQuality.maxPixels.toDouble(),
+                    jpegQuality = exportQuality.jpegQuality
+                )
             }
+        }
+
+        ExportQuality.HIGH -> pages.mapNotNull { page ->
+            val sourceJpegBytes = imageRepository.sourceJpegBytes(page.id)
+            val pageMetadata = page.metadata
+            if (sourceJpegBytes != null && pageMetadata != null)
+                prepareJpegForHigh(sourceJpegBytes, pageMetadata, exportQuality)
+            else
+                imageRepository.jpegBytes(page.id)
         }
     }
 }
@@ -83,7 +84,7 @@ fun prepareJpegForHigh(
     val page = extractDocument(
         decoded,
         quad,
-        pageMetadata.rotationDegrees,
+        pageMetadata.baseRotation.add(pageMetadata.manualRotation).degrees,
         pageMetadata.isColored,
         exportQuality.maxPixels)
     val outJpegBytes = encodeJpeg(page, exportQuality.jpegQuality)

@@ -17,16 +17,28 @@ package org.fairscan.app.data
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DocumentMetadata(
+data class DocumentMetadataV1(
     val version: Int = 1,
-    val pages: List<Page>
+    val pages: List<PageV1>
 )
 
 @Serializable
-data class Page(
-    val file: String,
+data class PageV1(
+    val file: String
+)
+
+@Serializable
+data class DocumentMetadataV2(
+    val version: Int = 2,
+    val pages: List<PageV2>
+)
+
+@Serializable
+data class PageV2(
+    val id: String,
+    val baseRotationDegrees: Int = 0,
+    val manualRotationDegrees: Int = 0,
     val quad: NormalizedQuad? = null,
-    val rotationDegrees: Int = 0,
     val isColored: Boolean? = null
 )
 

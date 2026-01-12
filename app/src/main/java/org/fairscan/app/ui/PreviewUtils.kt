@@ -18,6 +18,9 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.state.DocumentUiModel
 
 fun dummyNavigation(): Navigation {
@@ -29,10 +32,11 @@ fun fakeDocument(): DocumentUiModel {
 }
 
 fun fakeDocument(pageIds: ImmutableList<String>, context: Context): DocumentUiModel {
-    val loader = { id:String ->
-        context.assets.open(id).use { input ->
+    val loader = { key: PageViewKey ->
+        context.assets.open("${key.pageId}.jpg").use { input ->
             BitmapFactory.decodeStream(input)
         }
     }
-    return DocumentUiModel(pageIds, loader, loader)
+    val pageKeys = pageIds.map { PageViewKey(it, Rotation.R0) }.toImmutableList()
+    return DocumentUiModel(pageKeys, loader, loader)
 }

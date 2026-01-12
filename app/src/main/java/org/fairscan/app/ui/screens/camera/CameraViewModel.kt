@@ -34,6 +34,7 @@ import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.PageMetadata
+import org.fairscan.app.domain.Rotation
 import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
@@ -206,7 +207,8 @@ fun extractDocumentFromBitmap(
     val outBitmap = toBitmap(outBgr)
     outBgr.release()
     val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
-    val metadata = PageMetadata(normalizedQuad, rotationDegrees, isColored)
+    val baseRotation = Rotation.fromDegrees(rotationDegrees)
+    val metadata = PageMetadata(normalizedQuad, baseRotation, Rotation.R0, isColored)
     return CapturedPage(outBitmap, source, metadata)
 }
 

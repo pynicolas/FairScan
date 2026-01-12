@@ -86,6 +86,7 @@ import org.fairscan.app.MainViewModel
 import org.fairscan.app.R
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.PageMetadata
+import org.fairscan.app.domain.Rotation.R0
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.CameraPermissionState
@@ -471,7 +472,7 @@ fun CameraScreenPreviewWithProcessedImage() {
         CapturedPage(
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
-            PageMetadata(quad, 0, false))))
+            PageMetadata(quad, R0, R0, false))))
 }
 
 @Preview(showBackground = true, widthDp = 640, heightDp = 320)

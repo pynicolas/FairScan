@@ -19,6 +19,7 @@ import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.CapturedPage
+import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
@@ -39,11 +42,13 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
     val currentScreen: StateFlow<Screen> = _navigationState.map { it.current }
         .stateIn(viewModelScope, SharingStarted.Eagerly, _navigationState.value.current)
 
-    private val _pageIds = MutableStateFlow(imageRepository.imageIds())
+    private val _pages = MutableStateFlow(imageRepository.pages())
     val documentUiModel: StateFlow<DocumentUiModel> =
-        _pageIds.map { ids ->
+        _pages.map { pages ->
             DocumentUiModel(
-                pageIds = ids,
+                pageKeys = pages.map { p ->
+                    PageViewKey(p.id, p.metadata?.manualRotation?: Rotation.R0)
+                }.toImmutableList(),
                 imageLoader = ::getBitmap,
                 thumbnailLoader = ::getThumbnail,
             )
@@ -64,38 +69,38 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
     fun rotateImage(id: String, clockwise: Boolean) {
         viewModelScope.launch {
             imageRepository.rotate(id, clockwise)
-            _pageIds.value = imageRepository.imageIds()
+            _pages.value = imageRepository.pages()
         }
     }
 
     fun movePage(id: String, newIndex: Int) {
         viewModelScope.launch {
             imageRepository.movePage(id, newIndex)
-            _pageIds.value = imageRepository.imageIds()
+            _pages.value = imageRepository.pages()
         }
     }
 
     fun deletePage(id: String) {
         viewModelScope.launch {
             imageRepository.delete(id)
-            _pageIds.value = imageRepository.imageIds()
+            _pages.value = imageRepository.pages()
         }
     }
 
     fun startNewDocument() {
-        _pageIds.value = persistentListOf()
+        _pages.value = persistentListOf()
         viewModelScope.launch {
             imageRepository.clear()
         }
     }
 
-    fun getBitmap(id: String): Bitmap? {
-        val bytes = imageRepository.getContent(id)
+    fun getBitmap(key: PageViewKey): Bitmap? {
+        val bytes = imageRepository.jpegBytes(key)
         return bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
     }
 
-    fun getThumbnail(id: String): Bitmap? {
-        val bytes = imageRepository.getThumbnail(id)
+    fun getThumbnail(key: PageViewKey): Bitmap? {
+        val bytes = imageRepository.getThumbnail(key)
         return bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
     }
 
@@ -106,7 +111,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
                 compressJpeg(capturedPage.source, 90),
                 capturedPage.metadata,
             )
-            _pageIds.value = imageRepository.imageIds()
+            _pages.value = imageRepository.pages()
         }
     }
 
