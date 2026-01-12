@@ -19,6 +19,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.Rotation
@@ -62,6 +63,7 @@ class ImageRepository(
     }
 
     private fun loadPages(): MutableList<PageV2> {
+        normalizeLegacyFiles()
         val filesOnDisk = scanDir.listFiles()
             ?.filter { it.extension == "jpg" }
             ?.map { it.name }
@@ -176,13 +178,14 @@ class ImageRepository(
             return // no-op
         }
 
-        val targetFileName = workFileName(page.id, newManualRotation)
-        val outputFile = File(scanDir, targetFileName)
+        val inputFile = File(scanDir, "$id.jpg")
+        if (!inputFile.exists()) {
+            return
+        }
+        val outputFile = File(scanDir, workFileName(id, newManualRotation.degrees))
         if (!outputFile.exists()) {
-            val inputFile = File(scanDir, page.workFileName())
-            if (!inputFile.exists())
-                return
-            transformations.rotate(inputFile, outputFile, clockwise)
+            val jpegQuality = ExportQuality.BALANCED.jpegQuality
+            transformations.rotate(inputFile, outputFile, newManualRotation.degrees, jpegQuality)
         }
 
         val updated = page.copy(manualRotationDegrees = newManualRotation.degrees)
@@ -274,6 +277,35 @@ class ImageRepository(
         }
         sourceDir.listFiles()?.forEach {
             file -> file.delete()
+        }
+    }
+
+    data class DiskPageFiles(
+        val base: File?,
+        val rotated: List<File>
+    )
+
+    private fun normalizeLegacyFiles() {
+        val jpgs = scanDir.listFiles()?.filter { it.extension == "jpg" }.orEmpty()
+        val byId = jpgs.groupBy { file ->
+            val name = file.name.removeSuffix(".jpg")
+            val dash = name.lastIndexOf('-')
+            if (dash >= 0) name.substring(0, dash) else name
+        }
+        val pages = byId.mapValues { (_, files) ->
+            val base = files.find { !it.name.contains('-') }
+            val rotated = files.filter { it.name.contains('-') }
+            DiskPageFiles(base, rotated)
+        }
+        pages.forEach { (id, files) ->
+            if (files.base == null && files.rotated.isNotEmpty()) {
+                val sortedRotatedFiles = files.rotated.sortedBy { it.name }
+                val legacyFile = sortedRotatedFiles.first()
+                val target = File(scanDir, "$id.jpg")
+                if (legacyFile.renameTo(target)) {
+                    sortedRotatedFiles.drop(1).forEach { it.delete() }
+                }
+            }
         }
     }
 }

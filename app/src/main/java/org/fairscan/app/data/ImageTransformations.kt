@@ -18,7 +18,7 @@ import java.io.File
 
 interface ImageTransformations {
 
-    fun rotate(inputFile: File, outputFile: File, clockwise: Boolean)
+    fun rotate(inputFile: File, outputFile: File, rotationDegrees: Int, jpegQuality: Int)
 
     fun resize(inputFile: File, outputFile: File, maxSize: Int)
 

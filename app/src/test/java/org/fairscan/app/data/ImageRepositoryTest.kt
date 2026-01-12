@@ -49,7 +49,7 @@ class ImageRepositoryTest {
 
     fun repo(): ImageRepository {
         val transformations = object : ImageTransformations {
-            override fun rotate(inputFile: File, outputFile: File, clockwise: Boolean) {
+            override fun rotate(inputFile: File, outputFile: File, rotationDegrees: Int, jpegQuality: Int) {
                 inputFile.copyTo(outputFile)
             }
             override fun resize(inputFile: File, outputFile: File, maxSize: Int) {
@@ -128,6 +128,18 @@ class ImageRepositoryTest {
         File(scanDir(), "document.json").writeText(json)
         File(scanDir(), "2.jpg").writeBytes(byteArrayOf(101, 102, 103))
         assertThat(repo().imageIds()).containsExactly("2")
+    }
+
+    @Test
+    fun `should rename rotated files with no base file`() {
+        scanDir().mkdirs()
+        val bytes = byteArrayOf(105, 106, 107)
+        File(scanDir(), "123-90.jpg").writeBytes(bytes)
+        File(scanDir(), "123-270.jpg").writeBytes(bytes)
+        val repo = repo()
+        assertThat(repo.imageIds()).containsExactly("123")
+        val jpegFiles = jpegFiles(scanDir())
+        assertThat(jpegFiles).hasSize(1).allMatch { it?.name == "123.jpg" }
     }
 
     @Test

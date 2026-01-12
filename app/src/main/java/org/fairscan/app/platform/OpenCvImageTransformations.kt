@@ -16,29 +16,31 @@ package org.fairscan.app.platform
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import org.opencv.core.Core
-import org.opencv.core.Mat
+import androidx.core.graphics.scale
+import org.fairscan.app.data.ImageTransformations
+import org.opencv.core.MatOfInt
 import org.opencv.imgcodecs.Imgcodecs
 import java.io.File
 import kotlin.math.min
-import androidx.core.graphics.scale
-import org.fairscan.app.data.ImageTransformations
 
 class OpenCvTransformations : ImageTransformations {
-    override fun rotate(inputFile: File, outputFile: File, clockwise: Boolean) {
-        val src: Mat = Imgcodecs.imread(inputFile.absolutePath)
+    override fun rotate(
+        inputFile: File,
+        outputFile: File,
+        rotationDegrees: Int,
+        jpegQuality: Int
+    ) {
+        val src = Imgcodecs.imread(inputFile.absolutePath)
+        require(!src.empty()) { "Could not load image from ${inputFile.absolutePath}" }
 
-        require (!src.empty()) { "Could not load image from ${inputFile.absolutePath}" }
+        val dst = org.fairscan.imageprocessing.rotate(src, rotationDegrees)
 
-        val dst = Mat()
-        Core.rotate(src, dst,
-            if (clockwise) Core.ROTATE_90_CLOCKWISE else Core.ROTATE_90_COUNTERCLOCKWISE
-        )
-
-        if (!Imgcodecs.imwrite(outputFile.absolutePath, dst)) {
+        val params = MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, jpegQuality)
+        if (!Imgcodecs.imwrite(outputFile.absolutePath, dst, params)) {
             throw RuntimeException("Could not write image to ${outputFile.absolutePath}")
         }
 
+        params.release()
         src.release()
         dst.release()
     }
