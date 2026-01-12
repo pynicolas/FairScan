@@ -51,7 +51,10 @@ class ImageRepository(
 
     private val metadataFile = File(scanDir, "document.json")
 
-    private var pages: MutableList<PageV2> = loadPages()
+    private val pagesById = mutableMapOf<String, PageV2>()
+    private var pages: MutableList<PageV2> = loadPages().also {
+        pagesById.putAll(it.associateBy { p -> p.id })
+    }
 
     private val json = Json {
         prettyPrint = false
@@ -125,8 +128,7 @@ class ImageRepository(
             ScanPage(it.id, it.toMetadata())
         }
 
-    // TODO time complexity should be constant
-    private fun page(id: String): PageV2? = pages.find { p -> p.id == id }
+    private fun page(id: String): PageV2? = pagesById[id]
 
     fun add(pageBytes: ByteArray, sourceBytes: ByteArray, metadata: PageMetadata) {
         val id = "${System.currentTimeMillis()}"
@@ -135,15 +137,15 @@ class ImageRepository(
         file.writeBytes(pageBytes)
         writeThumbnail(file)
         File(sourceDir, fileName).writeBytes(sourceBytes)
-        pages.add(
-            PageV2(
-                id = id,
-                quad = metadata.normalizedQuad.toSerializable(),
-                baseRotationDegrees = metadata.baseRotation.degrees,
-                manualRotationDegrees = metadata.manualRotation.degrees,
-                isColored = metadata.isColored
-            )
+        val page = PageV2(
+            id = id,
+            quad = metadata.normalizedQuad.toSerializable(),
+            baseRotationDegrees = metadata.baseRotation.degrees,
+            manualRotationDegrees = metadata.manualRotation.degrees,
+            isColored = metadata.isColored
         )
+        pagesById[page.id] = page
+        pages.add(page)
         saveMetadata()
     }
 
@@ -183,9 +185,9 @@ class ImageRepository(
             transformations.rotate(inputFile, outputFile, clockwise)
         }
 
-        pages[index] = page.copy(
-            manualRotationDegrees = newManualRotation.degrees,
-        )
+        val updated = page.copy(manualRotationDegrees = newManualRotation.degrees)
+        pagesById[id] = updated
+        pages[index] = updated
         saveMetadata()
     }
 
@@ -248,6 +250,7 @@ class ImageRepository(
             return
         pages.removeAt(index)
         saveMetadata()
+        pagesById.remove(id)
 
         getSourceFile(id).delete()
         scanDir.listFiles()
@@ -261,6 +264,8 @@ class ImageRepository(
     fun clear() {
         pages.clear()
         saveMetadata() // "empty" json file
+        pagesById.clear()
+
         thumbnailDir.listFiles()?.forEach {
             file -> file.delete()
         }
