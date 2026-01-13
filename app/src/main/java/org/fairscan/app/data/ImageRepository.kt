@@ -285,6 +285,10 @@ class ImageRepository(
         val rotated: List<File>
     )
 
+    // Legacy normalization strategy:
+    // If only rotated files exist, keep ONE arbitrarily as base (id.jpg)
+    // and discard the others. We intentionally sacrifice exact rotation
+    // fidelity to restore a coherent model.
     private fun normalizeLegacyFiles() {
         val jpgs = scanDir.listFiles()?.filter { it.extension == "jpg" }.orEmpty()
         val byId = jpgs.groupBy { file ->
