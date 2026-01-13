@@ -112,6 +112,13 @@ class ImageRepositoryTest {
     }
 
     @Test
+    fun `should find existing files at initialization if json is invalid`() {
+        writeDocumentDotJson("xxx")
+        File(scanDir(), "1.jpg").writeBytes(byteArrayOf(101, 102, 103))
+        assertThat(repo().imageIds()).containsExactly("1")
+    }
+
+    @Test
     fun `no json and two files with same id`() {
         scanDir().mkdirs()
         File(scanDir(), "1768153479486.jpg").writeBytes(byteArrayOf(101, 102, 103))
@@ -132,9 +139,7 @@ class ImageRepositoryTest {
 
     @Test
     fun `should filter pages in json at initialization`() {
-        scanDir().mkdirs()
-        val json = """{"pages":[{"file":"1.jpg"}, {"file":"2.jpg"}]}"""
-        File(scanDir(), "document.json").writeText(json)
+        writeDocumentDotJson("""{"pages":[{"file":"1.jpg"}, {"file":"2.jpg"}]}""")
         File(scanDir(), "2.jpg").writeBytes(byteArrayOf(101, 102, 103))
         assertThat(repo().imageIds()).containsExactly("2")
     }
@@ -193,6 +198,13 @@ class ImageRepositoryTest {
     }
 
     @Test
+    fun rotate_unknown_id() {
+        val repo = repo()
+        repo.rotate("x", true)
+        assertThat(repo.imageIds()).isEmpty()
+    }
+
+    @Test
     fun movePage() {
         val repo = repo()
         repo.add(byteArrayOf(101), byteArrayOf(51), metadata1)
@@ -205,6 +217,13 @@ class ImageRepositoryTest {
 
         val repo2 = repo()
         assertThat(repo2.imageIds()).containsExactly(id1, id0)
+    }
+
+    @Test
+    fun move_unknown_id() {
+        val repo = repo()
+        repo.movePage("x", 0)
+        assertThat(repo.imageIds()).isEmpty()
     }
 
     @Test
@@ -228,6 +247,11 @@ class ImageRepositoryTest {
 
     private fun jpegFiles(dir: File): Array<out File?>?
         = dir.listFiles { f -> f.name.endsWith(".jpg") }
+
+    private fun writeDocumentDotJson(json: String) {
+        scanDir().mkdirs()
+        File(scanDir(), "document.json").writeText(json)
+    }
 
     fun ImageRepository.imageIds(): PersistentList<String> =
         pages().map { it.id }.toPersistentList()
