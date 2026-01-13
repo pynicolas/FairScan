@@ -32,6 +32,12 @@ const val SOURCE_DIR_NAME = "sources"
 const val SCAN_DIR_NAME = "scanned_pages"
 const val THUMBNAIL_DIR_NAME = "thumbnails"
 
+/**
+ * Repository responsible for:
+ * - page persistence (document.json)
+ * - image files (work, source, thumbnails)
+ * - page-level operations (add, rotate, move, delete)
+ */
 class ImageRepository(
     scanRootDir: File,
     val transformations: ImageTransformations,
@@ -52,15 +58,12 @@ class ImageRepository(
 
     private val metadataFile = File(scanDir, "document.json")
 
-    private val pagesById = mutableMapOf<String, PageV2>()
-    private var pages: MutableList<PageV2> = loadPages().also {
-        pagesById.putAll(it.associateBy { p -> p.id })
-    }
-
     private val json = Json {
         prettyPrint = false
         encodeDefaults = true
     }
+
+    private var pages: PageStore = PageStore(loadPages())
 
     private fun loadPages(): MutableList<PageV2> {
         normalizeLegacyFiles()
@@ -86,9 +89,6 @@ class ImageRepository(
                     .toMutableList()
         }
     }
-
-    private fun indexOfPage(id: String): Int =
-        pages.indexOfFirst { it.id == id }
 
     private fun loadMetadata(): List<PageV2> {
         val json = metadataFile.readText()
@@ -121,16 +121,16 @@ class ImageRepository(
     }
 
     private fun saveMetadata() {
-        val metadata = DocumentMetadataV2(pages = pages)
+        val metadata = DocumentMetadataV2(pages = pages.pages())
         metadataFile.writeText(json.encodeToString(metadata))
     }
 
     fun pages(): List<ScanPage> =
-        pages.map {
+        pages.pages().map {
             ScanPage(it.id, it.toMetadata())
         }
 
-    private fun page(id: String): PageV2? = pagesById[id]
+    private fun page(id: String): PageV2? = pages.get(id)
 
     fun add(pageBytes: ByteArray, sourceBytes: ByteArray, metadata: PageMetadata) {
         val id = "${System.currentTimeMillis()}"
@@ -139,15 +139,15 @@ class ImageRepository(
         file.writeBytes(pageBytes)
         writeThumbnail(file)
         File(sourceDir, fileName).writeBytes(sourceBytes)
-        val page = PageV2(
-            id = id,
-            quad = metadata.normalizedQuad.toSerializable(),
-            baseRotationDegrees = metadata.baseRotation.degrees,
-            manualRotationDegrees = metadata.manualRotation.degrees,
-            isColored = metadata.isColored
+        pages.addOrReplace(
+            PageV2(
+                id = id,
+                quad = metadata.normalizedQuad.toSerializable(),
+                baseRotationDegrees = metadata.baseRotation.degrees,
+                manualRotationDegrees = metadata.manualRotation.degrees,
+                isColored = metadata.isColored
+            )
         )
-        pagesById[page.id] = page
-        pages.add(page)
         saveMetadata()
     }
 
@@ -166,31 +166,27 @@ class ImageRepository(
     fun PageV2.workFileName() = workFileName(id, manualRotationDegrees)
 
     fun rotate(id: String, clockwise: Boolean) {
-        val index = indexOfPage(id)
-        if (index < 0)
-            return
-        val page = pages[index]
+        val page = pages.get(id) ?: return
 
         val delta = if (clockwise) Rotation.R90 else Rotation.R270
-        val currentManualRotation = Rotation.fromDegrees(page.manualRotationDegrees)
-        val newManualRotation = currentManualRotation.add(delta)
-        if (newManualRotation == currentManualRotation) {
-            return // no-op
-        }
+        val newRotation = Rotation.fromDegrees(page.manualRotationDegrees).add(delta)
 
         val inputFile = File(scanDir, "$id.jpg")
-        if (!inputFile.exists()) {
-            return
-        }
-        val outputFile = File(scanDir, workFileName(id, newManualRotation.degrees))
-        if (!outputFile.exists()) {
-            val jpegQuality = ExportQuality.BALANCED.jpegQuality
-            transformations.rotate(inputFile, outputFile, newManualRotation.degrees, jpegQuality)
+        val outputFile = File(scanDir, workFileName(id, newRotation.degrees))
+
+        if (inputFile.exists() && !outputFile.exists()) {
+            transformations.rotate(
+                inputFile,
+                outputFile,
+                newRotation.degrees,
+                ExportQuality.BALANCED.jpegQuality
+            )
         }
 
-        val updated = page.copy(manualRotationDegrees = newManualRotation.degrees)
-        pagesById[id] = updated
-        pages[index] = updated
+        pages.update(id) {
+            it.copy(manualRotationDegrees = newRotation.degrees)
+        }
+
         saveMetadata()
     }
 
@@ -238,22 +234,13 @@ class ImageRepository(
     }
 
     fun movePage(id: String, newIndex: Int) {
-        val index = indexOfPage(id)
-        if (index < 0) return
-
-        val page = pages.removeAt(index)
-        val safeIndex = newIndex.coerceIn(0, pages.size)
-        pages.add(safeIndex, page)
+        pages.move(id, newIndex)
         saveMetadata()
     }
 
     fun delete(id: String) {
-        val index = indexOfPage(id)
-        if (index < 0)
-            return
-        pages.removeAt(index)
+        pages.delete(id)
         saveMetadata()
-        pagesById.remove(id)
 
         getSourceFile(id).delete()
         scanDir.listFiles()
@@ -267,7 +254,6 @@ class ImageRepository(
     fun clear() {
         pages.clear()
         saveMetadata() // "empty" json file
-        pagesById.clear()
 
         thumbnailDir.listFiles()?.forEach {
             file -> file.delete()

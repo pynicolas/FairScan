@@ -112,6 +112,15 @@ class ImageRepositoryTest {
     }
 
     @Test
+    fun `no json and two files with same id`() {
+        scanDir().mkdirs()
+        File(scanDir(), "1768153479486.jpg").writeBytes(byteArrayOf(101, 102, 103))
+        File(scanDir(), "1768153479486-270.jpg").writeBytes(byteArrayOf(105, 106, 107))
+        val repo = repo()
+        assertThat(repo.imageIds()).containsExactly("1768153479486")
+    }
+
+    @Test
     fun `should find existing files at initialization with no json and with rotation`() {
         scanDir().mkdirs()
         val bytes = byteArrayOf(101, 102, 103)
