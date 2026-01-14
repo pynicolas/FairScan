@@ -1,0 +1,68 @@
+<resources>
+    <string name="about">關於</string>
+    <string name="add_page">新增頁面</string>
+    <string name="app_name" translatable="false">FairScan</string>
+    <string name="app_tagline">一個簡單且尊重隱私的文件掃描應用程式。</string>
+    <string name="back">返回</string>
+    <string name="camera_permission_denied">已拒絕相機權限</string>
+    <string name="camera_permission_rationale">此應用程式需要相機存取權限才能掃描文件。擷取的影像僅儲存在此裝置上，並會在您關閉目前文件時刪除。</string>
+    <string name="cancel">取消</string>
+    <string name="change_directory">變更目錄</string>
+    <string name="clear_text">清除文字</string>
+    <string name="contact">聯絡我們</string>
+    <string name="copied_logs">日誌已複製到剪貼簿</string>
+    <string name="copy_logs">複製日誌</string>
+    <string name="creating_export">正在準備匯出…</string>
+    <string name="delete_page">刪除頁面</string>
+    <string name="delete_page_warning">確定要刪除此頁面嗎？</string>
+    <string name="developer">開發者</string>
+    <string name="discard_scan">捨棄掃描</string>
+    <string name="download_dirname">下載 (Downloads)</string>
+    <string name="end_scan">結束掃描</string>
+    <string name="error">錯誤：%1$s</string>
+    <string name="error_file_picker_launch" translatable="false">Failed to launch system file picker on this device</string>
+    <string name="error_file_picker_result" translatable="false">Failed to set export directory</string>
+    <string name="error_no_app">找不到可開啟此檔案的應用程式</string>
+    <string name="error_no_document">未偵測到文件</string>
+    <string name="error_save">儲存檔案失敗</string>
+    <string name="export">匯出</string>
+    <string name="export_as">匯出為 %1$s</string>
+    <string name="export_directory">匯出目錄</string>
+    <string name="file_size">檔案大小：%1$s</string>
+    <string name="file_size_total">總計大小：%1$s</string>
+    <string name="filename">檔案名稱</string>
+    <string name="grant_permission">授予權限</string>
+    <string name="last_saved_pdf_files">此裝置上最近儲存的 PDF：</string>
+    <string name="libraries">函式庫</string>
+    <string name="libraries_open_source">開放原始碼函式庫</string>
+    <string name="license">授權</string>
+    <string name="licensed_under">本應用程式採用 GNU General Public License v3.0 授權。</string>
+    <string name="menu">選單</string>
+    <string name="new_document_warning">目前的掃描進度將會遺失。確定要繼續嗎？</string>
+    <string name="open">開啟</string>
+    <string name="open_file">開啟檔案</string>
+    <string name="reset_to_default">重設為預設值</string>
+    <string name="resume">繼續</string>
+    <string name="save">儲存</string>
+    <string name="scan_button">開始掃描</string>
+    <string name="scan_in_progress">掃描進行中</string>
+    <string name="settings">設定</string>
+    <string name="share">分享</string>
+    <string name="share_document">分享文件</string>
+    <string name="storage_permission_denied">無法儲存檔案：權限遭拒</string>
+    <string name="turn_off_torch">關閉手電筒</string>
+    <string name="turn_on_torch">開啟手電筒</string>
+    <string name="unknown_size">未知大小</string>
+    <string name="version">版本</string>
+    <string name="view_full_list">查看完整清單</string>
+    <string name="view_the_full_license">查看完整授權內容</string>
+    <string name="yes">是</string>
+    <plurals name="files_saved_to">
+        <item quantity="one">%2$s 已儲存至 %3$s</item>
+        <item quantity="other">%1$d 個檔案已儲存至 %3$s</item>
+    </plurals>
+    <plurals name="page_count">
+        <item quantity="one">%d 頁</item>
+        <item quantity="other">%d 頁</item>
+    </plurals>
+</resources>
