@@ -35,7 +35,7 @@
     <string name="last_saved_pdf_files">此裝置上最近儲存的 PDF：</string>
     <string name="libraries">函式庫</string>
     <string name="libraries_open_source">開放原始碼函式庫</string>
-    <string name="license">授權</string>
+    <string name="license">許可證</string>
     <string name="licensed_under">本應用程式採用 GNU General Public License v3.0 授權。</string>
     <string name="menu">選單</string>
     <string name="new_document_warning">目前的掃描進度將會遺失。確定要繼續嗎？</string>
@@ -50,8 +50,8 @@
     <string name="share">分享</string>
     <string name="share_document">分享文件</string>
     <string name="storage_permission_denied">無法儲存檔案：權限遭拒</string>
-    <string name="turn_off_torch">關閉手電筒</string>
-    <string name="turn_on_torch">開啟手電筒</string>
+    <string name="turn_off_torch">關閉閃光燈</string>
+    <string name="turn_on_torch">開啟閃光燈</string>
     <string name="unknown_size">未知大小</string>
     <string name="version">版本</string>
     <string name="view_full_list">查看完整清單</string>
