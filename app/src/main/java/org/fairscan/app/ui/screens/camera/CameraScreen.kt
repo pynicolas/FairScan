@@ -158,6 +158,7 @@ fun CameraScreen(
                 captureController = captureController,
                 onPreviewViewReady = { view -> previewView = view },
                 cameraPermission = cameraPermission,
+                onError = { message, throwable -> cameraViewModel.logError(message, throwable) }
             )
         },
         pageListState =

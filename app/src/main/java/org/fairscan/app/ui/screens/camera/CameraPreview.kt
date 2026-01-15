@@ -16,6 +16,7 @@ package org.fairscan.app.ui.screens.camera
 
 import android.graphics.Bitmap
 import android.util.Log
+import android.util.Size
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
 import androidx.camera.core.CameraControl
@@ -31,17 +32,24 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import android.util.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -49,15 +57,14 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.scale
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.google.common.util.concurrent.ListenableFuture
+import org.fairscan.app.ui.components.CameraPermissionState
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.scaledTo
-import org.fairscan.app.ui.components.CameraPermissionState
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -68,6 +75,7 @@ fun CameraPreview(
     captureController: CameraCaptureController,
     onPreviewViewReady: (PreviewView) -> Unit,
     cameraPermission: CameraPermissionState,
+    onError: (String, Throwable) -> Unit,
 ) {
     val context = LocalContext.current
     LaunchedEffect(Unit) {
@@ -79,44 +87,87 @@ fun CameraPreview(
     val cameraProviderFuture by remember {
         mutableStateOf(ProcessCameraProvider.getInstance(context))
     }
-
+    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
     val lifecycleOwner = LocalLifecycleOwner.current
+
     DisposableEffect(lifecycleOwner) {
         onDispose {
             cameraProviderFuture.get().unbindAll()
+            analysisExecutor.shutdown()
         }
     }
 
-    AndroidView(modifier = modifier, factory = {
-        val previewView = PreviewView(it).apply {
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-            scaleType = PreviewView.ScaleType.FIT_CENTER
-            onPreviewViewReady(this)
-        }
-        val executor = Executors.newSingleThreadExecutor()
-        cameraProviderFuture.addListener({
-            bindCameraUseCases(
-                lifecycleOwner = lifecycleOwner,
-                cameraProviderFuture = cameraProviderFuture,
-                executor = executor,
-                previewView = previewView,
-                onImageAnalyzed = onImageAnalyzed,
-                captureController = captureController
-            )
-        }, ContextCompat.getMainExecutor(context))
+    var bindState by remember { mutableStateOf<CameraBindState>(CameraBindState.Idle) }
+    var retryKey by remember { mutableStateOf(0) }
+    var previewView: PreviewView? by remember { mutableStateOf(null) }
 
-        previewView
-    })
+    when (bindState) {
+        is CameraBindState.Error -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Camera unavailable")
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = { retryKey++ }) {
+                    Text("Retry")
+                }
+            }
+        }
+
+        else -> {
+            AndroidView(
+                modifier = modifier,
+                factory = {
+                    PreviewView(it).apply {
+                        layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+                        scaleType = PreviewView.ScaleType.FIT_CENTER
+                        onPreviewViewReady(this)
+                        previewView = this
+                    }
+                }
+            )
+
+            LaunchedEffect(previewView, retryKey) {
+                val view = previewView ?: return@LaunchedEffect
+
+                val provider = cameraProviderFuture.get()
+
+                val result = runCatching {
+                    bindCameraUseCases(
+                        lifecycleOwner,
+                        provider,
+                        analysisExecutor,
+                        view,
+                        onImageAnalyzed,
+                        captureController
+                    )
+                }
+
+                bindState = result.fold(
+                    onSuccess = { CameraBindState.Bound },
+                    onFailure = {
+                        onError("Camera unavailable", it)
+                        CameraBindState.Error(it)
+                    }
+                )
+            }
+        }
+    }
+
 }
 
 fun bindCameraUseCases(
     lifecycleOwner: LifecycleOwner,
-    cameraProviderFuture: ListenableFuture<ProcessCameraProvider>,
+    cameraProvider: ProcessCameraProvider,
     executor: ExecutorService,
     previewView: PreviewView,
     onImageAnalyzed: (ImageProxy) -> Unit,
     captureController: CameraCaptureController,
 ) {
+    cameraProvider.unbindAll()
+
     val ratio_4_3 = ResolutionSelector.Builder()
         .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
         .build()
@@ -149,7 +200,6 @@ fun bindCameraUseCases(
         .build()
     captureController.imageCapture = imageCapture
 
-    val cameraProvider = cameraProviderFuture.get()
     val camera = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector,
         imageAnalysis, preview, imageCapture)
     captureController.cameraControl = camera.cameraControl
@@ -235,4 +285,10 @@ class CameraCaptureController {
             }
         )
     }
+}
+
+sealed interface CameraBindState {
+    object Idle : CameraBindState
+    object Bound : CameraBindState
+    data class Error(val throwable: Throwable) : CameraBindState
 }

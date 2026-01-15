@@ -52,6 +52,7 @@ sealed interface CameraEvent {
 class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
     private val imageSegmentationService = appContainer.imageSegmentationService
+    private val logger = appContainer.logger
 
     private val _events = MutableSharedFlow<CameraEvent>()
     val events = _events.asSharedFlow()
@@ -156,6 +157,11 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         _captureState.value = CaptureState.Idle
     }
 
+    fun logError(message:String, throwable: Throwable) {
+        viewModelScope.launch {
+            logger.e("Camera", message, throwable)
+        }
+    }
 }
 
 sealed class CaptureState {
@@ -203,4 +209,3 @@ fun toBitmap(bgr: Mat): Bitmap {
     rgba.release()
     return bmp
 }
-
