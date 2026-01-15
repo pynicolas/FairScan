@@ -27,7 +27,7 @@ enum class ExportQuality(
         maxPixels = 2_000_000
     ),
     HIGH(
-        jpegQuality = 90,
-        maxPixels = 5_000_000
+        jpegQuality = 80,
+        maxPixels = 4_000_000
     )
 }
