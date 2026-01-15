@@ -15,7 +15,6 @@
 package org.fairscan.app.ui.screens.camera
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.camera.core.ImageProxy
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
@@ -59,7 +58,6 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
     private var _liveAnalysisState = MutableStateFlow(LiveAnalysisState())
     val liveAnalysisState: StateFlow<LiveAnalysisState> = _liveAnalysisState.asStateFlow()
-    private var lastSuccessfulLiveAnalysisState: LiveAnalysisState? = null
 
     private val _captureState = MutableStateFlow<CaptureState>(CaptureState.Idle)
     val captureState: StateFlow<CaptureState> = _captureState
@@ -76,14 +74,10 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
                         inferenceTime = it.inferenceTime,
                         binaryMask = binaryMask,
                         documentQuad = detectDocumentQuad(it.segmentation, isLiveAnalysis = true),
-                        timestamp = System.currentTimeMillis(),
                     )
                 }
                 .collect {
                     _liveAnalysisState.value = it
-                    if (it.documentQuad != null) {
-                        lastSuccessfulLiveAnalysisState = it
-                    }
                 }
         }
     }
@@ -139,22 +133,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         val segmentation = imageSegmentationService.runSegmentationAndReturn(source, 0)
         if (segmentation != null) {
             val mask = segmentation.segmentation
-            var quad = detectDocumentQuad(mask, isLiveAnalysis = false)
-            if (quad == null) {
-                val now = System.currentTimeMillis()
-                lastSuccessfulLiveAnalysisState?.timestamp?.let {
-                    val offset = now - it
-                    Log.i("Quad", "Last successful live analysis was $offset ms ago")
-                }
-                val recentLive = lastSuccessfulLiveAnalysisState?.takeIf {
-                    now - it.timestamp <= 1500
-                }
-                val rotations = (-rotationDegrees / 90) + 4
-                quad = recentLive?.documentQuad?.rotate90(rotations, mask.width, mask.height)
-                if (quad != null) {
-                    Log.i("Quad", "Using quad taken in live analysis; rotations=$rotations")
-                }
-            }
+            val quad = detectDocumentQuad(mask, isLiveAnalysis = false)
             if (quad != null) {
                 val resizedQuad = quad.scaledTo(mask.width, mask.height, source.width, source.height)
                 result = extractDocumentFromBitmap(source, resizedQuad, rotationDegrees, mask)
