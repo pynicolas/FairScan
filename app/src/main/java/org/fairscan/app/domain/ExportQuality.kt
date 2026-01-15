@@ -14,20 +14,26 @@
  */
 package org.fairscan.app.domain
 
+import org.fairscan.app.R
+
 enum class ExportQuality(
     val jpegQuality: Int,
-    val maxPixels: Long
+    val maxPixels: Long,
+    val labelResource: Int
 ) {
     LOW(
         jpegQuality = 60,
-        maxPixels = 1_000_000
+        maxPixels = 1_000_000,
+        R.string.export_quality_low,
     ),
     BALANCED(
         jpegQuality = 75,
-        maxPixels = 2_000_000
+        maxPixels = 2_000_000,
+        R.string.export_quality_balanced,
     ),
     HIGH(
         jpegQuality = 80,
-        maxPixels = 4_000_000
+        maxPixels = 4_000_000,
+        R.string.export_quality_high,
     )
 }

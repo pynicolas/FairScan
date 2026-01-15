@@ -25,6 +25,11 @@
     <string name="export">Esporta</string>
     <string name="export_as">Esporta come %1$s</string>
     <string name="export_directory">Cartella di esportazione</string>
+    <string name="export_format">Formato di esportazione</string>
+    <string name="export_quality">Qualità di esportazione</string>
+    <string name="export_quality_low">Bassa</string>
+    <string name="export_quality_balanced">Bilanciata</string>
+    <string name="export_quality_high">Alta</string>
     <string name="file_size">Dimensione del file: %1$s</string>
     <string name="file_size_total">Dimensione totale: %1$s</string>
     <string name="filename">Nome file</string>

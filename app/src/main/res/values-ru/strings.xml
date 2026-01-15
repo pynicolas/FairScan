@@ -25,6 +25,11 @@
     <string name="export">Экспорт</string>
     <string name="export_as">Экспортировать как %1$s</string>
     <string name="export_directory">Папка экспорта</string>
+    <string name="export_format">Формат экспорта</string>
+    <string name="export_quality">Качество экспорта</string>
+    <string name="export_quality_low">Низкое</string>
+    <string name="export_quality_balanced">Сбалансированное</string>
+    <string name="export_quality_high">Высокое</string>
     <string name="file_size">Размер файла: %1$s</string>
     <string name="file_size_total">Общий размер: %1$s</string>
     <string name="filename">Имя файла</string>

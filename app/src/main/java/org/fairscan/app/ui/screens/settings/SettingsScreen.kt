@@ -122,27 +122,21 @@ private fun SettingsContent(
 
         Spacer(Modifier.height(32.dp))
 
-        Text("Export quality", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.export_quality), style = MaterialTheme.typography.titleLarge)
 
-        ExportQuality.entries.forEach { quality ->
+        ExportQuality.entries.reversed().forEach { quality ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
                     selected = uiState.exportQuality == quality,
                     onClick = { onExportQualityChanged(quality) },
                 )
-                Text(
-                    when (quality) {
-                        ExportQuality.LOW -> "Low (smaller files)"
-                        ExportQuality.BALANCED -> "Balanced"
-                        ExportQuality.HIGH -> "High (best quality)"
-                    }
-                )
+                Text(stringResource(quality.labelResource))
             }
         }
 
         Spacer(Modifier.height(32.dp))
 
-        Text("Export format", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.export_format), style = MaterialTheme.typography.titleLarge)
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             RadioButton(

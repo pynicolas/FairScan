@@ -29,6 +29,11 @@
     <string name="export">Export</string>
     <string name="export_as">Export as %1$s</string>
     <string name="export_directory">Export directory</string>
+    <string name="export_format">Export format</string>
+    <string name="export_quality">Export quality</string>
+    <string name="export_quality_low">Low</string>
+    <string name="export_quality_balanced">Balanced</string>
+    <string name="export_quality_high">High</string>
     <string name="file_size">File size: %1$s</string>
     <string name="file_size_total">Total size: %1$s</string>
     <string name="filename">Filename</string>

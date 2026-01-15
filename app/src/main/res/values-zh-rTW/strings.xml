@@ -1,7 +1,6 @@
 <resources>
     <string name="about">關於</string>
     <string name="add_page">新增頁面</string>
-    <string name="app_name" translatable="false">FairScan</string>
     <string name="app_tagline">一個簡單且尊重隱私的文件掃描應用程式。</string>
     <string name="back">返回</string>
     <string name="camera_permission_denied">已拒絕相機權限</string>
@@ -20,14 +19,17 @@
     <string name="download_dirname">下載 (Downloads)</string>
     <string name="end_scan">結束掃描</string>
     <string name="error">錯誤：%1$s</string>
-    <string name="error_file_picker_launch" translatable="false">Failed to launch system file picker on this device</string>
-    <string name="error_file_picker_result" translatable="false">Failed to set export directory</string>
     <string name="error_no_app">找不到可開啟此檔案的應用程式</string>
     <string name="error_no_document">未偵測到文件</string>
     <string name="error_save">儲存檔案失敗</string>
     <string name="export">匯出</string>
     <string name="export_as">匯出為 %1$s</string>
     <string name="export_directory">匯出目錄</string>
+    <string name="export_format">匯出格式</string>
+    <string name="export_quality">匯出品質</string>
+    <string name="export_quality_low">低</string>
+    <string name="export_quality_balanced">平衡</string>
+    <string name="export_quality_high">高</string>
     <string name="file_size">檔案大小：%1$s</string>
     <string name="file_size_total">總計大小：%1$s</string>
     <string name="filename">檔案名稱</string>
