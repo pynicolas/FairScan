@@ -26,3 +26,5 @@
 
 -keep class org.fairscan.app.RecentDocument* { *; }
 -keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite { *; }
+# to have at least org.opencv.core.CvException
+-keep class org.opencv.core.** { *; }

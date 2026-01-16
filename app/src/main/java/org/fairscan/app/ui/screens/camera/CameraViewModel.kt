@@ -116,10 +116,15 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     fun onImageCaptured(imageProxy: ImageProxy?) {
         if (imageProxy != null) {
             viewModelScope.launch {
-                val source = imageProxy.toBitmap()
-                val page = processCapturedImage(source, imageProxy.imageInfo.rotationDegrees)
-                imageProxy.close()
-                onCaptureProcessed(page)
+                try {
+                    val source = imageProxy.toBitmap()
+                    val page = processCapturedImage(source, imageProxy.imageInfo.rotationDegrees)
+                    imageProxy.close()
+                    onCaptureProcessed(page)
+                } catch (e: RuntimeException) {
+                    logger.e("Camera", "Failed to process captured image", e)
+                    onCaptureProcessed(null)
+                }
             }
         } else {
             onCaptureProcessed(null)
