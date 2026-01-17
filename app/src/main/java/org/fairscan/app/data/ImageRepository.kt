@@ -122,8 +122,11 @@ class ImageRepository(
     }
 
     fun pages(): List<ScanPage> =
-        pages.pages().map {
-            ScanPage(it.id, it.toMetadata())
+        pages.pages().mapNotNull {
+            runCatching {
+                val manualRotation = Rotation.fromDegrees(it.manualRotationDegrees)
+                ScanPage(it.id, manualRotation, it.toMetadata())
+            }.getOrNull()
         }
 
     private fun page(id: String): PageV2? = pages.get(id)
@@ -140,7 +143,7 @@ class ImageRepository(
                 id = id,
                 quad = metadata.normalizedQuad.toSerializable(),
                 baseRotationDegrees = metadata.baseRotation.degrees,
-                manualRotationDegrees = metadata.manualRotation.degrees,
+                manualRotationDegrees = Rotation.R0.degrees,
                 isColored = metadata.isColored
             )
         )
@@ -321,13 +324,10 @@ fun NormalizedQuad.toQuad(): Quad =
     )
 
 fun PageV2.toMetadata(): PageMetadata? {
-    return runCatching {
-        if (quad == null || isColored == null) return null
-        PageMetadata(
-            quad.toQuad(),
-            Rotation.fromDegrees(baseRotationDegrees),
-            Rotation.fromDegrees(manualRotationDegrees),
-            isColored
-        )
-    }.getOrNull()
+    if (quad == null || isColored == null) return null
+    return PageMetadata(
+        quad.toQuad(),
+        Rotation.fromDegrees(baseRotationDegrees),
+        isColored
+    )
 }

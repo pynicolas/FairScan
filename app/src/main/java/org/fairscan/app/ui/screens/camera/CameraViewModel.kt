@@ -198,7 +198,7 @@ fun extractDocumentFromBitmap(
     outBgr.release()
     val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
     val baseRotation = Rotation.fromDegrees(rotationDegrees)
-    val metadata = PageMetadata(normalizedQuad, baseRotation, Rotation.R0, isColored)
+    val metadata = PageMetadata(normalizedQuad, baseRotation, isColored)
     return CapturedPage(outBitmap, source, metadata)
 }
 

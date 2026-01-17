@@ -38,7 +38,7 @@ class ImageRepositoryTest {
     private var _filesDir: File? = null
 
     val quad1 = Quad(Point(.01, .02), Point(.1, .03), Point(.11, .12), Point(.03, .09))
-    val metadata1 = PageMetadata(quad1, R90, R0, true)
+    val metadata1 = PageMetadata(quad1, R90, true)
 
     fun getFilesDir(): File {
         if (_filesDir == null) {
@@ -73,11 +73,11 @@ class ImageRepositoryTest {
 
         val page = repo.pages().first()
         assertThat(page.id).isEqualTo(id)
+        assertThat(page.manualRotation).isEqualTo(R0)
         val metadata = page.metadata
         assertThat(metadata).isNotNull()
         assertThat(metadata!!.normalizedQuad).isEqualTo(quad1)
         assertThat(metadata.baseRotation).isEqualTo(metadata1.baseRotation)
-        assertThat(metadata.manualRotation).isEqualTo(metadata1.manualRotation)
         assertThat(metadata.isColored).isEqualTo(metadata1.isColored)
     }
 
@@ -192,19 +192,18 @@ class ImageRepositoryTest {
     fun rotate() {
         val repo = repo()
         repo.add(byteArrayOf(101, 102, 103), byteArrayOf(51), metadata1)
-        assertThat(metadata1.manualRotation).isEqualTo(R0)
         assertThat(repo.pages().last().metadata).isEqualTo(metadata1)
         val id = repo.pages().last().id
         repo.rotate(id, true)
-        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R90))
+        assertThat(repo.pages().last().manualRotation).isEqualTo(R90)
         repo.rotate(id, true)
-        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R180))
+        assertThat(repo.pages().last().manualRotation).isEqualTo(R180)
         repo.rotate(id, true)
-        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R270))
+        assertThat(repo.pages().last().manualRotation).isEqualTo(R270)
         repo.rotate(id, true)
-        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R0))
+        assertThat(repo.pages().last().manualRotation).isEqualTo(R0)
         repo.rotate(id, false)
-        assertThat(repo.pages().last().metadata).isEqualTo(metadata1.copy(manualRotation = R270))
+        assertThat(repo.pages().last().manualRotation).isEqualTo(R270)
     }
 
     @Test
@@ -248,8 +247,21 @@ class ImageRepositoryTest {
             assertThat(metadata).isNotNull()
             assertThat(metadata!!.isColored).isEqualTo(isColored)
         }
+    }
 
-        assertThat(PageV2("1", 42, 0, quad, true).toMetadata()).isNull()
+    @Test
+    fun `pages with invalid metadata should be skipped`() {
+        val bytes = byteArrayOf(105, 106, 107)
+
+        writeDocumentDotJson("""{"version":2, "pages":[{"id":"1", "manualRotationDegrees":90}]}""")
+        File(scanDir(), "1.jpg").writeBytes(byteArrayOf(101))
+        File(scanDir(), "1-90.jpg").writeBytes(bytes)
+        assertThat(repo().imageIds()).containsExactly("1")
+
+        writeDocumentDotJson("""{"version":2, "pages":[{"id":"1", "manualRotationDegrees":42}]}""")
+        File(scanDir(), "1.jpg").writeBytes(byteArrayOf(101))
+        File(scanDir(), "1-42.jpg").writeBytes(bytes)
+        assertThat(repo().imageIds()).isEmpty()
     }
 
     @Test

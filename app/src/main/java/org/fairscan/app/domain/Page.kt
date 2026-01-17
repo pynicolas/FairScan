@@ -19,12 +19,12 @@ import org.fairscan.imageprocessing.Quad
 data class PageMetadata(
     val normalizedQuad: Quad,
     val baseRotation: Rotation,
-    val manualRotation: Rotation,
     val isColored: Boolean,
 )
 
 data class ScanPage(
     val id: String,
+    val manualRotation: Rotation,
     val metadata: PageMetadata?,
 )
 

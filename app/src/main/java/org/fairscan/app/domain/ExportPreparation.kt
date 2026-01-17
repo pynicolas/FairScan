@@ -45,8 +45,9 @@ fun jpegsForExport(
         ExportQuality.HIGH -> pages.mapNotNull { page ->
             val sourceJpegBytes = imageRepository.sourceJpegBytes(page.id)
             val pageMetadata = page.metadata
+            val manualRotation = page.manualRotation
             if (sourceJpegBytes != null && pageMetadata != null)
-                prepareJpegForHigh(sourceJpegBytes, pageMetadata, exportQuality)
+                prepareJpegForHigh(sourceJpegBytes, pageMetadata, manualRotation, exportQuality)
             else
                 imageRepository.jpegBytes(page.id)
         }
@@ -73,6 +74,7 @@ fun resizeJpegBytesForMaxPixels(
 fun prepareJpegForHigh(
     sourceJpegBytes: ByteArray,
     pageMetadata: PageMetadata,
+    manualRotation: Rotation,
     exportQuality: ExportQuality,
 ): ByteArray? {
 
@@ -84,7 +86,7 @@ fun prepareJpegForHigh(
     val page = extractDocument(
         decoded,
         quad,
-        pageMetadata.baseRotation.add(pageMetadata.manualRotation).degrees,
+        pageMetadata.baseRotation.add(manualRotation).degrees,
         pageMetadata.isColored,
         exportQuality.maxPixels)
     val outJpegBytes = encodeJpeg(page, exportQuality.jpegQuality)

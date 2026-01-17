@@ -30,7 +30,6 @@ import kotlinx.coroutines.launch
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.PageViewKey
-import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
@@ -47,7 +46,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         _pages.map { pages ->
             DocumentUiModel(
                 pageKeys = pages.map { p ->
-                    PageViewKey(p.id, p.metadata?.manualRotation?: Rotation.R0)
+                    PageViewKey(p.id, p.manualRotation)
                 }.toImmutableList(),
                 imageLoader = ::getBitmap,
                 thumbnailLoader = ::getThumbnail,

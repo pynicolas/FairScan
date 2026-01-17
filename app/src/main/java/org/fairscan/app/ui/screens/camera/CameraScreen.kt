@@ -473,7 +473,7 @@ fun CameraScreenPreviewWithProcessedImage() {
         CapturedPage(
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
-            PageMetadata(quad, R0, R0, false))))
+            PageMetadata(quad, R0, false))))
 }
 
 @Preview(showBackground = true, widthDp = 640, heightDp = 320)
