@@ -85,7 +85,7 @@ class ImageRepository(
             else ->
                 filesOnDisk
                     .sorted()
-                    .map { pageFromFileName(it) }
+                    .map { pageFromLegacyFileName(it) }
                     .toMutableList()
         }
     }
@@ -104,20 +104,16 @@ class ImageRepository(
     }
 
     private fun migrateFromV1(meta: DocumentMetadataV1): MutableList<PageV2> {
-        return meta.pages.map {
-            old -> pageFromFileName(old.file)
+        return meta.pages.map { old ->
+            pageFromLegacyFileName(old.file)
         }.toMutableList()
     }
 
-    private fun pageFromFileName(fileName: String): PageV2 {
-        val fileName = fileName.removeSuffix(".jpg")
-        val dashIndex = fileName.lastIndexOf('-')
-        val rotation = if (dashIndex >= 0)
-            fileName.substring(dashIndex + 1).toInt()
-        else
-            0
-        val id = if (dashIndex >= 0) fileName.substring(0, dashIndex) else fileName
-        return PageV2(id, manualRotationDegrees = rotation)
+    private fun pageFromLegacyFileName(fileName: String): PageV2 {
+        val name = fileName.removeSuffix(".jpg")
+        val dashIndex = name.lastIndexOf('-')
+        val id = if (dashIndex >= 0) name.substring(0, dashIndex) else name
+        return PageV2(id)
     }
 
     private fun saveMetadata() {

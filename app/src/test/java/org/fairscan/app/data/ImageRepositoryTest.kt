@@ -157,6 +157,16 @@ class ImageRepositoryTest {
     }
 
     @Test
+    fun `should rename rotated files with no base file but listed in json`() {
+        writeDocumentDotJson("""{"pages":[{"file":"1-90.jpg"}]}""")
+        val bytes = byteArrayOf(105, 106, 107)
+        File(scanDir(), "1-90.jpg").writeBytes(bytes)
+        val repo = repo()
+        assertThat(repo.imageIds()).containsExactly("1")
+        assertThat(repo.jpegBytes("1")).isEqualTo(bytes)
+    }
+
+    @Test
     fun `should return null on invalid id`() {
         val repo = repo()
         assertThat(repo.imageIds()).isEmpty()
