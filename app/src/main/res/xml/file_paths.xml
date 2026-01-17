@@ -6,4 +6,8 @@
     <external-path
         name="external_files"
         path="." />
+    <!-- source images (to send the last captured image) -->
+    <files-path
+        name="sources"
+        path="sources/" />
 </paths>

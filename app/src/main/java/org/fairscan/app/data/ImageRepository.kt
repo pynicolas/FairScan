@@ -298,6 +298,14 @@ class ImageRepository(
             }
         }
     }
+
+    fun lastAddedSourceFile(): File? {
+        val sourceFiles = sourceDir.listFiles()?.filter { it.extension == "jpg" }
+        if (sourceFiles.isNullOrEmpty()) {
+            return null
+        }
+        return sourceFiles.maxByOrNull { it.lastModified() }
+    }
 }
 
 fun Quad.toSerializable(): NormalizedQuad =

@@ -52,6 +52,8 @@
     <string name="share">分享</string>
     <string name="share_document">分享文件</string>
     <string name="storage_permission_denied">無法儲存檔案：權限遭拒</string>
+    <string name="support">支援</string>
+    <string name="support_last_image">回報最近拍攝影像的問題</string>
     <string name="turn_off_torch">關閉閃光燈</string>
     <string name="turn_on_torch">開啟閃光燈</string>
     <string name="unknown_size">未知大小</string>

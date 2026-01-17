@@ -52,6 +52,8 @@
     <string name="share">Compartilhar</string>
     <string name="share_document">Compartilhar documento</string>
     <string name="storage_permission_denied">Não foi possível salvar o arquivo: permissão negada</string>
+    <string name="support">Suporte</string>
+    <string name="support_last_image">Relatar um problema com a última imagem capturada</string>
     <string name="turn_off_torch">Desligar lanterna</string>
     <string name="turn_on_torch">Ligar lanterna</string>
     <string name="unknown_size">Tamanho desconhecido</string>

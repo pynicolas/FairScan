@@ -70,7 +70,6 @@ class AppContainer(context: Context) {
 
     val homeViewModelFactory = viewModelFactory { HomeViewModel(it, context) }
     val cameraViewModelFactory = viewModelFactory { CameraViewModel(it) }
-    val aboutViewModelFactory = viewModelFactory { AboutViewModel(it) }
     val settingsViewModelFactory = viewModelFactory { SettingsViewModel(it) }
 
     fun cleanOrphanSessions() {

@@ -52,6 +52,8 @@
     <string name="share">Sdílet</string>
     <string name="share_document">Sdílet dokument</string>
     <string name="storage_permission_denied">Nelze uložit soubor: oprávnění bylo odmítnuto</string>
+    <string name="support">Podpora</string>
+    <string name="support_last_image">Nahlásit problém s posledním zachyceným obrázkem</string>
     <string name="turn_off_torch">Vypnout svítilnu</string>
     <string name="turn_on_torch">Zapnout svítilnu</string>
     <string name="unknown_size">Neznámá velikost</string>

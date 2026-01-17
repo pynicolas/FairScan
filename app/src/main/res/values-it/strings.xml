@@ -52,6 +52,8 @@
     <string name="share">Condividi</string>
     <string name="share_document">Condividi documento</string>
     <string name="storage_permission_denied">Impossibile salvare il file: permesso negato</string>
+    <string name="support">Supporto</string>
+    <string name="support_last_image">Segnala un problema con l’ultima immagine acquisita</string>
     <string name="turn_off_torch">Spegni la torcia</string>
     <string name="turn_on_torch">Accendi la torcia</string>
     <string name="unknown_size">Dimensione sconosciuta</string>

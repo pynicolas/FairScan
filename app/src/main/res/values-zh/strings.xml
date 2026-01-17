@@ -52,6 +52,8 @@
     <string name="share">共享</string>
     <string name="share_document">分享文档</string>
     <string name="storage_permission_denied">无法保存文件：权限被拒绝</string>
+    <string name="support">支持</string>
+    <string name="support_last_image">报告最近拍摄图像的问题</string>
     <string name="turn_off_torch">关闭手电筒</string>
     <string name="turn_on_torch">打开手电筒</string>
     <string name="unknown_size">未知大小</string>

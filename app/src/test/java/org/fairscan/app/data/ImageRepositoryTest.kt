@@ -242,6 +242,29 @@ class ImageRepositoryTest {
         assertThat(PageV2("1", 42, 0, quad, true).toMetadata()).isNull()
     }
 
+    @Test
+    fun last_added_source_file() {
+        val repo = repo()
+        assertThat(repo.lastAddedSourceFile()).isNull()
+        repo.add(byteArrayOf(101), byteArrayOf(51), metadata1)
+        assertThat(repo.lastAddedSourceFile()).hasBinaryContent(byteArrayOf(51))
+        Thread.sleep(1)
+        repo.add(byteArrayOf(102), byteArrayOf(52), metadata1)
+        assertThat(repo.lastAddedSourceFile()).hasBinaryContent(byteArrayOf(52))
+
+        val id = repo.imageIds().last()
+        repo.movePage(id, 0)
+        assertThat(repo.lastAddedSourceFile()).hasBinaryContent(byteArrayOf(52))
+        repo.delete(id)
+        assertThat(repo.lastAddedSourceFile()).hasBinaryContent(byteArrayOf(51))
+
+        val repo2 = repo()
+        assertThat(repo2.lastAddedSourceFile()).hasBinaryContent(byteArrayOf(51))
+
+        repo2.clear()
+        assertThat(repo2.lastAddedSourceFile()).isNull()
+    }
+
     private fun scanDir(): File = File(getFilesDir(), SCAN_DIR_NAME)
     private fun sourceDir(): File = File(getFilesDir(), SOURCE_DIR_NAME)
 

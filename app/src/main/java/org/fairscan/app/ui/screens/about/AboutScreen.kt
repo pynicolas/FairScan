@@ -57,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -76,8 +77,10 @@ import org.fairscan.app.ui.theme.FairScanTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
+    aboutUiState: AboutUiState,
     onBack: () -> Unit,
     onCopyLogs: () -> Unit,
+    onContactWithLastImageClicked: () -> Unit,
     onViewLibraries: () -> Unit,
 ) {
     val showLicenseDialog = rememberSaveable { mutableStateOf(false) }
@@ -93,7 +96,9 @@ fun AboutScreen(
     ) { paddingValues ->
         AboutContent(
             modifier = Modifier.padding(paddingValues),
+            aboutUiState,
             onCopyLogs,
+            onContactWithLastImageClicked,
             showLicenseDialog,
             onViewLibraries)
     }
@@ -105,7 +110,9 @@ fun AboutScreen(
 @Composable
 fun AboutContent(
     modifier: Modifier = Modifier,
+    aboutUiState: AboutUiState,
     onCopyLogs: () -> Unit,
+    onContactWithLastImageClicked: () -> Unit,
     showLicenseDialog: MutableState<Boolean>,
     onViewLibraries: () -> Unit,
     ) {
@@ -145,16 +152,10 @@ fun AboutContent(
         }
 
         Section(title = stringResource(R.string.contact)) {
-            val emailAddress = "contact@fairscan.org"
             ContactLink(
                 icon = Icons.Default.Email,
-                text = emailAddress,
-                onClick = {
-                    val intent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = "mailto:$emailAddress".toUri()
-                    }
-                    context.startActivity(intent)
-                }
+                text = EMAIL_ADDRESS,
+                onClick = { context.startActivity(createContactEmailIntent()) }
             )
             val websiteUrl = "https://fairscan.org"
             ContactLink(
@@ -165,6 +166,10 @@ fun AboutContent(
                     context.startActivity(intent)
                 }
             )
+        }
+
+        Section(title = stringResource(R.string.support)) {
+            EmailImageButton(aboutUiState, onContactWithLastImageClicked)
             CopyLogsButton (onClick = onCopyLogs)
         }
 
@@ -295,11 +300,33 @@ fun CopyLogsButton(onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun EmailImageButton(
+    aboutUiState: AboutUiState,
+    onContactWithLastImageClicked: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                enabled = aboutUiState.hasLastCapturedImage,
+                onClick = onContactWithLastImageClicked
+            )
+            .alpha(if (aboutUiState.hasLastCapturedImage) 1f else 0.5f)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Default.Email, contentDescription = null)
+        Spacer(Modifier.width(16.dp))
+        Text(stringResource(R.string.support_last_image))
+    }
+}
 
 @Preview
 @Composable
 fun AboutScreenPreview() {
     FairScanTheme {
-        AboutScreen(onBack = {}, onCopyLogs = {}, onViewLibraries = {})
+        val state = AboutUiState(true)
+        AboutScreen(state, {}, {}, {}, {})
     }
 }

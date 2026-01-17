@@ -50,6 +50,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.fairscan.app.data.FileLogger
+import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
@@ -58,6 +59,7 @@ import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.about.AboutEvent
 import org.fairscan.app.ui.screens.about.AboutScreen
 import org.fairscan.app.ui.screens.about.AboutViewModel
+import org.fairscan.app.ui.screens.about.createEmailWithImageIntent
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
@@ -101,9 +103,14 @@ class MainActivity : ComponentActivity() {
                 ExportViewModel(appContainer, sessionContainer.imageRepository)
             }
         }
+        val aboutViewModel: AboutViewModel by viewModels {
+            appContainer.viewModelFactory {
+                AboutViewModel(appContainer, sessionContainer.imageRepository)
+            }
+        }
         val homeViewModel: HomeViewModel by viewModels { appContainer.homeViewModelFactory }
         val cameraViewModel: CameraViewModel by viewModels { appContainer.cameraViewModelFactory }
-        val aboutViewModel: AboutViewModel by viewModels { appContainer.aboutViewModelFactory }
+
         val settingsViewModel: SettingsViewModel
             by viewModels { appContainer.settingsViewModelFactory }
         lifecycleScope.launch(Dispatchers.IO) {
@@ -119,7 +126,7 @@ class MainActivity : ComponentActivity() {
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
             CollectExportEvents(context, exportViewModel)
-            CollectAboutEvents(context, aboutViewModel)
+            CollectAboutEvents(context, aboutViewModel, sessionContainer.imageRepository)
 
             FairScanTheme {
                 val navigation = navigation(viewModel, launchMode)
@@ -187,9 +194,16 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     is Screen.Overlay.About -> {
+                        LaunchedEffect(Unit) {
+                            aboutViewModel.refreshLastCapturedImageState()
+                        }
+                        val aboutUiState by aboutViewModel.uiState.collectAsStateWithLifecycle()
                         AboutScreen(
+                            aboutUiState = aboutUiState,
                             onBack = navigation.back,
                             onCopyLogs = { aboutViewModel.onCopyLogsClicked() },
+                            onContactWithLastImageClicked =
+                                { aboutViewModel.onContactWithLastImageClicked() },
                             onViewLibraries = navigation.toLibrariesScreen)
                     }
                     is Screen.Overlay.Libraries -> {
@@ -262,6 +276,7 @@ class MainActivity : ComponentActivity() {
     private fun CollectAboutEvents(
         context: Context,
         aboutViewModel: AboutViewModel,
+        imageRepository: ImageRepository,
     ) {
         val clipboard = LocalClipboard.current
         val msgCopiedLogs = stringResource(R.string.copied_logs)
@@ -273,6 +288,12 @@ class MainActivity : ComponentActivity() {
                             ClipData.newPlainText("FairScan logs", event.logs).toClipEntry()
                         )
                         Toast.makeText(context, msgCopiedLogs, Toast.LENGTH_SHORT).show()
+                    }
+                    is AboutEvent.PrepareEmailWithLastImage -> {
+                        val file = imageRepository.lastAddedSourceFile()
+                        if (file != null) {
+                            startActivity(createEmailWithImageIntent(context, file))
+                        }
                     }
                 }
             }
@@ -370,8 +391,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun uriForFile(file: File): Uri {
-        val authority = "${applicationContext.packageName}.fileprovider"
-        return FileProvider.getUriForFile(this, authority, file)
+        return org.fairscan.app.ui.uriForFile(this, file)
     }
 
     private fun checkPermissionThen(

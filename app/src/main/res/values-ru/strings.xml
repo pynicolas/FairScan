@@ -52,6 +52,8 @@
     <string name="share">Поделиться</string>
     <string name="share_document">Поделиться документом</string>
     <string name="storage_permission_denied">Невозможно сохранить файл: доступ запрещён</string>
+    <string name="support">Поддержка</string>
+    <string name="support_last_image">Сообщить о проблеме с последним сделанным изображением</string>
     <string name="turn_off_torch">Выключить фонарик</string>
     <string name="turn_on_torch">Включить фонарик</string>
     <string name="unknown_size">Неизвестный размер</string>
