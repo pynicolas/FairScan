@@ -171,7 +171,11 @@ fun AppOverflowMenu(
         modifier
     ) {
         IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.menu))
+            Icon(
+                Icons.Default.MoreVert,
+                contentDescription = stringResource(R.string.menu),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         DropdownMenu(
