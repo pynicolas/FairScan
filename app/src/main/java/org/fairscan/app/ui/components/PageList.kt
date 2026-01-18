@@ -72,7 +72,8 @@ fun CommonPageList(
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val reorderableLazyListState = rememberReorderableLazyListState(state.listState) { from, to ->
-        state.onPageReorder(from.key as String, to.index)
+        val pageId = state.document.pageKeys[from.index].pageId
+        state.onPageReorder(pageId, to.index)
     }
     val content: LazyListScope.() -> Unit = {
         itemsIndexed(state.document.pageKeys, key = { _, item -> item.saveKey}) { index, item ->
