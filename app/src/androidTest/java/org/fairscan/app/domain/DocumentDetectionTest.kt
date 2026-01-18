@@ -22,6 +22,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
+import org.fairscan.app.ui.screens.camera.extractDocumentFromBitmap
+import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.scaledTo
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -57,7 +59,7 @@ class DocumentDetectionTest {
                 if (quad != null) {
                     val resizedQuad =
                         quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
-                    outputBitmap = extractDocument(bitmap, resizedQuad, 0)
+                    outputBitmap = extractDocumentFromBitmap(bitmap, resizedQuad, 0, mask).page
                     val file = File(context.getExternalFilesDir(null), imageFileName)
                     FileOutputStream(file).use {
                         outputBitmap.compress(Bitmap.CompressFormat.JPEG, 95, it)
