@@ -1,0 +1,3 @@
+- New setting to choose the image quality of exported files
+- New option to report issues with the last captured image
+- Added Chinese (Traditional) translation
