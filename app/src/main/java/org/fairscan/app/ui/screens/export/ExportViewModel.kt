@@ -128,6 +128,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     ): ExportResult.Jpeg = withContext(Dispatchers.IO) {
         val jpegs = jpegsForExport(imageRepository, exportQuality)
         val timestamp = System.currentTimeMillis()
+        preparationDir.mkdirs()
         val files = jpegs.mapIndexed { index, bytes ->
             val file = File(preparationDir, "$timestamp-${index + 1}.jpg")
             file.writeBytes(bytes)
