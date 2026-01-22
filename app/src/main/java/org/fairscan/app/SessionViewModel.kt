@@ -14,10 +14,36 @@
  */
 package org.fairscan.app
 
+import android.app.Application
 import android.content.Context
+import androidx.lifecycle.AndroidViewModel
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.platform.OpenCvTransformations
 import java.io.File
+import java.util.UUID
+
+class SessionViewModel(
+    app: Application,
+    launchMode: LaunchMode,
+    appContainer: AppContainer
+) : AndroidViewModel(app) {
+
+    val sessionDir: File = when (launchMode) {
+        LaunchMode.NORMAL ->
+            app.filesDir
+
+        LaunchMode.EXTERNAL_SCAN_TO_PDF ->
+            File(appContainer.sessionsRoot(), UUID.randomUUID().toString())
+                .apply { mkdirs() }
+    }
+
+    private val sessionContainer = ScanSessionContainer(
+        context = app,
+        scanRootDir = sessionDir
+    )
+
+    val imageRepository: ImageRepository = sessionContainer.imageRepository
+}
 
 class ScanSessionContainer(
     context: Context,

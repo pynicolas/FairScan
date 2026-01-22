@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat.checkSelfPermission
-import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -63,11 +62,11 @@ import org.fairscan.app.ui.screens.about.createEmailWithImageIntent
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
+import org.fairscan.app.ui.screens.export.ExportActions
 import org.fairscan.app.ui.screens.export.ExportEvent
 import org.fairscan.app.ui.screens.export.ExportResult
 import org.fairscan.app.ui.screens.export.ExportScreenWrapper
 import org.fairscan.app.ui.screens.export.ExportViewModel
-import org.fairscan.app.ui.screens.export.ExportActions
 import org.fairscan.app.ui.screens.home.HomeScreen
 import org.fairscan.app.ui.screens.home.HomeViewModel
 import org.fairscan.app.ui.screens.settings.ExportFormat
@@ -76,7 +75,6 @@ import org.fairscan.app.ui.screens.settings.SettingsViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
 import java.io.File
-import java.util.UUID
 
 class MainActivity : ComponentActivity() {
 
@@ -85,27 +83,32 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initLibraries()
+
         val appContainer = (application as FairScanApp).appContainer
         val launchMode = resolveLaunchMode(intent)
-        sessionDir = when (launchMode) {
-            LaunchMode.NORMAL -> filesDir
-            LaunchMode.EXTERNAL_SCAN_TO_PDF ->
-                File(appContainer.sessionsRoot(), UUID.randomUUID().toString()).apply { mkdirs() }
+
+        val sessionViewModel: SessionViewModel by viewModels {
+            SessionViewModelFactory(
+                application = application,
+                launchMode = launchMode,
+                appContainer = appContainer
+            )
         }
-        val sessionContainer = ScanSessionContainer(this, sessionDir)
+
+        val imageRepository = sessionViewModel.imageRepository
         val viewModel: MainViewModel by viewModels {
             appContainer.viewModelFactory {
-                MainViewModel(sessionContainer.imageRepository, launchMode)
+                MainViewModel(imageRepository, launchMode)
             }
         }
         val exportViewModel: ExportViewModel by viewModels {
             appContainer.viewModelFactory {
-                ExportViewModel(appContainer, sessionContainer.imageRepository)
+                ExportViewModel(appContainer, imageRepository)
             }
         }
         val aboutViewModel: AboutViewModel by viewModels {
             appContainer.viewModelFactory {
-                AboutViewModel(appContainer, sessionContainer.imageRepository)
+                AboutViewModel(appContainer, imageRepository)
             }
         }
         val homeViewModel: HomeViewModel by viewModels { appContainer.homeViewModelFactory }
@@ -126,7 +129,7 @@ class MainActivity : ComponentActivity() {
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
             CollectExportEvents(context, exportViewModel)
-            CollectAboutEvents(context, aboutViewModel, sessionContainer.imageRepository)
+            CollectAboutEvents(context, aboutViewModel, imageRepository)
 
             FairScanTheme {
                 val navigation = navigation(viewModel, launchMode)

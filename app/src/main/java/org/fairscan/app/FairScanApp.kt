@@ -94,3 +94,15 @@ class AppContainer(context: Context) {
         return now - lastModified > 24 * 60 * 60 * 1000 // 24h
     }
 }
+
+class SessionViewModelFactory(
+    private val application: Application,
+    private val launchMode: LaunchMode,
+    private val appContainer: AppContainer
+) : ViewModelProvider.Factory {
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return SessionViewModel(application, launchMode, appContainer) as T
+    }
+}
