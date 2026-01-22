@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
@@ -59,6 +58,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
     private var _liveAnalysisState = MutableStateFlow(LiveAnalysisState())
     val liveAnalysisState: StateFlow<LiveAnalysisState> = _liveAnalysisState.asStateFlow()
+    private var quadStabilizer = QuadStabilizer()
 
     private val _captureState = MutableStateFlow<CaptureState>(CaptureState.Idle)
     val captureState: StateFlow<CaptureState> = _captureState
@@ -68,17 +68,20 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
             imageSegmentationService.initialize()
             imageSegmentationService.segmentation
                 .filterNotNull()
-                .map {
+                .collect { result ->
                     // TODO Should we really call toBinaryMask if it's used only in debug mode?
-                    val binaryMask = it.segmentation.toBinaryMask()
-                    LiveAnalysisState(
-                        inferenceTime = it.inferenceTime,
-                        binaryMask = binaryMask,
-                        documentQuad = detectDocumentQuad(it.segmentation, isLiveAnalysis = true),
+                    val binaryMask = result.segmentation.toBinaryMask()
+                    val rawQuad = detectDocumentQuad(
+                        result.segmentation,
+                        isLiveAnalysis = true
                     )
-                }
-                .collect {
-                    _liveAnalysisState.value = it
+                    val stableQuad = quadStabilizer.update(rawQuad)
+                    _liveAnalysisState.value = LiveAnalysisState(
+                        inferenceTime = result.inferenceTime,
+                        binaryMask = binaryMask,
+                        documentQuad = rawQuad,
+                        stableQuad = stableQuad,
+                    )
                 }
         }
     }

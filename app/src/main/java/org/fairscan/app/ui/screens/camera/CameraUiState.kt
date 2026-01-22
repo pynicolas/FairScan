@@ -23,6 +23,7 @@ data class LiveAnalysisState(
     val inferenceTime: Long = 0L,
     val binaryMask: Bitmap? = null,
     val documentQuad: Quad? = null,
+    val stableQuad: Quad? = null,
 )
 
 data class CameraUiState(

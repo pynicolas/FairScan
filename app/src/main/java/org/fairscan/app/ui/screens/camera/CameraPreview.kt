@@ -47,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -64,6 +65,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.fairscan.app.ui.components.CameraPermissionState
 import org.fairscan.imageprocessing.Point
+import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.scaledTo
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -207,17 +209,32 @@ fun bindCameraUseCases(
 
 @Composable
 fun AnalysisOverlay(liveAnalysisState: LiveAnalysisState, debugMode: Boolean) {
-    val binaryMask = liveAnalysisState.binaryMask
-    if (binaryMask == null) {
-        return
-    }
+    val binaryMask = liveAnalysisState.binaryMask ?: return
+    val targetQuad = liveAnalysisState.stableQuad
+    var displayedQuad by remember { mutableStateOf<Quad?>(null) }
     val quadColor = MaterialTheme.colorScheme.primary
+
+    LaunchedEffect(targetQuad) {
+        if (targetQuad == null) {
+            displayedQuad = null
+            return@LaunchedEffect
+        }
+
+        while (true) {
+            displayedQuad = displayedQuad?.let { current ->
+                lerpQuad(current, targetQuad, 0.15f)
+            } ?: targetQuad
+
+            withFrameNanos { }
+        }
+    }
+
     Canvas(modifier = Modifier.fillMaxSize()) {
         if (debugMode) {
             drawMask(this, binaryMask)
         }
-        if (liveAnalysisState.documentQuad != null) {
-            val scaledQuad = liveAnalysisState.documentQuad.scaledTo(
+        displayedQuad?.let { quad ->
+            val scaledQuad = quad.scaledTo(
                 fromWidth = binaryMask.width,
                 fromHeight = binaryMask.height,
                 toWidth = size.width.toInt(),
