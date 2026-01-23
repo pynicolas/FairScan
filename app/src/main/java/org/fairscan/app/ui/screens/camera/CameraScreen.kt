@@ -24,11 +24,13 @@ import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -66,10 +68,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
@@ -156,7 +161,10 @@ fun CameraScreen(
             CameraPreview(
                 onImageAnalyzed = onImageAnalyzed,
                 captureController = captureController,
-                onPreviewViewReady = { view -> previewView = view },
+                onPreviewViewReady = { view ->
+                    previewView = view
+                    captureController.previewView = view
+                },
                 cameraPermission = cameraPermission,
                 onError = { message, throwable -> cameraViewModel.logError(message, throwable) }
             )
@@ -192,7 +200,8 @@ fun CameraScreen(
             isTorchEnabled = !isTorchEnabled
             captureController.cameraControl?.enableTorch(isTorchEnabled) },
         thumbnailCoords = thumbnailCoords,
-        navigation = navigation
+        navigation = navigation,
+        captureController
     )
 }
 
@@ -207,7 +216,16 @@ private fun CameraScreenScaffold(
     onTorchSwitched: () -> Unit,
     thumbnailCoords: MutableState<Offset>,
     navigation: Navigation,
+    captureController: CameraCaptureController,
 ) {
+    var focusPoint by remember { mutableStateOf<Offset?>(null) }
+    LaunchedEffect(focusPoint) {
+        if (focusPoint != null) {
+            delay(1000)
+            focusPoint = null
+        }
+    }
+
     var tapCount by remember { mutableLongStateOf(0) }
     var lastTapTime by remember { mutableLongStateOf(0L) }
     val tapThreshold = 500L
@@ -235,9 +253,16 @@ private fun CameraScreenScaffold(
             CameraPreviewBox(
                 cameraPreview,
                 cameraUiState,
+                focusPoint,
                 onCapture,
                 onTorchSwitched,
-                modifier.clickable(onClick = onPageCountClick)
+                modifier.pointerInput(Unit) {
+                    detectTapGestures { offset ->
+                        focusPoint = offset
+                        captureController.tapToFocus(offset)
+                        onPageCountClick()
+                    }
+                }
             )
         }
         if (cameraUiState.captureState is CaptureState.CapturePreview) {
@@ -251,6 +276,7 @@ private fun CameraScreenScaffold(
 private fun CameraPreviewBox(
     cameraPreview: @Composable (() -> Unit),
     cameraUiState: CameraUiState,
+    focusPoint: Offset?,
     onCapture: () -> Unit,
     onTorchSwitched: () -> Unit,
     modifier: Modifier,
@@ -266,6 +292,7 @@ private fun CameraPreviewBox(
         if (cameraUiState.isDebugMode) {
             MessageBox(cameraUiState.liveAnalysisState.inferenceTime)
         }
+        FocusOverlay(focusPoint)
         CaptureButton(
             onClick = onCapture,
             modifier = Modifier
@@ -428,6 +455,23 @@ private fun CameraPreviewWithOverlay(
 }
 
 @Composable
+fun FocusOverlay(focusPoint: Offset?) {
+    if (focusPoint == null) return
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val size = 80f
+        drawRect(
+            color = Color.White,
+            topLeft = Offset(
+                focusPoint.x - size / 2,
+                focusPoint.y - size / 2
+            ),
+            size = Size(size, size),
+            style = Stroke(width = 3f)
+        )
+    }
+}
+
+@Composable
 fun MessageBox(inferenceTime: Long) {
     Text(
         text = if(inferenceTime == 0L) "" else "Segmentation time: $inferenceTime ms",
@@ -519,7 +563,8 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
             onDebugModeSwitched = {},
             onTorchSwitched = {},
             thumbnailCoords = thumbnailCoords,
-            navigation = dummyNavigation()
+            navigation = dummyNavigation(),
+            captureController = CameraCaptureController()
         )
     }
 }

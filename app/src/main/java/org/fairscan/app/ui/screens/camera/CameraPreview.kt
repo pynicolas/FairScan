@@ -21,6 +21,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -69,6 +70,7 @@ import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.scaledTo
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun CameraPreview(
@@ -283,6 +285,7 @@ class CameraCaptureController {
     var cameraControl: CameraControl? = null
     var imageCapture: ImageCapture? = null
     private val executor = Executors.newSingleThreadExecutor()
+    var previewView: PreviewView? = null
 
     fun shutdown() {
         executor.shutdown()
@@ -301,6 +304,20 @@ class CameraCaptureController {
                 }
             }
         )
+    }
+
+    fun tapToFocus(tapOffset: Offset) {
+        val view = previewView ?: return
+        val control = cameraControl ?: return
+
+        val factory = view.meteringPointFactory
+        val point = factory.createPoint(tapOffset.x, tapOffset.y)
+
+        val action = FocusMeteringAction.Builder(point)
+            .setAutoCancelDuration(5, TimeUnit.SECONDS)
+            .build()
+
+        control.startFocusAndMetering(action)
     }
 }
 
