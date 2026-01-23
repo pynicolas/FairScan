@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Pierre-Yves Nicolas
+ * Copyright 2025-2026 Pierre-Yves Nicolas
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
