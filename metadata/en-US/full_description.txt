@@ -1,17 +1,14 @@
 FairScan is a document scanner designed to be truly simple and respectful.
 With FairScan, it takes only a few seconds to get a clean PDF you can share or save.
-<ul>
-<li>Easy process: scan → preview → save/share</li>
-<li>Clear, distraction-free interface</li>
-<li>Live automatic document detection</li>
-<li>Automatic crop, perspective correction, and enhancement</li>
-<li>Export to shareable PDFs</li>
-</ul>
+
+• Easy process: scan → preview → save/share
+• Clear, distraction-free interface
+• Live automatic document detection
+• Automatic crop, perspective correction, and enhancement
+• Export to shareable PDFs
 
 FairScan works entirely offline.
 
 Minimal permissions required:
-<ul>
-<li>Camera</li>
-<li>On Android 9 and below: storage (to save PDFs to Downloads)</li>
-</ul>
+• Camera
+• On Android 9 and below: storage (to save PDFs to Downloads)
