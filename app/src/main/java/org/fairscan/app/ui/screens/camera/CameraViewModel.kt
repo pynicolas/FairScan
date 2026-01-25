@@ -63,6 +63,9 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     private val _captureState = MutableStateFlow<CaptureState>(CaptureState.Idle)
     val captureState: StateFlow<CaptureState> = _captureState
 
+    private val _isTorchEnabled = MutableStateFlow(false)
+    val isTorchEnabled: StateFlow<Boolean> = _isTorchEnabled
+
     init {
         viewModelScope.launch {
             imageSegmentationService.initialize()
@@ -169,6 +172,10 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         viewModelScope.launch {
             logger.e("Camera", message, throwable)
         }
+    }
+
+    fun setTorchEnabled(enabled: Boolean) {
+        _isTorchEnabled.value = enabled
     }
 }
 

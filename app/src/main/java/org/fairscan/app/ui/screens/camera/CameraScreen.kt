@@ -122,13 +122,16 @@ fun CameraScreen(
     val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
     val thumbnailCoords = remember { mutableStateOf(Offset.Zero) }
     var isDebugMode by remember { mutableStateOf(false) }
-    var isTorchEnabled by remember { mutableStateOf(false) }
+    val isTorchEnabled by cameraViewModel.isTorchEnabled.collectAsStateWithLifecycle()
 
     BackHandler { navigation.back() }
 
     val captureController = remember { CameraCaptureController() }
     DisposableEffect(Unit) {
         onDispose { captureController.shutdown() }
+    }
+    LaunchedEffect(captureController.cameraControl, isTorchEnabled) {
+        captureController.cameraControl?.enableTorch(isTorchEnabled)
     }
 
     val captureState by cameraViewModel.captureState.collectAsStateWithLifecycle()
@@ -197,8 +200,8 @@ fun CameraScreen(
         onFinalizePressed = onFinalizePressed,
         onDebugModeSwitched = { isDebugMode = !isDebugMode },
         onTorchSwitched = {
-            isTorchEnabled = !isTorchEnabled
-            captureController.cameraControl?.enableTorch(isTorchEnabled) },
+            cameraViewModel.setTorchEnabled(!isTorchEnabled)
+        },
         thumbnailCoords = thumbnailCoords,
         navigation = navigation,
         captureController
