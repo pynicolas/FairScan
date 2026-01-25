@@ -47,8 +47,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.FlashOff
-import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Highlight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -307,13 +306,12 @@ private fun CameraPreviewBox(
             modifier = Modifier.align(Alignment.BottomStart)
         ) {
             val torchEnabled = cameraUiState.isTorchEnabled
-            val icon = if (torchEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff
             Icon(
-                imageVector = icon,
+                imageVector = Icons.Default.Highlight,
                 contentDescription =
                     stringResource(
                         if (torchEnabled) R.string.turn_off_torch else R.string.turn_on_torch),
-                tint = Color.White
+                tint = if (torchEnabled) Color.White else Color.White.copy(alpha = 0.5f)
             )
         }
     }
