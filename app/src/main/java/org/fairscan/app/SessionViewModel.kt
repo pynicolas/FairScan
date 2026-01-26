@@ -24,7 +24,7 @@ import java.util.UUID
 
 class SessionViewModel(
     app: Application,
-    launchMode: LaunchMode,
+    val launchMode: LaunchMode,
     appContainer: AppContainer
 ) : AndroidViewModel(app) {
 
@@ -43,6 +43,14 @@ class SessionViewModel(
     )
 
     val imageRepository: ImageRepository = sessionContainer.imageRepository
+
+    override fun onCleared() {
+        super.onCleared()
+
+        if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
+            sessionDir.deleteRecursively()
+        }
+    }
 }
 
 class ScanSessionContainer(

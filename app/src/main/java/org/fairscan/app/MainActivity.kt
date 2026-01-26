@@ -78,8 +78,6 @@ import java.io.File
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var sessionDir: File
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initLibraries()
@@ -217,13 +215,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (resolveLaunchMode(intent) == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
-            sessionDir.deleteRecursively()
         }
     }
 
