@@ -19,6 +19,7 @@
     <string name="download_dirname">下載 (Downloads)</string>
     <string name="end_scan">結束掃描</string>
     <string name="error">錯誤：%1$s</string>
+    <string name="error_export_dir_permission_lost">所選的匯出目錄已無法存取。請選擇其他目錄。</string>
     <string name="error_no_app">找不到可開啟此檔案的應用程式</string>
     <string name="error_no_document">未偵測到文件</string>
     <string name="error_save">儲存檔案失敗</string>

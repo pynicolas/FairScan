@@ -7,7 +7,7 @@
     <string name="camera_permission_denied">Camera permission was denied</string>
     <string name="camera_permission_rationale">The app requires camera access to scan documents. Captured images are stored only on this device and will be deleted when you close the current document.</string>
     <string name="cancel">Cancel</string>
-    <string name="change_directory">Change directory</string>
+    <string name="change_directory">Change folder</string>
     <string name="clear_text">Clear text</string>
     <string name="contact">Contact</string>
     <string name="copied_logs">Logs copied to clipboard</string>
@@ -20,6 +20,7 @@
     <string name="download_dirname">Downloads</string>
     <string name="end_scan">End scan</string>
     <string name="error">Error: %1$s</string>
+    <string name="error_export_dir_permission_lost">The selected export folder is no longer accessible. Please choose another folder.</string>
     <!-- Rare error messages should not be translated -->
     <string name="error_file_picker_launch" translatable="false">Failed to launch system file picker on this device</string>
     <string name="error_file_picker_result" translatable="false">Failed to set export directory</string>
@@ -28,7 +29,7 @@
     <string name="error_save">Failed to save file</string>
     <string name="export">Export</string>
     <string name="export_as">Export as %1$s</string>
-    <string name="export_directory">Export directory</string>
+    <string name="export_directory">Export folder</string>
     <string name="export_format">Export format</string>
     <string name="export_quality">Export quality</string>
     <string name="export_quality_low">Low</string>

@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
+import org.fairscan.app.R
 import org.fairscan.app.RecentDocument
 import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.ImageRepository
@@ -194,6 +195,12 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         viewModelScope.launch {
             try {
                 save(context)
+            } catch (e: MissingExportDirPermissionException) {
+                logger.e("FairScan", "Missing export dir permission", e)
+                _uiState.update {
+                    it.copy(errorMessage =
+                        context.getString(R.string.error_export_dir_permission_lost))
+                }
             } catch (e: Exception) {
                 logger.e("FairScan", "Failed to save PDF", e)
                 _events.emit(ExportEvent.SaveError)
@@ -223,6 +230,11 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                 }
             } else {
                 // Use Storage Access Framework to save to the chosen directory
+                if (!context.contentResolver.persistedUriPermissions.any { perm ->
+                        perm.uri == exportDir && perm.isWritePermission
+                    }) {
+                    throw MissingExportDirPermissionException(exportDir)
+                }
                 val safFile = saveViaSaf(context, file, exportDir, exportFormat)
                 SavedItem(safFile.uri, safFile.name ?: file.name, exportFormat)
             }
@@ -372,4 +384,10 @@ data class ExportActions(
     val share: () -> Unit,
     val save: () -> Unit,
     val open: (SavedItem) -> Unit,
+)
+
+class MissingExportDirPermissionException(
+    val uri: Uri
+) : IllegalStateException(
+    "Missing persisted write permission for export dir: $uri"
 )

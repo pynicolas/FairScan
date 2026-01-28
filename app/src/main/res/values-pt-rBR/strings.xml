@@ -19,6 +19,7 @@
     <string name="download_dirname">Downloads</string>
     <string name="end_scan">Finalizar digitalização</string>
     <string name="error">Erro: %1$s</string>
+    <string name="error_export_dir_permission_lost">A pasta de exportação selecionada não está mais acessível. Escolha outra pasta.</string>
     <string name="error_no_app">Nenhum app encontrado para abrir este arquivo</string>
     <string name="error_no_document">Nenhum documento detectado</string>
     <string name="error_save">Falha ao salvar o arquivo</string>

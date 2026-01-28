@@ -19,6 +19,7 @@
     <string name="download_dirname">Téléchargements</string>
     <string name="end_scan">Terminer le scan</string>
     <string name="error">Erreur : %1$s</string>
+    <string name="error_export_dir_permission_lost">Le dossier d’export sélectionné n’est plus accessible. Veuillez choisir un autre dossier.</string>
     <string name="error_no_app">Aucune application trouvée pour ouvrir ce fichier</string>
     <string name="error_no_document">Aucun document détecté</string>
     <string name="error_save">Échec de l\'enregistrement du fichier</string>
