@@ -92,10 +92,7 @@ private fun SettingsContent(
     onExportQualityChanged: (ExportQuality) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val folderName = remember(uiState.exportDirUri) {
-        extractFolderName(uiState.exportDirUri, context)
-    }
+    val folderName = uiState.exportDirName ?: stringResource(R.string.download_dirname)
 
     Column(
         modifier
@@ -111,7 +108,7 @@ private fun SettingsContent(
 
         Spacer(Modifier.height(12.dp))
 
-        if (uiState.exportDirUri != null) {
+        if (uiState.exportDirName != null) {
             OutlinedButton(
                 onClick = onResetExportDirClick,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
@@ -195,14 +192,6 @@ fun DirectorySettingItem(
             }
         }
     }
-}
-
-private fun extractFolderName(uriString: String?, context: Context): String {
-    if (uriString == null) return context.getString(R.string.download_dirname)
-    return runCatching {
-        val uri = uriString.toUri()
-        uri.lastPathSegment?.substringAfter(':')?.substringAfter('/') ?: uriString
-    }.getOrElse { uriString }
 }
 
 @Preview

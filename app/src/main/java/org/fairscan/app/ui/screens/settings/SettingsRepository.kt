@@ -15,9 +15,11 @@
 package org.fairscan.app.ui.screens.settings
 
 import android.content.Context
+import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.fairscan.app.domain.ExportQuality
@@ -34,6 +36,12 @@ class SettingsRepository(private val context: Context) {
         context.dataStore.data.map { prefs ->
             prefs[EXPORT_DIR_URI]
         }
+
+    val exportDirName: Flow<String?> = exportDirUri.map { uriString ->
+        uriString?.let {
+            DocumentFile.fromTreeUri(context, it.toUri())?.name
+        }
+    }
 
     val exportFormat: Flow<ExportFormat> =
         context.dataStore.data.map { prefs ->

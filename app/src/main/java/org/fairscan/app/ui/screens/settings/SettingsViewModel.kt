@@ -16,13 +16,15 @@ package org.fairscan.app.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.ExportQuality
 
 data class SettingsUiState(
-    val exportDirUri: String? = null,
+    val exportDirName: String? = null,
     val exportFormat: ExportFormat = ExportFormat.PDF,
     val exportQuality: ExportQuality = ExportQuality.BALANCED,
 )
@@ -32,12 +34,12 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
     private val repo = container.settingsRepository
 
     val uiState = combine(
-        repo.exportDirUri,
+        repo.exportDirName,
         repo.exportFormat,
         repo.exportQuality,
     ) { dir, format, quality ->
         SettingsUiState(
-            exportDirUri = dir,
+            exportDirName = dir,
             exportFormat = format,
             exportQuality = quality,
         )
