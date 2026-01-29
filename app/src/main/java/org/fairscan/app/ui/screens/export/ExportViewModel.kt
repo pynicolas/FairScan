@@ -193,6 +193,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 
     fun onRequestSave(context: Context) {
         viewModelScope.launch {
+            _uiState.update {it.copy(isSaving = true, errorMessage = null, savedBundle = null) }
             try {
                 // Must not run on the main thread: some SAF providers (e.g. Nextcloud)
                 // may perform network I/O
@@ -208,6 +209,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
             } catch (e: Exception) {
                 logger.e("FairScan", "Failed to save PDF", e)
                 _events.emit(ExportEvent.SaveError)
+            } finally {
+                _uiState.update { it.copy(isSaving = false) }
             }
         }
     }

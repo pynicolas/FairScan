@@ -56,6 +56,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -117,19 +118,25 @@ fun ExportScreenWrapper(
         uiState = uiState,
         navigation = navigation,
         onShare = {
-            ensureCorrectFileName()
-            pdfActions.share()
+            if (!uiState.isSaving) {
+                ensureCorrectFileName()
+                pdfActions.share()
+            }
         },
         onSave = {
-            ensureCorrectFileName()
-            pdfActions.save()
+            if (!uiState.isSaving) {
+                ensureCorrectFileName()
+                pdfActions.save()
+            }
         },
         onOpen = pdfActions.open,
         onCloseScan = {
-            if (uiState.hasSavedOrShared)
-                onCloseScan()
-            else
-                showConfirmationDialog.value = true
+            if (!uiState.isSaving) {
+                if (uiState.hasSavedOrShared)
+                    onCloseScan()
+                else
+                    showConfirmationDialog.value = true
+            }
         },
     )
 
@@ -235,12 +242,29 @@ private fun TextFieldAndPdfInfos(
             )
         }
     }
-
-    if (uiState.savedBundle != null) {
-        SaveInfoBar(uiState.savedBundle, onOpen)
-    }
+    SaveStatusBar(uiState, onOpen)
     if (uiState.errorMessage != null) {
         ErrorBar(uiState.errorMessage)
+    }
+}
+
+@Composable
+private fun SaveStatusBar(
+    uiState: ExportUiState,
+    onOpen: (SavedItem) -> Unit,
+) {
+    when {
+        uiState.isSaving -> {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp
+                )
+            }
+        }
+        uiState.savedBundle != null -> {
+            SaveInfoBar(uiState.savedBundle, onOpen)
+        }
     }
 }
 
@@ -299,7 +323,7 @@ private fun MainActions(
                 isPrimary = !uiState.hasSavedOrShared,
                 icon = Icons.Default.Download,
                 text = stringResource(R.string.save),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).alpha(if (uiState.isSaving) 0.6f else 1f)
             )
         }
         ExportButton(

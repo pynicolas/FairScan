@@ -20,6 +20,7 @@ import org.fairscan.app.ui.screens.settings.ExportFormat
 data class ExportUiState(
     val format: ExportFormat = ExportFormat.PDF,
     val isGenerating: Boolean = false,
+    val isSaving: Boolean = false,
     val result: ExportResult? = null,
     val savedBundle: SavedBundle? = null,
     val hasShared: Boolean = false,
