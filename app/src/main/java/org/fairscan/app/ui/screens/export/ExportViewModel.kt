@@ -194,7 +194,11 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     fun onRequestSave(context: Context) {
         viewModelScope.launch {
             try {
-                save(context)
+                // Must not run on the main thread: some SAF providers (e.g. Nextcloud)
+                // may perform network I/O
+                withContext(Dispatchers.IO) {
+                    save(context)
+                }
             } catch (e: MissingExportDirPermissionException) {
                 logger.e("FairScan", "Missing export dir permission", e)
                 _uiState.update {
