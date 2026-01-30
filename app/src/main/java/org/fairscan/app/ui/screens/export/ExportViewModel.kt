@@ -54,7 +54,6 @@ import kotlin.coroutines.suspendCoroutine
 
 sealed interface ExportEvent {
     data object RequestSave : ExportEvent
-    data object SaveError : ExportEvent
 }
 
 class ExportViewModel(container: AppContainer, val imageRepository: ImageRepository): ViewModel() {
@@ -208,7 +207,9 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                 }
             } catch (e: Exception) {
                 logger.e("FairScan", "Failed to save PDF", e)
-                _events.emit(ExportEvent.SaveError)
+                _uiState.update {
+                    it.copy(errorMessage = context.getString(R.string.error_save))
+                }
             } finally {
                 _uiState.update { it.copy(isSaving = false) }
             }

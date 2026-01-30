@@ -317,11 +317,6 @@ class MainActivity : ComponentActivity() {
                             exportViewModel.onRequestSave(context)
                         }
                     }
-
-                    is ExportEvent.SaveError -> {
-                        val text = getString(R.string.error_save)
-                        Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
-                    }
                 }
             }
         }
