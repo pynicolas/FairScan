@@ -116,7 +116,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                 _uiState.update {
                     it.copy(
                         isGenerating = false,
-                        errorMessage = message
+                        error = ExportError.OnPrepare(message, e),
                     )
                 }
             }
@@ -192,23 +192,24 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 
     fun onRequestSave(context: Context) {
         viewModelScope.launch {
-            _uiState.update {it.copy(isSaving = true, errorMessage = null, savedBundle = null) }
+            _uiState.update {it.copy(isSaving = true, error = null, savedBundle = null) }
+            val saveDir = saveDir(context)
             try {
                 // Must not run on the main thread: some SAF providers (e.g. Nextcloud)
                 // may perform network I/O
                 withContext(Dispatchers.IO) {
-                    save(context)
+                    save(context, saveDir)
                 }
             } catch (e: MissingExportDirPermissionException) {
                 logger.e("FairScan", "Missing export dir permission", e)
                 _uiState.update {
-                    it.copy(errorMessage =
-                        context.getString(R.string.error_export_dir_permission_lost))
+                    it.copy(error =
+                        ExportError.OnSave(R.string.error_export_dir_permission_lost, saveDir))
                 }
             } catch (e: Exception) {
                 logger.e("FairScan", "Failed to save PDF", e)
                 _uiState.update {
-                    it.copy(errorMessage = context.getString(R.string.error_save))
+                    it.copy(error = ExportError.OnSave(R.string.error_save, saveDir, e))
                 }
             } finally {
                 _uiState.update { it.copy(isSaving = false) }
@@ -216,14 +217,19 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         }
     }
 
-    private suspend fun save(context:Context) {
+    private suspend fun saveDir(context:Context): SaveDir? {
+        val uri = settingsRepository.exportDirUri.first()?.toUri() ?: return null
+        val name = resolveExportDirName(context, uri)
+        return SaveDir(uri, name)
+    }
+
+    private suspend fun save(context: Context, saveDir: SaveDir?) {
         val result = applyRenaming() ?: return
-        val exportDir = settingsRepository.exportDirUri.first()?.toUri()
         val savedItems = mutableListOf<SavedItem>()
         val filesForMediaScan = mutableListOf<File>()
 
         for (file in result.files) {
-            val saved = if (exportDir == null) {
+            val saved = if (saveDir == null) {
                 // No export dir defined -> save to Downloads
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     // Android 10+: use MediaStore API
@@ -239,18 +245,17 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
             } else {
                 // Use Storage Access Framework to save to the chosen directory
                 if (!context.contentResolver.persistedUriPermissions.any { perm ->
-                        perm.uri == exportDir && perm.isWritePermission
+                        perm.uri == saveDir.uri && perm.isWritePermission
                     }) {
-                    throw MissingExportDirPermissionException(exportDir)
+                    throw MissingExportDirPermissionException(saveDir.uri)
                 }
-                val safFile = saveViaSaf(context, file, exportDir, exportFormat)
+                val safFile = saveViaSaf(context, file, saveDir.uri, exportFormat)
                 SavedItem(safFile.uri, safFile.name ?: file.name, exportFormat)
             }
             savedItems += saved
         }
 
-        val exportDirName = resolveExportDirName(context, exportDir)
-        val bundle = SavedBundle(savedItems, exportDir, exportDirName)
+        val bundle = SavedBundle(savedItems, saveDir)
         _uiState.update { it.copy(savedBundle = bundle) }
 
         if (exportFormat == ExportFormat.PDF) {

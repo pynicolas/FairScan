@@ -19,6 +19,8 @@
     <string name="download_dirname">İndirilenler</string>
     <string name="end_scan">Taramayı bitir</string>
     <string name="error">Error: %1$s</string>
+    <string name="error_context_folder">Dışa aktarma klasörü: %1$s</string>
+    <string name="error_context_provider">Sağlayıcı: %1$s</string>
     <string name="error_export_dir_permission_lost">Seçilen dışa aktarma dizini artık erişilebilir değil. Lütfen başka bir dizin seçin.</string>
     <string name="error_no_app">No app found to open this file</string>
     <string name="error_no_document">No document detected</string>

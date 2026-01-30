@@ -24,7 +24,7 @@ data class ExportUiState(
     val result: ExportResult? = null,
     val savedBundle: SavedBundle? = null,
     val hasShared: Boolean = false,
-    val errorMessage: String? = null,
+    val error: ExportError? = null,
 ) {
     val hasSavedOrShared get() = savedBundle != null || hasShared
 }
@@ -37,6 +37,24 @@ data class SavedItem(
 
 data class SavedBundle(
     val items: List<SavedItem>,
-    val exportDir: Uri? = null,
-    val exportDirName: String? = null,
+    val saveDir: SaveDir? = null,
 )
+
+data class SaveDir(
+    val uri: Uri,
+    val name: String?,
+)
+
+sealed class ExportError {
+
+    data class OnPrepare(
+        val message: String,
+        val throwable: Throwable,
+    ) : ExportError()
+
+    data class OnSave(
+        val messageRes: Int,
+        val saveDir: SaveDir?,
+        val throwable: Throwable? = null,
+    ): ExportError()
+}

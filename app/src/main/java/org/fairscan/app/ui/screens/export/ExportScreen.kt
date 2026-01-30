@@ -14,12 +14,15 @@
  */
 package org.fairscan.app.ui.screens.export
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,9 +33,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Share
@@ -81,6 +86,7 @@ import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.screens.settings.ExportFormat.PDF
 import org.fairscan.app.ui.theme.FairScanTheme
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -243,8 +249,8 @@ private fun TextFieldAndPdfInfos(
         }
     }
     SaveStatusBar(uiState, onOpen)
-    if (uiState.errorMessage != null) {
-        ErrorBar(uiState.errorMessage)
+    if (uiState.error != null) {
+        ErrorBar(uiState.error)
     }
 }
 
@@ -376,7 +382,7 @@ fun ExportButton(
 
 @Composable
 private fun SaveInfoBar(savedBundle: SavedBundle, onOpen: (SavedItem) -> Unit) {
-    val dirName = savedBundle.exportDirName?:stringResource(R.string.download_dirname)
+    val dirName = savedBundle.saveDir?.name?:stringResource(R.string.download_dirname)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Absolute.SpaceBetween,
@@ -409,17 +415,127 @@ private fun SaveInfoBar(savedBundle: SavedBundle, onOpen: (SavedItem) -> Unit) {
 }
 
 @Composable
-private fun ErrorBar(errorMessage: String) {
-    Text(
-        text = stringResource(R.string.error, errorMessage),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.error,
+private fun ErrorBar(error: ExportError) {
+    val (summary, details) = error.toDisplayText()
+    val context = LocalContext.current
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.errorContainer)
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.error,
+                RoundedCornerShape(12.dp)
+            )
             .padding(16.dp),
-    )
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (details != null) {
+                IconButton(
+                    onClick = {
+                        val clipboard =
+                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val text = buildString {
+                            append(summary)
+                            append("\n\n")
+                            append(details)
+                        }
+                        clipboard.setPrimaryClip(
+                            ClipData.newPlainText("Export error", text)
+                        )
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ContentCopy,
+                        contentDescription = stringResource(R.string.copy_logs),
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+
+        if (details != null) {
+            Text(
+                text = details,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+            )
+        }
+    }
 }
+
+@Composable
+private fun ExportError.toDisplayText(): Pair<String, String?> {
+    return when (this) {
+        is ExportError.OnPrepare -> {
+            val summary = message
+            val details = throwable.message
+            summary to details
+        }
+
+        is ExportError.OnSave -> {
+            val summary = stringResource(messageRes)
+            val contextLines = buildErrorContextLines(saveDir)
+            val details = buildString {
+                if (contextLines.isNotEmpty()) {
+                    append(contextLines.joinToString("\n"))
+                }
+                throwable?.message?.let {
+                    if (isNotEmpty()) append("\n\n")
+                    append(it)
+                }
+            }.ifEmpty { null }
+
+            summary to details
+        }
+    }
+}
+
+@Composable
+private fun buildErrorContextLines(
+    saveDir: SaveDir?,
+): List<String> {
+    val defaultDirName = stringResource(R.string.download_dirname)
+
+    val folderLine = when {
+        saveDir == null ->
+            stringResource(R.string.error_context_folder, defaultDirName)
+
+        saveDir.name != null ->
+            stringResource(R.string.error_context_folder, saveDir.name)
+
+        else -> null
+    }
+
+    val providerLine = saveDir?.uri?.authority
+        ?.let(::providerLabel)
+        ?.let { stringResource(R.string.error_context_provider, it) }
+
+    return listOfNotNull(folderLine, providerLine)
+}
+
+fun providerLabel(authority: String): String =
+    when {
+        authority.contains("nextcloud", ignoreCase = true) ->
+            "Nextcloud"
+        authority == "com.android.externalstorage.documents" ->
+            "Local storage"
+        else ->
+            authority
+    }
 
 fun defaultFilename(): String {
     val timestamp = SimpleDateFormat("yyyy-MM-dd HH.mm.ss", Locale.getDefault()).format(Date())
@@ -468,7 +584,8 @@ fun PreviewExportScreenAfterSave() {
 @Composable
 fun ExportScreenPreviewWithError() {
     ExportPreviewToCustomize(
-        ExportUiState(errorMessage = "PDF generation failed")
+        ExportUiState(error =
+            ExportError.OnPrepare("PDF generation failed", IOException("Boom")))
     )
 }
 
@@ -481,7 +598,7 @@ fun PreviewExportScreenAfterSaveHorizontal() {
             result = ExportResult.Pdf(file, 442897L, 3),
             savedBundle = SavedBundle(
                 listOf(SavedItem(file.toUri(), "my_file.pdf", PDF)),
-                exportDirName="MyVeryVeryLongDirectoryName"),
+                SaveDir("fil:///root/dir".toUri() ,"MyVeryVeryLongDirectoryName")),
         ),
     )
 }

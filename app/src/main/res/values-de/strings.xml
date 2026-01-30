@@ -19,6 +19,8 @@
     <string name="download_dirname">Downloads</string>
     <string name="end_scan">Scan beenden</string>
     <string name="error">Fehler: %1$s</string>
+    <string name="error_context_folder">Exportordner: %1$s</string>
+    <string name="error_context_provider">Anbieter: %1$s</string>
     <string name="error_export_dir_permission_lost">Der ausgewählte Exportordner ist nicht mehr zugänglich. Bitte wählen Sie einen anderen Ordner.</string>
     <string name="error_no_app">Keine App zum Öffnen dieser Datei gefunden</string>
     <string name="error_no_document">Kein Dokument erkannt</string>
