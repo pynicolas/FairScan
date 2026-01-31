@@ -32,7 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.RotateLeft
 import androidx.compose.material.icons.automirrored.filled.RotateRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -227,7 +227,7 @@ private fun BottomBar(
     ) {
         MainActionButton(
             onClick = onExportClick,
-            icon = Icons.Default.Description,
+            icon = Icons.Default.Done,
             text = stringResource(R.string.export),
         )
     }

@@ -131,6 +131,20 @@ class MainActivity : ComponentActivity() {
 
             FairScanTheme {
                 val navigation = navigation(viewModel, launchMode)
+                val onExportClick = if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
+                    {
+                        lifecycleScope.launch {
+                            val result = exportViewModel.generatePdfForExternalCall()
+                            sendActivityResult(result)
+                            viewModel.startNewDocument()
+                            finish()
+                        }
+                        Unit
+                    }
+                } else {
+                    navigation.toExportScreen
+                }
+
                 when (val screen = currentScreen) {
                     is Screen.Main.Home -> {
                         val recentDocs by homeViewModel.recentDocuments.collectAsStateWithLifecycle()
@@ -150,7 +164,7 @@ class MainActivity : ComponentActivity() {
                             navigation,
                             liveAnalysisState,
                             onImageAnalyzed = { image -> cameraViewModel.liveAnalysis(image) },
-                            onFinalizePressed = navigation.toDocumentScreen,
+                            onFinalizePressed = onExportClick,
                             cameraPermission = cameraPermission
                         )
                     }
@@ -159,19 +173,7 @@ class MainActivity : ComponentActivity() {
                             document = document,
                             initialPage = screen.initialPage,
                             navigation = navigation,
-                            onExportClick = if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
-                                {
-                                    lifecycleScope.launch {
-                                        val result = exportViewModel.generatePdfForExternalCall()
-                                        sendActivityResult(result)
-                                        viewModel.startNewDocument()
-                                        finish()
-                                    }
-                                    Unit
-                                }
-                            } else {
-                                navigation.toExportScreen
-                            },
+                            onExportClick = onExportClick,
                             onDeleteImage =  { id -> viewModel.deletePage(id) },
                             onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
