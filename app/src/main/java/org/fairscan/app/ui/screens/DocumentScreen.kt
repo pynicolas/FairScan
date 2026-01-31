@@ -16,6 +16,7 @@ package org.fairscan.app.ui.screens
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -32,11 +33,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.RotateLeft
 import androidx.compose.material.icons.automirrored.filled.RotateRight
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,9 +52,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.toImmutableList
@@ -108,14 +114,7 @@ fun DocumentScreen(
         ),
         onBack = navigation.back,
         bottomBar = {
-            BottomBar(onExportClick)
-        },
-        pageListButton = {
-            SecondaryActionButton(
-                icon = Icons.Default.Add,
-                onClick = navigation.toCameraScreen,
-                contentDescription = stringResource(R.string.add_page),
-            )
+            BottomBar(onExportClick, navigation.toCameraScreen)
         },
     ) { modifier ->
         DocumentPreview(
@@ -221,12 +220,28 @@ fun RotationButtons(
 @Composable
 private fun BottomBar(
     onExportClick: () -> Unit,
+    onAddPageClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        OutlinedButton(
+            onClick = onAddPageClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.primary
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+            modifier = Modifier.weight(1f, fill = false),
+        ) {
+            Icon(Icons.Outlined.Add, contentDescription = null)
+            Spacer(Modifier.width(4.dp))
+            Text(stringResource(R.string.add_page),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis)
+        }
         MainActionButton(
             onClick = onExportClick,
             icon = Icons.Default.Done,
