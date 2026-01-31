@@ -28,6 +28,7 @@
     <string name="export">Экспорт</string>
     <string name="export_as">Экспортировать как %1$s</string>
     <string name="export_directory">Папка экспорта</string>
+    <string name="export_folder_permission_lost">Доступ к папке потерян</string>
     <string name="export_format">Формат экспорта</string>
     <string name="export_quality">Качество экспорта</string>
     <string name="export_quality_low">Низкое</string>

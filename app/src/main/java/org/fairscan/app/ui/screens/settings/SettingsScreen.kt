@@ -14,8 +14,6 @@
  */
 package org.fairscan.app.ui.screens.settings
 
-
-import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -41,14 +39,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import org.fairscan.app.R
 import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.ui.components.BackButton
@@ -92,7 +88,20 @@ private fun SettingsContent(
     onExportQualityChanged: (ExportQuality) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val folderName = uiState.exportDirName ?: stringResource(R.string.download_dirname)
+    println(uiState)
+    val (folderLabel, folderLabelColor) = when {
+        uiState.exportDirUri == null ->
+            stringResource(R.string.download_dirname) to
+                    MaterialTheme.colorScheme.onSurface
+
+        uiState.exportDirName != null ->
+            uiState.exportDirName to
+                    MaterialTheme.colorScheme.onSurface
+
+        else ->
+            stringResource(R.string.export_folder_permission_lost) to
+                    MaterialTheme.colorScheme.error
+    }
 
     Column(
         modifier
@@ -102,13 +111,14 @@ private fun SettingsContent(
     ) {
         DirectorySettingItem(
             label = stringResource(R.string.export_directory),
-            folderName = folderName,
-            onClick = onChooseDirectoryClick
+            folderLabel,
+            folderLabelColor,
+            onClick = onChooseDirectoryClick,
         )
 
         Spacer(Modifier.height(12.dp))
 
-        if (uiState.exportDirName != null) {
+        if (uiState.exportDirUri != null) {
             OutlinedButton(
                 onClick = onResetExportDirClick,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
@@ -156,9 +166,11 @@ private fun SettingsContent(
 @Composable
 fun DirectorySettingItem(
     label: String,
-    folderName: String,
+    folderLabel: String,
+    folderLabelColor: Color,
     onClick: () -> Unit,
-) {
+
+    ) {
     Column {
         Text(
             text = label,
@@ -181,8 +193,9 @@ fun DirectorySettingItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = folderName,
-                    style = MaterialTheme.typography.bodyLarge
+                    text = folderLabel,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = folderLabelColor,
                 )
 
                 Icon(

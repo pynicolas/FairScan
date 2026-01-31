@@ -248,6 +248,9 @@ class MainActivity : ComponentActivity() {
             }
         }
         val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+        LaunchedEffect(Unit) {
+            settingsViewModel.refreshExportDirName()
+        }
         SettingsScreen(
             settingsUiState,
             onChooseDirectoryClick = {

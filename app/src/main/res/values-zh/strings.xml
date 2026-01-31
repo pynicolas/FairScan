@@ -28,6 +28,7 @@
     <string name="export">导出</string>
     <string name="export_as">导出为 %1$s</string>
     <string name="export_directory">导出目录</string>
+    <string name="export_folder_permission_lost">文件夹访问权限已丢失</string>
     <string name="export_format">导出格式</string>
     <string name="export_quality">导出质量</string>
     <string name="export_quality_low">低</string>

@@ -28,6 +28,7 @@
     <string name="export">Exportovat</string>
     <string name="export_as">Exportovat jako %1$s</string>
     <string name="export_directory">Složka pro export</string>
+    <string name="export_folder_permission_lost">Ztracený přístup ke složce</string>
     <string name="export_format">Formát exportu</string>
     <string name="export_quality">Kvalita exportu</string>
     <string name="export_quality_low">Nízká</string>

@@ -16,14 +16,18 @@ package org.fairscan.app.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.ExportQuality
 
 data class SettingsUiState(
+    val exportDirUri: String? = null,
     val exportDirName: String? = null,
     val exportFormat: ExportFormat = ExportFormat.PDF,
     val exportQuality: ExportQuality = ExportQuality.BALANCED,
@@ -33,13 +37,18 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
 
     private val repo = container.settingsRepository
 
+    private val _dirName = MutableStateFlow<String?>(null)
+    val dirName: StateFlow<String?> = _dirName
+
     val uiState = combine(
-        repo.exportDirName,
+        repo.exportDirUri,
+        dirName,
         repo.exportFormat,
         repo.exportQuality,
-    ) { dir, format, quality ->
+    ) { uri, name, format, quality ->
         SettingsUiState(
-            exportDirName = dir,
+            exportDirUri = uri,
+            exportDirName = name,
             exportFormat = format,
             exportQuality = quality,
         )
@@ -52,6 +61,7 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
     fun setExportDirUri(uri: String?) {
         viewModelScope.launch {
             repo.setExportDirUri(uri)
+            refreshExportDirName()
         }
     }
 
@@ -64,6 +74,13 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
     fun setExportQuality(quality: ExportQuality) {
         viewModelScope.launch {
             repo.setExportQuality(quality)
+        }
+    }
+
+    fun refreshExportDirName() {
+        viewModelScope.launch {
+            val uri = repo.exportDirUri.first()
+            _dirName.value = uri?.let { repo.resolveExportDirName(it) }
         }
     }
 }

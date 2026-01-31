@@ -28,6 +28,7 @@
     <string name="export">Exporter</string>
     <string name="export_as">Exporter en %1$s</string>
     <string name="export_directory">Dossier d’export</string>
+    <string name="export_folder_permission_lost">Accès au dossier perdu</string>
     <string name="export_format">Format d’export</string>
     <string name="export_quality">Qualité d’export</string>
     <string name="export_quality_low">Basse</string>

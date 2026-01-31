@@ -28,6 +28,7 @@
     <string name="export">Dışa aktar</string>
     <string name="export_as">%1$s olarak dışa aktar</string>
     <string name="export_directory">Dışa aktarma dizini</string>
+    <string name="export_folder_permission_lost">Klasör erişimi kaybedildi</string>
     <string name="export_format">Dışa aktarma biçimi</string>
     <string name="export_quality">Dışa aktarma kalitesi</string>
     <string name="export_quality_low">Düşük</string>

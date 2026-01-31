@@ -37,10 +37,8 @@ class SettingsRepository(private val context: Context) {
             prefs[EXPORT_DIR_URI]
         }
 
-    val exportDirName: Flow<String?> = exportDirUri.map { uriString ->
-        uriString?.let {
-            DocumentFile.fromTreeUri(context, it.toUri())?.name
-        }
+    fun resolveExportDirName(uri: String): String? {
+        return DocumentFile.fromTreeUri(context, uri.toUri())?.name
     }
 
     val exportFormat: Flow<ExportFormat> =
