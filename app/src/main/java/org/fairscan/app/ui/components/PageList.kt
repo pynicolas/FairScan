@@ -16,12 +16,14 @@ package org.fairscan.app.ui.components
 
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +35,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,6 +64,7 @@ data class CommonPageListState(
     val onPageClick: (Int) -> Unit,
     val onPageReorder: (String, Int) -> Unit,
     val listState: LazyListState,
+    val showPageNumbers: Boolean,
     val currentPageIndex: Int? = null,
     val onLastItemPosition: ((Offset) -> Unit)? = null,
 )
@@ -129,7 +134,7 @@ private fun PageThumbnail(
     val bitmap = image.asImageBitmap()
     val isSelected = index == state.currentPageIndex
     val borderColor =
-        if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent
+        if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray
     val maxImageSize = PAGE_LIST_ELEMENT_SIZE_DP.dp
     var imageModifier =
         if (bitmap.height > bitmap.width)
@@ -140,30 +145,40 @@ private fun PageThumbnail(
         val density = LocalDensity.current
         imageModifier = imageModifier.addPositionCallback(state.onLastItemPosition, density, 1.0f)
     }
-    Box (modifier = modifier.height(PAGE_LIST_ELEMENT_SIZE_DP.dp)) {
-        Image(
-            bitmap = bitmap,
-            contentDescription = null,
-            modifier = imageModifier
-                .align(Alignment.Center)
-                .padding(4.dp)
-                .border(2.dp, borderColor)
-                .clickable { state.onPageClick(index) }
-        )
-        Box(
-            modifier = Modifier
-                .padding(8.dp)
-                .align(Alignment.BottomCenter)
-                .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(4.dp))
-                .padding(vertical = 0.dp, horizontal = 8.dp)
+    Box(modifier = modifier.height(PAGE_LIST_ELEMENT_SIZE_DP.dp)) {
+        Card(
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = RoundedCornerShape(6.dp),
+            border = BorderStroke(1.dp, borderColor),
+            modifier = Modifier.padding(4.dp).align(Alignment.Center)
         ) {
-            Text(
-                text = "${index + 1}",
-                color = Color.White,
-                fontSize = 10.sp,
-                textAlign = TextAlign.Center,
+            Image(
+                bitmap = bitmap,
+                contentDescription = "${index + 1}",
+                modifier = imageModifier.clickable { state.onPageClick(index) }
             )
         }
+        if (state.showPageNumbers) {
+            PageNumberBadge(index)
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.PageNumberBadge(index: Int) {
+    Box(
+        modifier = Modifier
+            .padding(8.dp)
+            .align(Alignment.BottomCenter)
+            .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(4.dp))
+            .padding(vertical = 0.dp, horizontal = 8.dp)
+    ) {
+        Text(
+            text = "${index + 1}",
+            color = Color.White,
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
