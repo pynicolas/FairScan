@@ -177,6 +177,7 @@ fun CameraScreen(
                 onPageClick = { index -> viewModel.navigateTo(Screen.Main.Document(index)) },
                 onPageReorder = { id, index -> viewModel.movePage(id, index) },
                 listState = listState,
+                showPageNumbers = false,
                 onLastItemPosition = { offset -> thumbnailCoords.value = offset },
             ),
         cameraUiState = CameraUiState(
@@ -556,6 +557,7 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
                     onPageClick = {},
                     onPageReorder = { _, _ -> },
                     listState = LazyListState(),
+                    showPageNumbers = false,
                 ),
             cameraUiState = CameraUiState(pageCount = 4, LiveAnalysisState(), captureState,
                 false, rotationDegrees > 0, false, false),

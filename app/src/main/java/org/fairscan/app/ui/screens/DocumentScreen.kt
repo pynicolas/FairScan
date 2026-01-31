@@ -14,6 +14,7 @@
  */
 package org.fairscan.app.ui.screens
 
+import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -103,6 +104,7 @@ fun DocumentScreen(
             onPageReorder = onPageReorder,
             currentPageIndex = currentPageIndex.intValue,
             listState = listState,
+            showPageNumbers = true,
         ),
         onBack = navigation.back,
         bottomBar = {
@@ -235,11 +237,13 @@ private fun BottomBar(
 
 @Composable
 @Preview
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Preview(name = "Landscape", showBackground = true, widthDp = 640, heightDp = 320)
 fun DocumentScreenPreview() {
     FairScanTheme {
         DocumentScreen(
             fakeDocument(
-                listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" }.toImmutableList(),
+                listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it" }.toImmutableList(),
                 LocalContext.current
             ),
             initialPage = 1,
@@ -251,10 +255,3 @@ fun DocumentScreenPreview() {
         )
     }
 }
-
-@Preview(showBackground = true, widthDp = 640, heightDp = 320)
-@Composable
-fun DocumentScreenPreviewInLandscapeMode() {
-    DocumentScreenPreview()
-}
-
