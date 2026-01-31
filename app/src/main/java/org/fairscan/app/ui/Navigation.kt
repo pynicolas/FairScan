@@ -73,7 +73,7 @@ data class NavigationState private constructor(val stack: List<Screen>, val root
             is Screen.Main.Home -> this // Back handled by system
             is Screen.Main.Camera -> copy(stack = listOf(Screen.Main.Home))
             is Screen.Main.Document -> copy(stack = listOf(Screen.Main.Camera))
-            is Screen.Main.Export -> copy(stack = listOf(Screen.Main.Document()))
+            is Screen.Main.Export -> copy(stack = listOf(Screen.Main.Camera))
             is Screen.Overlay -> copy(stack = stack.dropLast(1))
         }
     }

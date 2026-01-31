@@ -52,7 +52,7 @@ class NavigationTest {
         assertThat(atHome.navigateBack()).isEqualTo(atHome)
         assertThat(atCamera.navigateBack()).isEqualTo(atHome)
         assertThat(atDocument.navigateBack()).isEqualTo(atCamera)
-        assertThat(atExport.navigateBack()).isEqualTo(atDocument)
+        assertThat(atExport.navigateBack()).isEqualTo(atCamera)
     }
 
     @Test
