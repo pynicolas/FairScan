@@ -55,7 +55,6 @@ import org.fairscan.app.ui.Navigation
 fun MyScaffold(
     navigation: Navigation,
     pageListState: CommonPageListState,
-    pageListButton: (@Composable () -> Unit)? = null,
     bottomBar: @Composable () -> Unit,
     onBack: (() -> Unit)? = null,
     content: @Composable (Modifier) -> Unit,
@@ -63,7 +62,7 @@ fun MyScaffold(
     Box {
         if (!isLandscape(LocalConfiguration.current)) {
             Scaffold(
-                bottomBar = { DocumentBar(pageListState, bottomBar, Modifier, pageListButton) }
+                bottomBar = { DocumentBar(pageListState, bottomBar, Modifier) }
             ) { innerPadding ->
                 content(Modifier.padding(innerPadding).fillMaxSize())
             }
@@ -73,7 +72,7 @@ fun MyScaffold(
                     modifier = Modifier.padding(innerPadding).fillMaxSize()
                 ) {
                     content(Modifier.weight(2f))
-                    DocumentBar(pageListState, bottomBar, Modifier.weight(1f), pageListButton)
+                    DocumentBar(pageListState, bottomBar, Modifier.weight(1f))
                 }
             }
         }
@@ -99,7 +98,6 @@ fun DocumentBar(
     pageListState: CommonPageListState,
     buttonBar: @Composable () -> Unit,
     modifier: Modifier = Modifier,
-    pageListButton: (@Composable () -> Unit)? = null,
 ) {
     val isLandscape = isLandscape(LocalConfiguration.current)
     Column(
@@ -115,17 +113,6 @@ fun DocumentBar(
                 Modifier
         ) {
             CommonPageList(pageListState, modifier = Modifier.fillMaxWidth())
-
-            if (pageListButton != null) {
-                val alignment = if (isLandscape) Alignment.BottomEnd else Alignment.CenterEnd
-                Box(
-                    Modifier
-                        .align(alignment)
-                        .padding(horizontal = 8.dp, vertical = 16.dp)
-                ) {
-                    pageListButton()
-                }
-            }
         }
 
         val color = MaterialTheme.colorScheme.surfaceContainerHigh
