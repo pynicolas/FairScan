@@ -37,7 +37,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Clear
@@ -191,15 +193,15 @@ fun ExportScreen(
         val containerModifier = Modifier
             .padding(innerPadding)
             .padding(16.dp)
+        val onThumbnailClick = navigation.toDocumentScreen
         if (!isLandscape(LocalConfiguration.current)) {
             Column(
                 modifier = containerModifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                TextFieldAndPdfInfos(filename, onFilenameChange, uiState, currentDocument, onOpen,
-                    onThumbnailClick = navigation.toDocumentScreen)
+                PdfInfosAndResultBar(uiState, currentDocument, onOpen, onThumbnailClick)
                 Spacer(Modifier.weight(1f)) // push buttons down
-                MainActions(uiState, onShare, onSave, onCloseScan)
+                MainActions(filename, onFilenameChange, uiState, onShare, onSave, onCloseScan)
             }
         } else {
             Row(
@@ -207,14 +209,14 @@ fun ExportScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Column(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
+                        .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextFieldAndPdfInfos(filename, onFilenameChange, uiState, currentDocument, onOpen,
-                        onThumbnailClick = navigation.toDocumentScreen)
+                    PdfInfosAndResultBar(uiState, currentDocument, onOpen, onThumbnailClick)
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    MainActions(uiState, onShare, onSave, onCloseScan)
+                    MainActions(filename, onFilenameChange, uiState, onShare, onSave, onCloseScan)
                 }
             }
 
@@ -223,15 +225,12 @@ fun ExportScreen(
 }
 
 @Composable
-private fun TextFieldAndPdfInfos(
-    filename: MutableState<String>,
-    onFilenameChange: (String) -> Unit,
+private fun PdfInfosAndResultBar(
     uiState: ExportUiState,
     currentDocument: DocumentUiModel,
     onOpen: (SavedItem) -> Unit,
     onThumbnailClick: () -> Unit,
 ) {
-    FilenameTextField(filename, onFilenameChange)
 
     val result = uiState.result
 
@@ -339,6 +338,8 @@ private fun FilenameTextField(
 
 @Composable
 private fun MainActions(
+    filename: MutableState<String>,
+    onFilenameChange: (String) -> Unit,
     uiState: ExportUiState,
     onShare: () -> Unit,
     onSave: () -> Unit,
@@ -347,6 +348,8 @@ private fun MainActions(
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        FilenameTextField(filename, onFilenameChange)
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
