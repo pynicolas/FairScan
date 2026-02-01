@@ -22,11 +22,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -42,6 +42,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Done
@@ -58,6 +59,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -192,11 +194,11 @@ fun ExportScreen(
     ) { innerPadding ->
         val containerModifier = Modifier
             .padding(innerPadding)
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
         val onThumbnailClick = navigation.toDocumentScreen
         if (!isLandscape(LocalConfiguration.current)) {
             Column(
-                modifier = containerModifier.fillMaxSize(),
+                modifier = containerModifier.fillMaxSize().padding(vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 PdfInfosAndResultBar(uiState, currentDocument, onOpen, onThumbnailClick)
@@ -231,16 +233,55 @@ private fun PdfInfosAndResultBar(
     onOpen: (SavedItem) -> Unit,
     onThumbnailClick: () -> Unit,
 ) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
+        PdfInfoCard {
+            PdfInfos(uiState, currentDocument, onThumbnailClick)
+            SaveStatusBar(uiState, onOpen)
+        }
+
+        uiState.error?.let {
+            ErrorBar(it)
+        }
+    }
+
+}
+
+@Composable
+private fun PdfInfoCard(
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(12.dp)
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun PdfInfos(
+    uiState: ExportUiState,
+    currentDocument: DocumentUiModel,
+    onThumbnailClick: () -> Unit,
+) {
     val result = uiState.result
 
-    Row (horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         val thumbnail = currentDocument.loadThumbnail(0)
         thumbnail?.let {
             Card(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(6.dp),
-                modifier = Modifier.padding(4.dp)
+                modifier = Modifier
+                    .padding(4.dp)
                     .heightIn(max = THUMBNAIL_SIZE_DP.dp)
                     .widthIn(max = THUMBNAIL_SIZE_DP.dp)
             ) {
@@ -282,10 +323,6 @@ private fun PdfInfosAndResultBar(
                 )
             }
         }
-    }
-    SaveStatusBar(uiState, onOpen)
-    if (uiState.error != null) {
-        ErrorBar(uiState.error)
     }
 }
 
@@ -348,28 +385,31 @@ private fun MainActions(
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        FilenameTextField(filename, onFilenameChange)
+        ActionSurface {
+            FilenameTextField(filename, onFilenameChange)
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            ExportButton(
-                onClick = onShare,
-                enabled = uiState.result != null,
-                isPrimary = !uiState.hasSavedOrShared,
-                icon = Icons.Default.Share,
-                text = stringResource(R.string.share),
-                modifier = Modifier.weight(1f)
-            )
-            ExportButton(
-                onClick = onSave,
-                enabled = uiState.result != null,
-                isPrimary = !uiState.hasSavedOrShared,
-                icon = Icons.Default.Download,
-                text = stringResource(R.string.save),
-                modifier = Modifier.weight(1f).alpha(if (uiState.isSaving) 0.6f else 1f)
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                ExportButton(
+                    onClick = onShare,
+                    enabled = uiState.result != null,
+                    isPrimary = !uiState.hasSavedOrShared,
+                    icon = Icons.Default.Share,
+                    text = stringResource(R.string.share),
+                    modifier = Modifier.weight(1f)
+                )
+                ExportButton(
+                    onClick = onSave,
+                    enabled = uiState.result != null,
+                    isPrimary = !uiState.hasSavedOrShared,
+                    icon = Icons.Default.Download,
+                    text = stringResource(R.string.save),
+                    modifier = Modifier.weight(1f)
+                        .alpha(if (uiState.isSaving) 0.6f else 1f)
+                )
+            }
         }
         ExportButton(
             icon = Icons.Default.Done,
@@ -380,6 +420,27 @@ private fun MainActions(
         )
     }
 }
+
+@Composable
+private fun ActionSurface(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        tonalElevation = 1.dp,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(12.dp)
+        ) {
+            content()
+        }
+    }
+}
+
 
 @Composable
 fun ExportButton(
@@ -414,41 +475,62 @@ fun ExportButton(
         modifier = modifier
     ) {
         Icon(icon, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(4.dp))
         Text(text)
     }
 }
 
 @Composable
-private fun SaveInfoBar(savedBundle: SavedBundle, onOpen: (SavedItem) -> Unit) {
-    val dirName = savedBundle.saveDir?.name?:stringResource(R.string.download_dirname)
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Absolute.SpaceBetween,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(vertical = 8.dp, horizontal = 16.dp),
+private fun SaveInfoBar(
+    savedBundle: SavedBundle,
+    onOpen: (SavedItem) -> Unit,
+) {
+    val dirName = savedBundle.saveDir?.name ?: stringResource(R.string.download_dirname)
+    val items = savedBundle.items
+    val nbFiles = items.size
+    val firstFileName = items[0].fileName
+
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 0.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        val items = savedBundle.items
-        val nbFiles = items.size
-        val firstFileName = items[0].fileName
-        Text(
-            text = LocalResources.current.getQuantityString(
-                R.plurals.files_saved_to,
-                nbFiles,
-                nbFiles, firstFileName, dirName
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f),
-        )
-        if (nbFiles == 1) {
-            Spacer(Modifier.width(8.dp))
-            MainActionButton(
-                onClick = { onOpen(items[0]) },
-                text = stringResource(R.string.open),
-                icon = Icons.AutoMirrored.Filled.OpenInNew,
-            )
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(12.dp)
+        ) {
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = LocalResources.current.getQuantityString(
+                        R.plurals.files_saved_to,
+                        nbFiles,
+                        nbFiles, firstFileName, dirName
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            if (nbFiles == 1) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    MainActionButton(
+                        onClick = { onOpen(items[0]) },
+                        text = stringResource(R.string.open),
+                        icon = Icons.AutoMirrored.Filled.OpenInNew,
+                    )
+                }
+            }
         }
     }
 }
