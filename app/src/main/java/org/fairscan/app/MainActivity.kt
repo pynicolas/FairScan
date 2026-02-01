@@ -183,6 +183,7 @@ class MainActivity : ComponentActivity() {
                         ExportScreenWrapper(
                             navigation = navigation,
                             uiState = exportUiState,
+                            currentDocument = document,
                             pdfActions = ExportActions(
                                 initializeExportScreen = exportViewModel::initializeExportScreen,
                                 setFilename = exportViewModel::setFilename,

@@ -21,8 +21,10 @@ import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,9 +32,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
@@ -43,6 +47,8 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -65,6 +71,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -74,7 +81,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import kotlinx.collections.immutable.persistentListOf
 import org.fairscan.app.R
+import org.fairscan.app.THUMBNAIL_SIZE_DP
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.components.AppOverflowMenu
 import org.fairscan.app.ui.components.BackButton
@@ -83,7 +92,9 @@ import org.fairscan.app.ui.components.NewDocumentDialog
 import org.fairscan.app.ui.components.isLandscape
 import org.fairscan.app.ui.components.pageCountText
 import org.fairscan.app.ui.dummyNavigation
+import org.fairscan.app.ui.fakeDocument
 import org.fairscan.app.ui.screens.settings.ExportFormat.PDF
+import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import java.io.File
 import java.io.IOException
@@ -95,6 +106,7 @@ import java.util.Locale
 fun ExportScreenWrapper(
     navigation: Navigation,
     uiState: ExportUiState,
+    currentDocument: DocumentUiModel,
     pdfActions: ExportActions,
     onCloseScan: () -> Unit,
 ) {
@@ -122,6 +134,7 @@ fun ExportScreenWrapper(
         filename = filename,
         onFilenameChange = onFilenameChange,
         uiState = uiState,
+        currentDocument = currentDocument,
         navigation = navigation,
         onShare = {
             if (!uiState.isSaving) {
@@ -157,6 +170,7 @@ fun ExportScreen(
     filename: MutableState<String>,
     onFilenameChange: (String) -> Unit,
     uiState: ExportUiState,
+    currentDocument: DocumentUiModel,
     navigation: Navigation,
     onShare: () -> Unit,
     onSave: () -> Unit,
@@ -182,7 +196,8 @@ fun ExportScreen(
                 modifier = containerModifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                TextFieldAndPdfInfos(filename, onFilenameChange, uiState, onOpen)
+                TextFieldAndPdfInfos(filename, onFilenameChange, uiState, currentDocument, onOpen,
+                    onThumbnailClick = navigation.toDocumentScreen)
                 Spacer(Modifier.weight(1f)) // push buttons down
                 MainActions(uiState, onShare, onSave, onCloseScan)
             }
@@ -195,7 +210,8 @@ fun ExportScreen(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextFieldAndPdfInfos(filename, onFilenameChange, uiState, onOpen)
+                    TextFieldAndPdfInfos(filename, onFilenameChange, uiState, currentDocument, onOpen,
+                        onThumbnailClick = navigation.toDocumentScreen)
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     MainActions(uiState, onShare, onSave, onCloseScan)
@@ -211,41 +227,61 @@ private fun TextFieldAndPdfInfos(
     filename: MutableState<String>,
     onFilenameChange: (String) -> Unit,
     uiState: ExportUiState,
+    currentDocument: DocumentUiModel,
     onOpen: (SavedItem) -> Unit,
+    onThumbnailClick: () -> Unit,
 ) {
     FilenameTextField(filename, onFilenameChange)
 
     val result = uiState.result
 
-    // PDF infos
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-
-        if (uiState.isGenerating) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+    Row (horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        val thumbnail = currentDocument.loadThumbnail(0)
+        thumbnail?.let {
+            Card(
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(6.dp),
+                modifier = Modifier.padding(4.dp)
+                    .heightIn(max = THUMBNAIL_SIZE_DP.dp)
+                    .widthIn(max = THUMBNAIL_SIZE_DP.dp)
             ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp
-                )
-                Text(
-                    text = stringResource(R.string.creating_export),
-                    fontStyle = FontStyle.Italic
+                Image(
+                    bitmap = thumbnail.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.clickable { onThumbnailClick() }
                 )
             }
-        } else if (result != null) {
-            val context = LocalContext.current
-            val formattedFileSize = formatFileSize(result.sizeInBytes, context)
-            Text(text = pageCountText(result.pageCount))
-            val sizeMessageKey =
-                if (result.files.size == 1) R.string.file_size else R.string.file_size_total
-            Text(
-                text = stringResource(sizeMessageKey, formattedFileSize),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
+        }
+        // PDF infos
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+
+            if (uiState.isGenerating) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Text(
+                        text = stringResource(R.string.creating_export),
+                        fontStyle = FontStyle.Italic
+                    )
+                }
+            } else if (result != null) {
+                val context = LocalContext.current
+                val formattedFileSize = formatFileSize(result.sizeInBytes, context)
+                Text(text = pageCountText(result.pageCount))
+                val sizeMessageKey =
+                    if (result.files.size == 1) R.string.file_size else R.string.file_size_total
+                Text(
+                    text = stringResource(sizeMessageKey, formattedFileSize),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
         }
     }
     SaveStatusBar(uiState, onOpen)
@@ -609,8 +645,12 @@ fun ExportPreviewToCustomize(uiState: ExportUiState) {
         ExportScreen(
             filename = remember { mutableStateOf("Scan 2025-07-02 17.40.42") },
             onFilenameChange = {_->},
-            navigation = dummyNavigation(),
             uiState = uiState,
+            currentDocument = fakeDocument(
+                persistentListOf("gallica.bnf.fr-bpt6k5530456s-1"),
+                LocalContext.current
+            ),
+            navigation = dummyNavigation(),
             onShare = {},
             onSave = {},
             onOpen = {},

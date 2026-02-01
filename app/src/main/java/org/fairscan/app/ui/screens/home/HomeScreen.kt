@@ -290,7 +290,7 @@ fun HomeScreenPreviewWithCurrentDocument() {
         HomeScreen(
             cameraPermission = rememberCameraPermissionState(),
             currentDocument = fakeDocument(
-                persistentListOf("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
+                persistentListOf("gallica.bnf.fr-bpt6k5530456s-1"),
                 LocalContext.current
             ),
             navigation = dummyNavigation(),
