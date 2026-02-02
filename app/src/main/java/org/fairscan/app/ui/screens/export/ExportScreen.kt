@@ -64,7 +64,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -102,9 +101,6 @@ import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import java.io.File
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @Composable
 fun ExportScreenWrapper(
@@ -117,38 +113,27 @@ fun ExportScreenWrapper(
     BackHandler { navigation.back() }
 
     val showConfirmationDialog = rememberSaveable { mutableStateOf(false) }
-    val filename = remember { mutableStateOf(defaultFilename()) }
+
     LaunchedEffect(Unit) {
-        pdfActions.setFilename(filename.value)
         pdfActions.initializeExportScreen()
     }
 
     val onFilenameChange = { newName:String ->
-        filename.value = newName
         pdfActions.setFilename(newName)
-    }
-    val ensureCorrectFileName = {
-        val value = filename.value.trim().ifEmpty { defaultFilename() }
-        if (value != filename.value) {
-            onFilenameChange(value)
-        }
     }
 
     ExportScreen(
-        filename = filename,
         onFilenameChange = onFilenameChange,
         uiState = uiState,
         currentDocument = currentDocument,
         navigation = navigation,
         onShare = {
             if (!uiState.isSaving) {
-                ensureCorrectFileName()
                 pdfActions.share()
             }
         },
         onSave = {
             if (!uiState.isSaving) {
-                ensureCorrectFileName()
                 pdfActions.save()
             }
         },
@@ -171,7 +156,6 @@ fun ExportScreenWrapper(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExportScreen(
-    filename: MutableState<String>,
     onFilenameChange: (String) -> Unit,
     uiState: ExportUiState,
     currentDocument: DocumentUiModel,
@@ -203,7 +187,7 @@ fun ExportScreen(
             ) {
                 PdfInfosAndResultBar(uiState, currentDocument, onOpen, onThumbnailClick)
                 Spacer(Modifier.weight(1f)) // push buttons down
-                MainActions(filename, onFilenameChange, uiState, onShare, onSave, onCloseScan)
+                MainActions(onFilenameChange, uiState, onShare, onSave, onCloseScan)
             }
         } else {
             Row(
@@ -218,7 +202,7 @@ fun ExportScreen(
                     PdfInfosAndResultBar(uiState, currentDocument, onOpen, onThumbnailClick)
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    MainActions(filename, onFilenameChange, uiState, onShare, onSave, onCloseScan)
+                    MainActions(onFilenameChange, uiState, onShare, onSave, onCloseScan)
                 }
             }
 
@@ -348,12 +332,12 @@ private fun SaveStatusBar(
 
 @Composable
 private fun FilenameTextField(
-    filename: MutableState<String>,
+    filename: String,
     onFilenameChange: (String) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
     OutlinedTextField(
-        value = filename.value,
+        value = filename,
         onValueChange = onFilenameChange,
         label = { Text(stringResource(R.string.filename)) },
         singleLine = true,
@@ -361,9 +345,9 @@ private fun FilenameTextField(
             .fillMaxWidth()
             .focusRequester(focusRequester),
         trailingIcon = {
-            if (filename.value.isNotEmpty()) {
+            if (filename.isNotEmpty()) {
                 IconButton(onClick = {
-                    filename.value = ""
+                    onFilenameChange("")
                     focusRequester.requestFocus()
                 }) {
                     Icon(Icons.Default.Clear, stringResource(R.string.clear_text))
@@ -375,7 +359,6 @@ private fun FilenameTextField(
 
 @Composable
 private fun MainActions(
-    filename: MutableState<String>,
     onFilenameChange: (String) -> Unit,
     uiState: ExportUiState,
     onShare: () -> Unit,
@@ -386,7 +369,7 @@ private fun MainActions(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         ActionSurface {
-            FilenameTextField(filename, onFilenameChange)
+            FilenameTextField(uiState.filename, onFilenameChange)
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -658,11 +641,6 @@ fun providerLabel(authority: String): String =
             authority
     }
 
-fun defaultFilename(): String {
-    val timestamp = SimpleDateFormat("yyyy-MM-dd HH.mm.ss", Locale.getDefault()).format(Date())
-    return "Scan $timestamp"
-}
-
 fun formatFileSize(sizeInBytes: Long?, context: Context): String {
     return if (sizeInBytes == null) context.getString(R.string.unknown_size)
     else Formatter.formatShortFileSize(context, sizeInBytes)
@@ -672,7 +650,7 @@ fun formatFileSize(sizeInBytes: Long?, context: Context): String {
 @Composable
 fun PreviewExportScreenDuringGeneration() {
     ExportPreviewToCustomize(
-        uiState = ExportUiState(isGenerating = true)
+        uiState = ExportUiState(isGenerating = true, filename = "Scan 2025-12-15 07:00:51")
     )
 }
 
@@ -695,7 +673,7 @@ fun PreviewExportScreenAfterSave() {
         uiState = ExportUiState(
             result = ExportResult.Pdf(file, 442897L, 3),
             savedBundle = SavedBundle(
-                listOf(SavedItem(file.toUri(), defaultFilename() + ".pdf", PDF))
+                listOf(SavedItem(file.toUri(),  "12345.pdf", PDF))
             ),
         ),
     )
@@ -728,7 +706,6 @@ fun PreviewExportScreenAfterSaveHorizontal() {
 fun ExportPreviewToCustomize(uiState: ExportUiState) {
     FairScanTheme {
         ExportScreen(
-            filename = remember { mutableStateOf("Scan 2025-07-02 17.40.42") },
             onFilenameChange = {_->},
             uiState = uiState,
             currentDocument = fakeDocument(

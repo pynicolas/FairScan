@@ -49,6 +49,9 @@ import org.fairscan.app.ui.screens.settings.ExportFormat
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -83,15 +86,38 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     val uiState: StateFlow<ExportUiState> = _uiState.asStateFlow()
 
     private var preparationJob: Job? = null
-    private var desiredFilename: String = ""
     private var exportFormat = ExportFormat.PDF
 
     fun setFilename(name: String) {
-        desiredFilename = name
+        _uiState.update {
+            it.copy(filename = name)
+        }
+    }
+
+    fun resetFilename() {
+        _uiState.update {
+            it.copy(filename = "")
+        }
+    }
+
+    private fun defaultFilename(): String {
+        val timestamp = SimpleDateFormat("yyyy-MM-dd HH.mm.ss", Locale.getDefault()).format(Date())
+        return "Scan $timestamp"
+    }
+
+    private fun ensureValidFilename() {
+        _uiState.update {
+            val normalized = it.filename.trim().ifEmpty { defaultFilename() }
+            if (normalized != it.filename) {
+                it.copy(filename = normalized)
+            } else it
+        }
     }
 
     fun initializeExportScreen() {
-        cancelPreparation()
+        preparationJob?.cancel()
+        _uiState.update { ExportUiState(filename = it.filename) }
+        ensureValidFilename()
 
         preparationJob = viewModelScope.launch {
             val exportQuality = settingsRepository.exportQuality.first()
@@ -138,20 +164,17 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         ExportResult.Jpeg(files, sizeInBytes)
     }
 
-    fun cancelPreparation() {
-        preparationJob?.cancel()
-        _uiState.value = ExportUiState()
-    }
-
     fun setAsShared() {
         _uiState.update { it.copy(hasShared = true) }
     }
 
     fun applyRenaming(): ExportResult? {
         val result = _uiState.value.result ?: return null
+        ensureValidFilename()
+        val filename = _uiState.value.filename
         when (result) {
             is ExportResult.Pdf -> {
-                val fileName = FileManager.addPdfExtensionIfMissing(desiredFilename)
+                val fileName = FileManager.addPdfExtensionIfMissing(filename)
                 val newFile = File(result.file.parentFile, fileName)
                 val tempFile = result.file
                 if (tempFile.absolutePath != newFile.absolutePath) {
@@ -166,7 +189,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                 }
             }
             is ExportResult.Jpeg -> {
-                val base = desiredFilename.removeSuffix(".jpg")
+                val base = filename.removeSuffix(".jpg")
                 val files = result.files
                 val renamedFiles = files.mapIndexed { index, file ->
                     val indexSuffix = if (files.size == 1) "" else "_${index + 1}"

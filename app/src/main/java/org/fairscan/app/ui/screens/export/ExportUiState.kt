@@ -19,6 +19,7 @@ import org.fairscan.app.ui.screens.settings.ExportFormat
 
 data class ExportUiState(
     val format: ExportFormat = ExportFormat.PDF,
+    val filename: String = "",
     val isGenerating: Boolean = false,
     val isSaving: Boolean = false,
     val result: ExportResult? = null,

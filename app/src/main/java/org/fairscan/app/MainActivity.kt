@@ -192,6 +192,7 @@ class MainActivity : ComponentActivity() {
                                 open = { item -> openUri(item.uri, item.format.mimeType) },
                             ),
                             onCloseScan = {
+                                exportViewModel.resetFilename()
                                 viewModel.startNewDocument()
                                 viewModel.navigateTo(Screen.Main.Home)
                             }
