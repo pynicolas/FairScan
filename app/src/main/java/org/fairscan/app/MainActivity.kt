@@ -185,7 +185,7 @@ class MainActivity : ComponentActivity() {
                             uiState = exportUiState,
                             currentDocument = document,
                             pdfActions = ExportActions(
-                                initializeExportScreen = exportViewModel::initializeExportScreen,
+                                prepareExportIfNeeded = exportViewModel::prepareExportIfNeeded,
                                 setFilename = exportViewModel::setFilename,
                                 share = { share(exportViewModel.applyRenaming(), exportViewModel) },
                                 save = { exportViewModel.onSaveClicked() },

@@ -115,7 +115,7 @@ fun ExportScreenWrapper(
     val showConfirmationDialog = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        pdfActions.initializeExportScreen()
+        pdfActions.prepareExportIfNeeded()
     }
 
     val onFilenameChange = { newName:String ->

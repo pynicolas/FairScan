@@ -27,6 +27,8 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,6 +46,7 @@ import org.fairscan.app.RecentDocument
 import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.ExportQuality
+import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.jpegsForExport
 import org.fairscan.app.ui.screens.settings.ExportFormat
 import java.io.File
@@ -52,6 +55,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -85,8 +89,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private val _uiState = MutableStateFlow(ExportUiState())
     val uiState: StateFlow<ExportUiState> = _uiState.asStateFlow()
 
+    private var lastPreparationKey: ExportPreparationKey? = null
     private var preparationJob: Job? = null
-    private var exportFormat = ExportFormat.PDF
 
     fun setFilename(name: String) {
         _uiState.update {
@@ -114,36 +118,52 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         }
     }
 
-    fun initializeExportScreen() {
-        preparationJob?.cancel()
-        _uiState.update { ExportUiState(filename = it.filename) }
+    private fun currentPageKeys(): ImmutableList<PageViewKey> =
+        imageRepository.pages().map {
+            PageViewKey(it.id, it.manualRotation)
+        }.toImmutableList()
+
+    fun prepareExportIfNeeded() {
         ensureValidFilename()
 
-        preparationJob = viewModelScope.launch {
+        viewModelScope.launch {
             val exportQuality = settingsRepository.exportQuality.first()
-            exportFormat = settingsRepository.exportFormat.first()
-            _uiState.update { it.copy(format = exportFormat, isGenerating = true) }
-            try {
-                val t1 = System.currentTimeMillis()
-                val result = if (exportFormat == ExportFormat.JPEG) {
-                    generateJpegs(exportQuality)
-                } else {
-                    generatePdf(exportQuality)
-                }
+            val exportFormat = settingsRepository.exportFormat.first()
+
+            val key = ExportPreparationKey(currentPageKeys(), exportFormat, exportQuality)
+            if (key == lastPreparationKey) {
+                return@launch
+            }
+
+            lastPreparationKey = key
+            preparationJob?.cancel()
+
+            preparationJob = launch {
                 _uiState.update {
-                    it.copy(isGenerating = false, result = result)
+                    ExportUiState(filename = it.filename, format = exportFormat, isGenerating = true)
                 }
-                val t2 = System.currentTimeMillis()
-                val pageCount = result.pageCount
-                Log.i("Export", "Generation: $pageCount pages, $exportQuality, ${t2-t1} ms")
-            } catch (e: Exception) {
-                val message = "Failed to prepare $exportFormat export"
-                logger.e("FairScan", message, e)
-                _uiState.update {
-                    it.copy(
-                        isGenerating = false,
-                        error = ExportError.OnPrepare(message, e),
-                    )
+                try {
+                    val t1 = System.currentTimeMillis()
+                    val result = if (exportFormat == ExportFormat.JPEG) {
+                        generateJpegs(exportQuality)
+                    } else {
+                        generatePdf(exportQuality)
+                    }
+                    _uiState.update { it.copy(result = result) }
+                    val t2 = System.currentTimeMillis()
+                    val pageCount = result.pageCount
+                    Log.i("Export", "Generation: $pageCount pages, $exportQuality, ${t2 - t1} ms")
+                } catch (e: CancellationException) {
+                    // Preparation cancelled: do nothing
+                    throw e
+                } catch (e: Exception) {
+                    val message = "Failed to prepare $exportFormat export"
+                    logger.e("FairScan", message, e)
+                    _uiState.update {
+                        it.copy(error = ExportError.OnPrepare(message, e))
+                    }
+                } finally {
+                    _uiState.update { it.copy(isGenerating = false) }
                 }
             }
         }
@@ -216,12 +236,13 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     fun onRequestSave(context: Context) {
         viewModelScope.launch {
             _uiState.update {it.copy(isSaving = true, error = null, savedBundle = null) }
+            val exportFormat = uiState.value.format
             val saveDir = saveDir(context)
             try {
                 // Must not run on the main thread: some SAF providers (e.g. Nextcloud)
                 // may perform network I/O
                 withContext(Dispatchers.IO) {
-                    save(context, saveDir)
+                    save(context, saveDir, exportFormat)
                 }
             } catch (e: MissingExportDirPermissionException) {
                 logger.e("FairScan", "Missing export dir permission", e)
@@ -246,7 +267,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         return SaveDir(uri, name)
     }
 
-    private suspend fun save(context: Context, saveDir: SaveDir?) {
+    private suspend fun save(context: Context, saveDir: SaveDir?, exportFormat: ExportFormat) {
         val result = applyRenaming() ?: return
         val savedItems = mutableListOf<SavedItem>()
         val filesForMediaScan = mutableListOf<File>()
@@ -389,6 +410,12 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     }
 }
 
+data class ExportPreparationKey(
+    val pages: ImmutableList<PageViewKey>,
+    val format: ExportFormat,
+    val quality: ExportQuality
+)
+
 sealed class ExportResult {
     abstract val files: List<File>
     abstract val sizeInBytes: Long
@@ -415,7 +442,7 @@ sealed class ExportResult {
 }
 
 data class ExportActions(
-    val initializeExportScreen: () -> Unit,
+    val prepareExportIfNeeded: () -> Unit,
     val setFilename: (String) -> Unit,
     val share: () -> Unit,
     val save: () -> Unit,

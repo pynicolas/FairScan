@@ -88,7 +88,6 @@ private fun SettingsContent(
     onExportQualityChanged: (ExportQuality) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    println(uiState)
     val (folderLabel, folderLabelColor) = when {
         uiState.exportDirUri == null ->
             stringResource(R.string.download_dirname) to
