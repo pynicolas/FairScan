@@ -80,6 +80,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -503,7 +504,9 @@ private fun Bar(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name="Pixel 1", showSystemUi = true, device = Devices.PIXEL)
+@Preview(name="Pixel 4", showSystemUi = true, device = Devices.PIXEL_4)
+@Preview(name="Pixel 9 pro XL", showSystemUi = true, device = Devices.PIXEL_9_PRO_XL)
 @Composable
 fun CameraScreenPreview() {
     ScreenPreview(CaptureState.Idle)
@@ -551,7 +554,7 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
                 CommonPageListState(
                     document = fakeDocument(
                         listOf(1, 2)
-                            .map { "gallica.bnf.fr-bpt6k5530456s-$it.jpg" }
+                            .map { "gallica.bnf.fr-bpt6k5530456s-$it" }
                             .toImmutableList(),
                         LocalContext.current),
                     onPageClick = {},
