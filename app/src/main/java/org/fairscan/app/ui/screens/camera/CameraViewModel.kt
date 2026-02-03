@@ -89,8 +89,14 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         }
     }
 
+    fun resetLiveAnalysis() {
+        quadStabilizer = QuadStabilizer()
+        _liveAnalysisState.value = LiveAnalysisState()
+    }
+
     fun onCapturePressed(frozenImage: Bitmap) {
         _captureState.value = CaptureState.Capturing(frozenImage)
+        resetLiveAnalysis()
     }
 
     private fun onCaptureProcessed(captured: CapturedPage?) {

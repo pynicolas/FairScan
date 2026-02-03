@@ -152,6 +152,10 @@ fun CameraScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        cameraViewModel.resetLiveAnalysis()
+    }
+
     val listState = rememberLazyListState()
     LaunchedEffect(document.pageCount()) {
         if (!document.isEmpty()) {
