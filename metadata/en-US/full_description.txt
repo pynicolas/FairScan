@@ -1,7 +1,7 @@
 FairScan is a document scanner designed to be truly simple and respectful.
 With FairScan, it takes only a few seconds to get a clean PDF you can share or save.
 
-• Easy process: scan → preview → save/share
+• Fast capture, optional review, instant export
 • Clear, distraction-free interface
 • Live automatic document detection
 • Automatic crop, perspective correction, and enhancement
