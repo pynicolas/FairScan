@@ -123,12 +123,16 @@ fun CameraScreen(
     val thumbnailCoords = remember { mutableStateOf(Offset.Zero) }
     var isDebugMode by remember { mutableStateOf(false) }
     val isTorchEnabled by cameraViewModel.isTorchEnabled.collectAsStateWithLifecycle()
+    var torchReapplied by remember { mutableStateOf(false) }
 
     BackHandler { navigation.back() }
 
     val captureController = remember { CameraCaptureController() }
     DisposableEffect(Unit) {
-        onDispose { captureController.shutdown() }
+        onDispose {
+            captureController.shutdown()
+            torchReapplied = false
+        }
     }
     LaunchedEffect(captureController.cameraControl, isTorchEnabled) {
         captureController.cameraControl?.enableTorch(isTorchEnabled)
@@ -166,7 +170,14 @@ fun CameraScreen(
     CameraScreenScaffold(
         cameraPreview = {
             CameraPreview(
-                onImageAnalyzed = onImageAnalyzed,
+                onImageAnalyzed = {
+                    onImageAnalyzed(it)
+                    // Re-apply torch once the camera session is actually active (first analysis)
+                    if (!torchReapplied) {
+                        captureController.cameraControl?.enableTorch(isTorchEnabled)
+                        torchReapplied = true
+                    }
+                },
                 captureController = captureController,
                 onPreviewViewReady = { view ->
                     previewView = view
