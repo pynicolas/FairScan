@@ -1,0 +1,5 @@
+Improved export screen experience:
+- Clearer layout and better feedback during export
+- More reliable export handling
+
+Streamlined scanning flow
