@@ -52,7 +52,7 @@ import org.fairscan.app.ui.screens.settings.ExportFormat
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
+import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.CancellationException
@@ -105,7 +105,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     }
 
     private fun defaultFilename(): String {
-        val timestamp = SimpleDateFormat("yyyy-MM-dd HH.mm.ss", Locale.getDefault()).format(Date())
+        val localeFormat = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM, Locale.getDefault())
+        val timestamp = localeFormat.format(Date())
         return "Scan $timestamp"
     }
 
