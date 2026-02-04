@@ -43,7 +43,7 @@ And **respectful**: open source, minimal permissions, no tracking, no ads.
 ## Features
 
 - **Clear, distraction-free interface**
-- **Easy scanning process**: scan → preview → share
+- **Easy flow**: scan, review if needed, save or share
 - **Automatic document detection** using a custom segmentation model
 - **Automatic perspective correction**
 - **Automatic image enhancement**
