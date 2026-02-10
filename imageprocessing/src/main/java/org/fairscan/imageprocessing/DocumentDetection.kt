@@ -24,7 +24,6 @@ import org.opencv.core.MatOfPoint2f
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.abs
-import kotlin.math.max
 
 interface Mask {
     val width: Int
@@ -141,13 +140,17 @@ fun extractDocument(
     )
     val transform = Imgproc.getPerspectiveTransform(srcPoints, dstPoints)
 
-    val outputMat = Mat()
+    val warped = Mat()
     val outputSize = Size(targetWidth, targetHeight)
-    Imgproc.warpPerspective(inputMat, outputMat, transform, outputSize)
+    Imgproc.warpPerspective(inputMat, warped, transform, outputSize)
 
-    val resized = resizeForMaxPixels(outputMat, maxPixels.toDouble())
+    val resized = resizeForMaxPixels(warped, maxPixels.toDouble())
     val enhanced = enhanceCapturedImage(resized, isColored)
     val rotated = rotate(enhanced, rotationDegrees)
+
+    warped.release()
+    resized.release()
+    enhanced.release()
 
     return rotated
 }
