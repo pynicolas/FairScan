@@ -17,16 +17,17 @@ package org.fairscan.imageprocessing
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.MatOfFloat
+import org.opencv.core.MatOfInt
 import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.max
+import kotlin.math.min
 
 fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
     return if (isColored) {
-        val result = Mat()
-        Core.convertScaleAbs(img, result, 1.2, 10.0)
-        result
+        multiScaleRetinexOnL(img)
     } else {
         val gray = multiScaleRetinex(img)
         val contrastedGray = enhanceContrastAuto(gray)
@@ -34,6 +35,168 @@ fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
         Imgproc.cvtColor(contrastedGray, result, Imgproc.COLOR_GRAY2BGR)
         result
     }
+}
+
+fun multiScaleRetinexOnL(bgr: Mat): Mat {
+
+    // --- 1. BGR -> Lab ---
+    val lab = Mat()
+    Imgproc.cvtColor(bgr, lab, Imgproc.COLOR_BGR2Lab)
+
+    val labChannels = ArrayList<Mat>(3)
+    Core.split(lab, labChannels)
+
+    val l = labChannels[0] // CV_8U [0..255]
+
+    // --- 2. Prepare L (float) ---
+    val lFloat = Mat()
+    l.convertTo(lFloat, CvType.CV_32F)
+    Core.add(lFloat, Scalar(1.0), lFloat)
+
+    val scaleFactor = 2.0
+    val smallSize = Size(
+        lFloat.cols() / scaleFactor,
+        lFloat.rows() / scaleFactor
+    )
+
+    val lSmall = Mat()
+    Imgproc.resize(lFloat, lSmall, smallSize, 0.0, 0.0, Imgproc.INTER_AREA)
+
+    // --- 3. log(L) once ---
+    val logLSmall = Mat()
+    Core.log(lSmall, logLSmall)
+
+    val maxDimSmall = max(smallSize.width, smallSize.height)
+    val kernelSizes = listOf(
+        maxDimSmall / 80.0,
+        maxDimSmall / 10.0,
+        maxDimSmall / 2.0,
+    )
+
+    val weight = 1.0 / kernelSizes.size
+    val retinexSmall = Mat.zeros(lSmall.size(), CvType.CV_32F)
+
+    val blurLog = Mat()
+    val diff = Mat()
+
+    for (ks in kernelSizes) {
+        val k = ks.toInt().coerceAtLeast(3) or 1
+
+        Imgproc.boxFilter(
+            logLSmall,
+            blurLog,
+            -1,
+            Size(k.toDouble(), k.toDouble())
+        )
+
+        Core.subtract(logLSmall, blurLog, diff)
+        Core.addWeighted(retinexSmall, 1.0, diff, weight, 0.0, retinexSmall)
+    }
+
+    // --- 4. Normalize Retinex (relative [0..1]) ---
+    val minMax = Core.minMaxLoc(retinexSmall)
+    val retinexNormSmall = Mat()
+    Core.subtract(retinexSmall, Scalar(minMax.minVal), retinexNormSmall)
+
+    val range = minMax.maxVal - minMax.minVal
+    if (range > 1e-6) {
+        Core.multiply(retinexNormSmall, Scalar(1.0 / range), retinexNormSmall)
+    }
+
+    // --- Upscale Retinex back to full resolution ---
+    val retinexNorm = Mat()
+    Imgproc.resize(
+        retinexNormSmall,
+        retinexNorm,
+        lFloat.size(),
+        0.0,
+        0.0,
+        Imgproc.INTER_CUBIC
+    )
+
+    // --- 5. Re-center around original luminance ---
+    val lOriginalFloat = Mat()
+    l.convertTo(lOriginalFloat, CvType.CV_32F)
+
+    val meanL = Core.mean(lOriginalFloat).`val`[0]
+    val amplitude = 60.0
+
+    val correctedL = Mat()
+    Core.multiply(retinexNorm, Scalar(amplitude), correctedL)
+    Core.add(correctedL, Scalar(meanL - amplitude / 2.0), correctedL)
+
+    // --- 6. Blend with original L ---
+    val alpha = 0.6
+    Core.addWeighted(
+        lOriginalFloat, 1.0 - alpha,
+        correctedL, alpha,
+        0.0,
+        correctedL
+    )
+
+    // --- 7. Restore contrast ---
+    val pLowOrig = percentileL(lOriginalFloat, 0.001)
+    val pLow = percentileL(correctedL, 0.001)
+    val pHigh = percentileL(correctedL, 0.995)
+
+    val targetLow = min(pLow, pLowOrig)
+    val targetHigh = 245.0
+    val scale = (targetHigh - targetLow) / (pHigh - pLow + 1e-6)
+
+    Core.subtract(correctedL, Scalar(pLow), correctedL)
+    Core.multiply(correctedL, Scalar(scale), correctedL)
+    Core.add(correctedL, Scalar(targetLow), correctedL)
+
+    // --- 8. Clamp and write back ---
+    Core.min(correctedL, Scalar(255.0), correctedL)
+    Core.max(correctedL, Scalar(0.0), correctedL)
+
+    correctedL.convertTo(labChannels[0], CvType.CV_8U)
+
+    // --- 9. Lab -> BGR ---
+    Core.merge(labChannels, lab)
+    val result = Mat()
+    Imgproc.cvtColor(lab, result, Imgproc.COLOR_Lab2BGR)
+
+    // --- Cleanup ---
+    lab.release()
+    lFloat.release()
+    lSmall.release()
+    logLSmall.release()
+    blurLog.release()
+    diff.release()
+    retinexSmall.release()
+    retinexNormSmall.release()
+    retinexNorm.release()
+    lOriginalFloat.release()
+    correctedL.release()
+    labChannels.forEach { it.release() }
+
+    return result
+}
+
+fun percentileL(l: Mat, p: Double): Double {
+    val hist = Mat()
+    Imgproc.calcHist(
+        listOf(l),
+        MatOfInt(0),
+        Mat(),
+        hist,
+        MatOfInt(256),
+        MatOfFloat(0f, 256f)
+    )
+
+    val total = l.total()
+    var sum = 0.0
+    for (i in 0 until 256) {
+        sum += hist.get(i, 0)[0]
+        if (sum / total >= p) {
+            hist.release()
+            return i.toDouble()
+        }
+    }
+    hist.release()
+    return 255.0
 }
 
 private fun multiScaleRetinex(img: Mat): Mat {
