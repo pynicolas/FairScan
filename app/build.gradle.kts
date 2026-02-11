@@ -26,8 +26,8 @@ android {
         // https://ai.google.dev/edge/litert/android/index
         minSdk = 26
         targetSdk = 36
-        versionCode = 51 // increment by 3 because of ABI-specific APKs
-        versionName = "1.13.0"
+        versionCode = 54 // increment by 3 because of ABI-specific APKs
+        versionName = "1.14.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
