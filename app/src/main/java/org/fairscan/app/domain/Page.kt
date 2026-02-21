@@ -18,7 +18,6 @@ import org.fairscan.imageprocessing.Quad
 
 data class PageMetadata(
     val normalizedQuad: Quad,
-    val baseRotation: Rotation,
     val isColored: Boolean,
 )
 

@@ -38,7 +38,7 @@ class ImageRepositoryTest {
     private var _filesDir: File? = null
 
     val quad1 = Quad(Point(.01, .02), Point(.1, .03), Point(.11, .12), Point(.03, .09))
-    val metadata1 = PageMetadata(quad1, R90, true)
+    val metadata1 = PageMetadata(quad1, true)
 
     fun getFilesDir(): File {
         if (_filesDir == null) {
@@ -77,7 +77,6 @@ class ImageRepositoryTest {
         val metadata = page.metadata
         assertThat(metadata).isNotNull()
         assertThat(metadata!!.normalizedQuad).isEqualTo(quad1)
-        assertThat(metadata.baseRotation).isEqualTo(metadata1.baseRotation)
         assertThat(metadata.isColored).isEqualTo(metadata1.isColored)
     }
 
@@ -239,11 +238,11 @@ class ImageRepositoryTest {
     fun metadata() {
         val quad = quad1.toSerializable()
 
-        assertThat(PageV2("1", 0, 0, null,true).toMetadata()).isNull()
-        assertThat(PageV2("1", 0, 0, quad, null).toMetadata()).isNull()
+        assertThat(PageV2("1", 0, null,true).toMetadata()).isNull()
+        assertThat(PageV2("1", 0, quad, null).toMetadata()).isNull()
 
         listOf(true, false).forEach { isColored ->
-            val metadata = PageV2("1", 0, 0, quad, isColored).toMetadata()
+            val metadata = PageV2("1", 0, quad, isColored).toMetadata()
             assertThat(metadata).isNotNull()
             assertThat(metadata!!.isColored).isEqualTo(isColored)
         }

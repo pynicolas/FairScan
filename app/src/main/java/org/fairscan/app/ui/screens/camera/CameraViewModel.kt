@@ -15,6 +15,7 @@
 package org.fairscan.app.ui.screens.camera
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import androidx.camera.core.ImageProxy
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
@@ -212,10 +213,18 @@ fun extractDocumentFromBitmap(
     bgr.release()
     val outBitmap = toBitmap(outBgr)
     outBgr.release()
-    val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
+
+    // Rotate the image to its metadata. Also rotate the quad to match
     val baseRotation = Rotation.fromDegrees(rotationDegrees)
-    val metadata = PageMetadata(normalizedQuad, baseRotation, isColored)
-    return CapturedPage(outBitmap, source, metadata)
+    val rotatedSource = rotateBitmap(source, baseRotation)
+    val rotatedQuad = quad.rotate90(rotationDegrees / 90, source.width, source.height)
+
+    // Normalize the rotated quad to [0, 1] range based on rotated image dimensions
+    val normalizedQuad = rotatedQuad.scaledTo(rotatedSource.width, rotatedSource.height, 1, 1)
+
+    // Since we're storing the already-rotated source, set baseRotation to R0
+    val metadata = PageMetadata(normalizedQuad, isColored)
+    return CapturedPage(outBitmap, rotatedSource, metadata)
 }
 
 fun toBitmap(bgr: Mat): Bitmap {
@@ -229,4 +238,10 @@ fun toBitmap(bgr: Mat): Bitmap {
 
     rgba.release()
     return bmp
+}
+
+private fun rotateBitmap(bitmap: Bitmap, rotation: Rotation): Bitmap {
+    if (rotation == Rotation.R0) return bitmap
+    val matrix = Matrix().apply { postRotate(rotation.degrees.toFloat()) }
+    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, false)
 }

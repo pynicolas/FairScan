@@ -86,7 +86,7 @@ fun prepareJpegForHigh(
     val page = extractDocument(
         decoded,
         quad,
-        pageMetadata.baseRotation.add(manualRotation).degrees,
+        manualRotation.degrees,
         pageMetadata.isColored,
         exportQuality.maxPixels)
     val outJpegBytes = encodeJpeg(page, exportQuality.jpegQuality)

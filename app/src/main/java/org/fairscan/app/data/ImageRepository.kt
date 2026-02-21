@@ -142,7 +142,6 @@ class ImageRepository(
             PageV2(
                 id = id,
                 quad = metadata.normalizedQuad.toSerializable(),
-                baseRotationDegrees = metadata.baseRotation.degrees,
                 manualRotationDegrees = Rotation.R0.degrees,
                 isColored = metadata.isColored
             )
@@ -327,7 +326,6 @@ fun PageV2.toMetadata(): PageMetadata? {
     if (quad == null || isColored == null) return null
     return PageMetadata(
         quad.toQuad(),
-        Rotation.fromDegrees(baseRotationDegrees),
         isColored
     )
 }
