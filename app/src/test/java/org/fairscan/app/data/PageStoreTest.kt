@@ -55,10 +55,10 @@ class PageStoreTest {
 
     @Test
     fun update() {
-        val page = PageV2("3", baseRotationDegrees = 90)
+        val page = PageV2("3", manualRotationDegrees = 90)
         val store = PageStore(listOf(page))
-        store.update(page.id) { p -> p.copy(baseRotationDegrees = p.baseRotationDegrees + 180) }
-        assertThat(store.get(page.id)!!.baseRotationDegrees).isEqualTo(270)
+        store.update(page.id) { p -> p.copy(manualRotationDegrees = p.manualRotationDegrees + 180) }
+        assertThat(store.get(page.id)!!.manualRotationDegrees).isEqualTo(270)
     }
 
     @Test

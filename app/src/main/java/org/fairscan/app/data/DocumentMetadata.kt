@@ -36,7 +36,6 @@ data class DocumentMetadataV2(
 @Serializable
 data class PageV2(
     val id: String,
-    val baseRotationDegrees: Int = 0,
     val manualRotationDegrees: Int = 0,
     val quad: NormalizedQuad? = null,
     val isColored: Boolean? = null
