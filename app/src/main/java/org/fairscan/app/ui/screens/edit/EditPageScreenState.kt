@@ -28,24 +28,69 @@ class EditPageScreenState {
     var draggedCornerIndex by mutableIntStateOf(-1)
     var draggedEdgeIndex by mutableIntStateOf(-1)
 
+    val history = QuadEditingHistory()
+    private var quadBeforeDrag: Quad? = null
+    private var initialQuad: Quad? = null
+
     fun updateQuad(newQuad: Quad) {
         editableQuad = newQuad
     }
 
     fun startCornerDrag(cornerIndex: Int) {
+        quadBeforeDrag = editableQuad
         draggedCornerIndex = cornerIndex
         draggedEdgeIndex = -1
     }
 
     fun startEdgeDrag(edgeIndex: Int) {
+        quadBeforeDrag = editableQuad
         draggedEdgeIndex = edgeIndex
         draggedCornerIndex = -1
     }
 
     fun endDrag() {
+        // Push state to history when drag ends (if quad changed)
+        quadBeforeDrag?.let { before ->
+            editableQuad?.let { after ->
+                if (before != after) {
+                    history.pushState(before)
+                }
+            }
+        }
+        quadBeforeDrag = null
         draggedCornerIndex = -1
         draggedEdgeIndex = -1
     }
 
+    fun undo() {
+        editableQuad?.let { current ->
+            history.undo(current)?.let { previous ->
+                editableQuad = previous
+            }
+        }
+    }
+
+    fun redo() {
+        editableQuad?.let { current ->
+            history.redo(current)?.let { next ->
+                editableQuad = next
+            }
+        }
+    }
+
     fun isDragging(): Boolean = draggedCornerIndex >= 0 || draggedEdgeIndex >= 0
+
+    fun setInitialQuad(quad: Quad) {
+        initialQuad = quad
+        editableQuad = quad
+    }
+
+    fun hasUnsavedChanges(): Boolean {
+        return editableQuad != initialQuad || history.canUndo
+    }
+
+    fun revertToInitial() {
+        editableQuad = initialQuad
+        history.clear()
+    }
 }

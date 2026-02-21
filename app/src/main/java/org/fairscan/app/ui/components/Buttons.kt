@@ -14,6 +14,7 @@
  */
 package org.fairscan.app.ui.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -56,15 +58,18 @@ fun SecondaryActionButton(
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     FilledIconButton (
         onClick = onClick,
         colors = IconButtonDefaults.outlinedIconButtonColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.primary
+            contentColor = MaterialTheme.colorScheme.primary,
+            disabledContainerColor = if (isSystemInDarkTheme()) Color.DarkGray else Color.LightGray
         ),
-        modifier = modifier.size(40.dp)
+        modifier = modifier.size(40.dp),
+        enabled = enabled
     ) {
         Icon(
             imageVector = icon,

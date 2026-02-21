@@ -36,6 +36,7 @@ import org.fairscan.app.domain.ScanPage
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
+import org.fairscan.imageprocessing.Quad
 
 class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
 
@@ -99,6 +100,15 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
                 imageRepository.pages()
             }
             _pages.value = pages
+        }
+    }
+
+    fun updatePageQuad(id: String, newQuad: Quad) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                imageRepository.updatePageQuad(id, newQuad)
+            }
+            _pages.value = imageRepository.pages()
         }
     }
 

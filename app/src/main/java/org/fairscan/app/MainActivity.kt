@@ -180,7 +180,8 @@ class MainActivity : ComponentActivity() {
                         EditPageScreen(
                             pageId = document.pageId(screen.pageIndex),
                             imageRepository = imageRepository,
-                            navigation = navigation
+                            navigation = navigation,
+                            onUpdatePageQuad = { id, quad -> viewModel.updatePageQuad(id, quad) }
                         )
                     }
                     is Screen.Main.Document -> {

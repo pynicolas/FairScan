@@ -299,6 +299,58 @@ class ImageRepository(
     fun getPageMetadata(id: String): PageMetadata? {
         return pages.get(id)?.toMetadata()
     }
+
+    fun updatePageQuad(id: String, newQuad: Quad) {
+        val page = pages.get(id) ?: return
+
+        // Update metadata with new quad
+        pages.update(id) {
+            it.copy(quad = newQuad.toSerializable())
+        }
+        saveMetadata()
+
+        // Regenerate the processed page image with the new quad
+        val sourceFile = getSourceFile(id)
+        if (!sourceFile.exists()) {
+            return
+        }
+
+        val workFile = File(scanDir, page.workFileName())
+        transformations.extractDocument(
+            sourceFile,
+            workFile,
+            newQuad,
+            page.manualRotationDegrees,
+            page.isColored == true,
+            ExportQuality.BALANCED
+        )
+        writeThumbnail(workFile)
+
+        val r0WorkFile = File(scanDir, workFileName(id, Rotation.R0))
+
+        if (page.manualRotationDegrees != Rotation.R0.degrees) {
+            // Also need to recreate the 0-degree variant as this is the basis for other re-computations
+            transformations.extractDocument(
+                sourceFile,
+                r0WorkFile,
+                newQuad,
+                Rotation.R0.degrees,
+                page.isColored == true,
+                ExportQuality.BALANCED
+            )
+            writeThumbnail(r0WorkFile)
+        }
+
+        // Delete all others so they are properly re-generated upon next access
+        scanDir.listFiles()
+            ?.filter { it.name.startsWith("${id}.") || it.name.startsWith("$id-")}
+            ?.filter { it.name != page.workFileName() && it.name != r0WorkFile.name }
+            ?.forEach { it.delete() }
+        thumbnailDir.listFiles()
+            ?.filter { it.name.startsWith("${id}.") || it.name.startsWith("$id-") }
+            ?.filter { it.name != page.workFileName() && it.name != r0WorkFile.name }
+            ?.forEach { it.delete() }
+    }
 }
 
 fun Quad.toSerializable(): NormalizedQuad =

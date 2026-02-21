@@ -18,6 +18,7 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.Rotation.R0
@@ -51,10 +52,21 @@ class ImageRepositoryTest {
     fun repo(): ImageRepository {
         val transformations = object : ImageTransformations {
             override fun rotate(inputFile: File, outputFile: File, rotationDegrees: Int, jpegQuality: Int) {
-                inputFile.copyTo(outputFile)
+                inputFile.copyTo(outputFile, true)
             }
             override fun resize(inputFile: File, outputFile: File, maxSize: Int) {
                 outputFile.writeBytes(byteArrayOf(inputFile.readBytes()[0]))
+            }
+
+            override fun extractDocument(
+                inputFile: File,
+                outputFile: File,
+                normalizedQuad: Quad,
+                rotationDegrees: Int,
+                isColored: Boolean,
+                quality: ExportQuality
+            ) {
+                inputFile.copyTo(outputFile, true)
             }
         }
         return ImageRepository(getFilesDir(), transformations, 200)
@@ -286,6 +298,26 @@ class ImageRepositoryTest {
 
         repo2.clear()
         assertThat(repo2.lastAddedSourceFile()).isNull()
+    }
+
+    @Test
+    fun update_page_quad_updates_metadata() = runTest {
+        val repo = repo()
+        repo.add(byteArrayOf(10, 11, 12), byteArrayOf(20), metadata1)
+        val id = repo.imageIds().last()
+
+        val newQuad = Quad(
+            Point(.05, .06),
+            Point(.15, .07),
+            Point(.16, .16),
+            Point(.06, .11)
+        )
+
+        repo.updatePageQuad(id, newQuad)
+
+        val metadata = repo.getPageMetadata(id)
+        assertThat(metadata).isNotNull()
+        assertThat(metadata!!.normalizedQuad).isEqualTo(newQuad)
     }
 
     private fun scanDir(): File = File(getFilesDir(), SCAN_DIR_NAME)

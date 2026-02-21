@@ -14,6 +14,8 @@
  */
 package org.fairscan.app.data
 
+import org.fairscan.app.domain.ExportQuality
+import org.fairscan.imageprocessing.Quad
 import java.io.File
 
 interface ImageTransformations {
@@ -22,4 +24,5 @@ interface ImageTransformations {
 
     fun resize(inputFile: File, outputFile: File, maxSize: Int)
 
+    fun extractDocument( inputFile: File, outputFile: File, normalizedQuad: Quad, rotationDegrees: Int, isColored: Boolean, quality: ExportQuality)
 }

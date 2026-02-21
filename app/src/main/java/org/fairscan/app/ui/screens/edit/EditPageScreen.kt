@@ -16,20 +16,30 @@ package org.fairscan.app.ui.screens.edit
 
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -38,16 +48,26 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.fairscan.app.R
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.data.ImageTransformations
+import org.fairscan.app.domain.ExportQuality
+import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.components.AppOverflowMenu
 import org.fairscan.app.ui.components.BackButton
+import org.fairscan.app.ui.components.ConfirmationDialog
+import org.fairscan.app.ui.components.SecondaryActionButton
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.theme.FairScanTheme
+import org.fairscan.imageprocessing.ImageSize
+import org.fairscan.imageprocessing.Point
+import org.fairscan.imageprocessing.Quad
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,11 +76,21 @@ fun EditPageScreen(
     pageId: String,
     imageRepository: ImageRepository,
     navigation: Navigation,
+    onUpdatePageQuad: (String, Quad) -> Unit,
 ) {
-    BackHandler { navigation.back() }
-
+    val showDiscardChangesDialog = rememberSaveable { mutableStateOf(false) }
     val state = remember { EditPageScreenState() }
     val quadHandler = remember { QuadEditingHandler() }
+
+    val handleBack = {
+        if (state.hasUnsavedChanges()) {
+            showDiscardChangesDialog.value = true
+        } else {
+            navigation.back()
+        }
+    }
+
+    BackHandler { handleBack() }
 
     val isPreview = LocalInspectionMode.current
     if (isPreview) {
@@ -68,11 +98,16 @@ fun EditPageScreen(
             BitmapFactory.decodeStream(input)
         }
         state.bitmap = dummyImage
+        state.setInitialQuad(Quad(Point(.1, .1), Point(.9, .1), Point(.9, .9), Point(.1, .9)))
     }
+
+    val baseRotation = remember { mutableStateOf(Rotation.R0) }
 
     LaunchedEffect(pageId) {
         val metadata = imageRepository.getPageMetadata(pageId)
         val rotation = metadata?.baseRotation ?: Rotation.R0
+        baseRotation.value = rotation
+
         val bitmap = withContext(Dispatchers.IO) {
             val sourceJpegBytes = imageRepository.sourceJpegBytes(pageId)
             if (sourceJpegBytes != null) {
@@ -93,7 +128,14 @@ fun EditPageScreen(
             } else null
         }
         state.bitmap = bitmap  // assigned on the main thread after withContext returns
-        state.editableQuad = imageRepository.getPageMetadata(pageId)?.normalizedQuad
+        if (metadata?.normalizedQuad != null) {
+            // Rotate the quad to match the rotated bitmap display
+            val rotatedQuad = metadata.normalizedQuad.rotate90(
+                rotation.degrees / 90,
+                ImageSize(1, 1)
+            )
+            state.setInitialQuad(rotatedQuad)
+        }
     }
 
     Scaffold { innerPadding ->
@@ -186,7 +228,7 @@ fun EditPageScreen(
             }
 
             BackButton(
-                navigation.back,
+                onClick = handleBack,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .windowInsetsPadding(WindowInsets.safeDrawing)
@@ -198,7 +240,74 @@ fun EditPageScreen(
                     .align(Alignment.TopEnd)
                     .windowInsetsPadding(WindowInsets.safeDrawing)
             )
+
+            ActionButtons(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+                    .windowInsetsPadding(WindowInsets.safeDrawing),
+                canUndo = state.history.canUndo,
+                canRedo = state.history.canRedo,
+                onUndo = { state.undo() },
+                onRedo = { state.redo() },
+                onConfirm = {
+                    state.editableQuad?.let { quad ->
+                        // Reverse the rotation to get back to original source image coordinates
+                        val rotateIterations = (4 - baseRotation.value.degrees / 90) % 4
+                        val originalQuad = quad.rotate90(rotateIterations, ImageSize(1, 1))
+                        onUpdatePageQuad(pageId, originalQuad)
+                        state.setInitialQuad(quad)
+                    }
+                    navigation.back()
+                }
+            )
         }
+    }
+
+    if (showDiscardChangesDialog.value) {
+        ConfirmationDialog(
+            title = stringResource(R.string.discard_changes),
+            message = stringResource(R.string.discard_changes_warning),
+            showDialog = showDiscardChangesDialog
+        ) {
+            state.revertToInitial()
+            navigation.back()
+        }
+    }
+}
+
+@Composable
+private fun ActionButtons(
+    modifier: Modifier,
+    canUndo: Boolean,
+    canRedo: Boolean,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        SecondaryActionButton(
+            icon = Icons.AutoMirrored.Filled.Undo,
+            contentDescription = "Undo",
+            onClick = onUndo,
+            enabled = canUndo
+        )
+
+        SecondaryActionButton(
+            icon = Icons.AutoMirrored.Filled.Redo,
+            contentDescription = "Redo",
+            onClick = onRedo,
+            enabled = canRedo
+        )
+
+        SecondaryActionButton(
+            icon = Icons.Filled.Check,
+            contentDescription = "Confirm",
+            onClick = onConfirm
+        )
     }
 }
 
@@ -213,6 +322,14 @@ fun EditPageScreenPreview() {
         val dummyTransformations = object : ImageTransformations {
             override fun rotate(inputFile: File, outputFile: File, rotationDegrees: Int, jpegQuality: Int) = Unit
             override fun resize(inputFile: File, outputFile: File, maxSize: Int) = Unit
+            override fun extractDocument(
+                inputFile: File,
+                outputFile: File,
+                normalizedQuad: Quad,
+                rotationDegrees: Int,
+                isColored: Boolean,
+                quality: ExportQuality
+            ) = Unit
         }
 
         // Use a temporary directory for the repository in preview.
@@ -223,6 +340,7 @@ fun EditPageScreenPreview() {
             pageId = "preview-page-id",
             imageRepository = dummyImageRepo,
             navigation = dummyNavigation(),
+            onUpdatePageQuad = { _, _ -> }
         )
     }
 }

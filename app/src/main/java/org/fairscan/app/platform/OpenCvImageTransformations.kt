@@ -15,8 +15,12 @@
 package org.fairscan.app.platform
 
 import org.fairscan.app.data.ImageTransformations
+import org.fairscan.app.domain.ExportQuality
+import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.encodeJpeg
+import org.fairscan.imageprocessing.scaledTo
 import org.opencv.core.Mat
+import org.opencv.core.MatOfInt
 import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
@@ -63,6 +67,43 @@ class OpenCvTransformations : ImageTransformations {
         } finally {
             input.release()
             output?.release()
+        }
+    }
+
+    override fun extractDocument(
+        inputFile: File,
+        outputFile: File,
+        normalizedQuad: Quad,
+        rotationDegrees: Int,
+        isColored: Boolean,
+        quality: ExportQuality
+    ) {
+        // Load source image
+        val src = Imgcodecs.imread(inputFile.absolutePath)
+        require(!src.empty()) { "Could not load image from ${inputFile.absolutePath}" }
+
+        var extracted: Mat? = null
+        var params: MatOfInt? = null
+        try {
+            val quad = normalizedQuad.scaledTo(1, 1, src.width(), src.height())
+
+            extracted = org.fairscan.imageprocessing.extractDocument(
+                src,
+                quad,
+                rotationDegrees,
+                isColored,
+                quality.maxPixels
+            )
+
+            // Save result as JPEG
+            params = MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, quality.jpegQuality)
+            if (!Imgcodecs.imwrite(outputFile.absolutePath, extracted, params)) {
+                throw RuntimeException("Could not write image to ${outputFile.absolutePath}")
+            }
+        } finally {
+            params?.release()
+            extracted?.release()
+            src.release()
         }
     }
 }
