@@ -295,6 +295,10 @@ class ImageRepository(
         }
         return sourceFiles.maxByOrNull { it.lastModified() }
     }
+
+    fun getPageMetadata(id: String): PageMetadata? {
+        return pages.get(id)?.toMetadata()
+    }
 }
 
 fun Quad.toSerializable(): NormalizedQuad =

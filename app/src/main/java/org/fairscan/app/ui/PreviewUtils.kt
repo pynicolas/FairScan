@@ -24,7 +24,7 @@ import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.state.DocumentUiModel
 
 fun dummyNavigation(): Navigation {
-    return Navigation({}, {}, {}, {}, {}, {}, {}, {})
+    return Navigation({}, {}, {}, {}, {}, {}, {}, {}, {})
 }
 
 fun fakeDocument(): DocumentUiModel {

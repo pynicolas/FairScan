@@ -61,7 +61,7 @@ fun SecondaryActionButton(
     FilledIconButton (
         onClick = onClick,
         colors = IconButtonDefaults.outlinedIconButtonColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.primary
         ),
         modifier = modifier.size(40.dp)

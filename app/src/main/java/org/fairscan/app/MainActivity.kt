@@ -54,6 +54,7 @@ import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
 import org.fairscan.app.ui.screens.DocumentScreen
+import org.fairscan.app.ui.screens.edit.EditPageScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.about.AboutEvent
 import org.fairscan.app.ui.screens.about.AboutScreen
@@ -173,6 +174,13 @@ class MainActivity : ComponentActivity() {
                             onImageAnalyzed = { image -> cameraViewModel.liveAnalysis(image) },
                             onFinalizePressed = onExportClick,
                             cameraPermission = cameraPermission
+                        )
+                    }
+                    is Screen.Main.EditImage -> {
+                        EditPageScreen(
+                            pageId = document.pageId(screen.pageIndex),
+                            imageRepository = imageRepository,
+                            navigation = navigation
                         )
                     }
                     is Screen.Main.Document -> {
@@ -449,6 +457,7 @@ class MainActivity : ComponentActivity() {
     private fun navigation(viewModel: MainViewModel, launchMode: LaunchMode): Navigation = Navigation(
         toHomeScreen = { viewModel.navigateTo(Screen.Main.Home) },
         toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
+        toEditImageScreen = { pageIndex -> viewModel.navigateTo(Screen.Main.EditImage(pageIndex)) },
         toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
         toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
         toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },

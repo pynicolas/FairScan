@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.RotateLeft
 import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.outlined.Add
@@ -125,6 +126,7 @@ fun DocumentScreen(
             currentPageIndex,
             { showDeletePageDialog.value = true },
             onRotateImage,
+            navigation.toEditImageScreen,
             modifier
         )
         if (showDeletePageDialog.value) {
@@ -143,6 +145,7 @@ private fun DocumentPreview(
     currentPageIndex: MutableIntState,
     onDeleteImage: (String) -> Unit,
     onRotateImage: (String, Boolean) -> Unit,
+    onEditImage: (Int) -> Unit,
     modifier: Modifier,
 ) {
     val imageId = document.pageId(currentPageIndex.intValue)
@@ -175,7 +178,7 @@ private fun DocumentPreview(
                     )
                 }
             }
-            RotationButtons(imageId, onRotateImage, Modifier.align(Alignment.BottomCenter))
+            RotationButtons(imageId, currentPageIndex.intValue, onRotateImage, onEditImage, Modifier.align(Alignment.BottomCenter))
             SecondaryActionButton(
                 Icons.Outlined.Delete,
                 contentDescription = stringResource(R.string.delete_page),
@@ -202,7 +205,9 @@ private fun DocumentPreview(
 @Composable
 fun RotationButtons(
     imageId: String,
+    pageIndex: Int,
     onRotateImage: (String, Boolean) -> Unit,
+    onEditImage: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // RotateLeft on the left, RotateRight on the right: for both LTR and RTL languages
@@ -221,6 +226,12 @@ fun RotationButtons(
                 icon = Icons.Default.RotateRight,
                 contentDescription = stringResource(R.string.rotate_right),
                 onClick = { onRotateImage(imageId, true) }
+            )
+            Spacer(Modifier.width(8.dp))
+            SecondaryActionButton(
+                icon = Icons.Filled.Edit,
+                contentDescription = "Edit image",
+                onClick = { onEditImage(pageIndex) }
             )
         }
     }
