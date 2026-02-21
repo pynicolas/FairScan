@@ -17,6 +17,7 @@ package org.fairscan.app.ui
 sealed class Screen {
     sealed class Main : Screen() {
         object Camera : Main()
+        data class EditImage(val pageIndex: Int) : Main()
         data class Document(val initialPage: Int = 0) : Main()
         object Export : Main()
     }
@@ -29,6 +30,7 @@ sealed class Screen {
 
 data class Navigation(
     val toCameraScreen: () -> Unit,
+    val toEditImageScreen: (Int) -> Unit,
     val toDocumentScreen: () -> Unit,
     val toExportScreen: () -> Unit,
     val toAboutScreen: () -> Unit,
@@ -62,6 +64,7 @@ data class NavigationState private constructor(val stack: List<Screen>, val root
             root -> this // Back handled by system
             is Screen.Main.Camera -> this // Back handled by system
             is Screen.Main.Document -> copy(stack = listOf(Screen.Main.Camera))
+            is Screen.Main.EditImage -> copy(stack = listOf(Screen.Main.Document(initialPage = (current as Screen.Main.EditImage).pageIndex)))
             is Screen.Main.Export -> copy(stack = listOf(Screen.Main.Camera))
             is Screen.Overlay -> copy(stack = stack.dropLast(1))
         }

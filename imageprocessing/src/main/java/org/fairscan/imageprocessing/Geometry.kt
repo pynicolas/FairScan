@@ -47,6 +47,26 @@ data class Quad(
             Line(bottomLeft, topLeft))
     }
 
+    /**
+     * Returns `true` when the four corners form a strictly convex polygon with
+     * correct winding order (topLeft -> topRight -> bottomRight -> bottomLeft
+     * clockwise in screen coordinates where y increases downward).
+     *
+     * The check computes the cross product at each corner of consecutive edges
+     * and verifies that all four cross products are strictly positive.
+     */
+    fun isConvex(): Boolean {
+        val pts = listOf(topLeft, topRight, bottomRight, bottomLeft)
+        for (i in pts.indices) {
+            val a = pts[i]
+            val b = pts[(i + 1) % 4]
+            val c = pts[(i + 2) % 4]
+            val cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x)
+            if (cross <= 0.0) return false
+        }
+        return true
+    }
+
     fun rotate90(iterations: Int, imageSize: ImageSize): Quad {
         val rotatedPoints = listOf(
             rotate90(topLeft, imageSize, iterations),

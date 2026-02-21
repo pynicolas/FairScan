@@ -54,6 +54,8 @@ import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
+import org.fairscan.app.ui.screens.document.DocumentScreen
+import org.fairscan.app.ui.screens.edit.EditPageScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.about.AboutEvent
 import org.fairscan.app.ui.screens.about.AboutScreen
@@ -62,7 +64,6 @@ import org.fairscan.app.ui.screens.about.createEmailWithImageIntent
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
-import org.fairscan.app.ui.screens.document.DocumentScreen
 import org.fairscan.app.ui.screens.export.ExportActions
 import org.fairscan.app.ui.screens.export.ExportEvent
 import org.fairscan.app.ui.screens.export.ExportResult
@@ -175,6 +176,15 @@ class MainActivity : ComponentActivity() {
                                 pickMultiple.launch(PickVisualMediaRequest(
                                     ActivityResultContracts.PickVisualMedia.ImageOnly))
                             }
+                        )
+                    }
+                    is Screen.Main.EditImage -> {
+                        val pageIndex = (currentScreen as Screen.Main.EditImage).pageIndex
+                        EditPageScreen(
+                            pageId = documentUiState.document.pages[pageIndex].key.pageId,
+                            imageRepository = imageRepository,
+                            navigation = navigation,
+                            onUpdatePageQuad = { id, quad, onComplete ->  },
                         )
                     }
                     is Screen.Main.Document -> {
@@ -457,6 +467,7 @@ class MainActivity : ComponentActivity() {
 
     private fun navigation(viewModel: MainViewModel, launchMode: LaunchMode): Navigation = Navigation(
         toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
+        toEditImageScreen = { pageIndex -> viewModel.navigateTo(Screen.Main.EditImage(pageIndex)) },
         toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
         toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
         toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
