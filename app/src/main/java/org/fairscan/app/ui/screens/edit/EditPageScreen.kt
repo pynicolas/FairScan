@@ -164,66 +164,7 @@ fun EditPageScreen(
                         contentScale = ContentScale.Fit,
                     )
 
-                    if (state.editableQuad != null && state.containerSize != null) {
-                        val containerSize = state.containerSize!!
-                        val displaySize = QuadCoordinateUtils.calculateDisplaySize(
-                            bmp.width, bmp.height, containerSize
-                        )
-
-                        QuadOverlay(
-                            quad = state.editableQuad!!,
-                            containerSize = containerSize,
-                            displaySize = displaySize,
-                            modifier = Modifier.pointerInput(Unit) {
-                                detectDragGestures(
-                                    onDragStart = { startPos ->
-                                        val quad = state.editableQuad ?: return@detectDragGestures
-
-                                        val cornerIndex = quadHandler.findTouchedCorner(
-                                            startPos, quad, containerSize, displaySize
-                                        )
-
-                                        if (cornerIndex >= 0) {
-                                            state.startCornerDrag(cornerIndex)
-                                        } else {
-                                            val edgeIndex = quadHandler.findTouchedEdge(
-                                                startPos, quad, containerSize, displaySize
-                                            )
-                                            if (edgeIndex >= 0) {
-                                                state.startEdgeDrag(edgeIndex)
-                                            }
-                                        }
-                                    },
-                                    onDragEnd = { state.endDrag() },
-                                    onDragCancel = { state.endDrag() },
-                                    onDrag = { change, dragAmount ->
-                                        change.consume()
-                                        val quad = state.editableQuad ?: return@detectDragGestures
-                                        val normalizedDelta = QuadCoordinateUtils.screenDeltaToNormalized(
-                                            dragAmount, displaySize
-                                        )
-
-                                        when {
-                                            state.draggedCornerIndex >= 0 -> {
-                                                state.updateQuad(
-                                                    quadHandler.updateQuadCorner(
-                                                        quad, state.draggedCornerIndex, normalizedDelta
-                                                    )
-                                                )
-                                            }
-                                            state.draggedEdgeIndex >= 0 -> {
-                                                state.updateQuad(
-                                                    quadHandler.updateQuadEdge(
-                                                        quad, state.draggedEdgeIndex, normalizedDelta
-                                                    )
-                                                )
-                                            }
-                                        }
-                                    }
-                                )
-                            }
-                        )
-                    }
+                    DragQuadOverlay(state, quadHandler, bmp)
                 }
             }
 
@@ -233,13 +174,14 @@ fun EditPageScreen(
                     .align(Alignment.TopStart)
                     .windowInsetsPadding(WindowInsets.safeDrawing)
             )
-
             AppOverflowMenu(
                 navigation,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .windowInsetsPadding(WindowInsets.safeDrawing)
             )
+
+            DragMagnifyingGlass(state)
 
             ActionButtons(
                 modifier = Modifier
@@ -307,6 +249,130 @@ private fun ActionButtons(
             icon = Icons.Filled.Check,
             contentDescription = "Confirm",
             onClick = onConfirm
+        )
+    }
+}
+
+@Composable
+private fun DragQuadOverlay(
+    state: EditPageScreenState,
+    quadHandler: QuadEditingHandler,
+    bmp: android.graphics.Bitmap
+) {
+    if (state.editableQuad == null || state.containerSize == null) return
+
+    val containerSize = state.containerSize!!
+    val displaySize = QuadCoordinateUtils.calculateDisplaySize(bmp.width, bmp.height, containerSize)
+
+    QuadOverlay(
+        quad = state.editableQuad!!,
+        containerSize = containerSize,
+        displaySize = displaySize,
+        modifier = Modifier.pointerInput(Unit) {
+            detectDragGestures(
+                onDragStart = { startPos ->
+                    val quad = state.editableQuad ?: return@detectDragGestures
+                    state.dragPosition = startPos
+
+                    val cornerIndex = quadHandler.findTouchedCorner(
+                        startPos, quad, containerSize, displaySize
+                    )
+
+                    if (cornerIndex >= 0) {
+                        state.startCornerDrag(cornerIndex)
+                    } else {
+                        val edgeIndex = quadHandler.findTouchedEdge(
+                            startPos, quad, containerSize, displaySize
+                        )
+                        if (edgeIndex >= 0) {
+                            state.startEdgeDrag(edgeIndex)
+                        }
+                    }
+                },
+                onDragEnd = { state.endDrag() },
+                onDragCancel = { state.endDrag() },
+                onDrag = { change, dragAmount ->
+                    change.consume()
+                    state.dragPosition = change.position
+                    val quad = state.editableQuad ?: return@detectDragGestures
+                    val normalizedDelta = QuadCoordinateUtils.screenDeltaToNormalized(
+                        dragAmount, displaySize
+                    )
+
+                    when {
+                        state.draggedCornerIndex >= 0 -> {
+                            state.updateQuad(
+                                quadHandler.updateQuadCorner(
+                                    quad, state.draggedCornerIndex, normalizedDelta
+                                )
+                            )
+                        }
+                        state.draggedEdgeIndex >= 0 -> {
+                            state.updateQuad(
+                                quadHandler.updateQuadEdge(
+                                    quad, state.draggedEdgeIndex, normalizedDelta
+                                )
+                            )
+                        }
+                    }
+                }
+            )
+        }
+    )
+}
+
+@Composable
+private fun DragMagnifyingGlass(state: EditPageScreenState) {
+    if (!state.isDragging() || state.dragPosition == null || state.containerSize == null) return
+
+    val bmp = state.bitmap ?: return
+    val containerSize = state.containerSize!!
+    val displaySize = QuadCoordinateUtils.calculateDisplaySize(
+        bmp.width, bmp.height, containerSize
+    )
+    val quad = state.editableQuad
+
+    val focusPosition = if (quad != null) {
+        when {
+            state.draggedCornerIndex >= 0 -> {
+                val corner = when (state.draggedCornerIndex) {
+                    0 -> quad.topLeft
+                    1 -> quad.topRight
+                    2 -> quad.bottomRight
+                    3 -> quad.bottomLeft
+                    else -> null
+                }
+                corner?.let {
+                    QuadCoordinateUtils.normalizedToScreen(it, containerSize, displaySize)
+                }
+            }
+            state.draggedEdgeIndex >= 0 -> {
+                val (p1, p2) = when (state.draggedEdgeIndex) {
+                    0 -> quad.topLeft to quad.topRight
+                    1 -> quad.topRight to quad.bottomRight
+                    2 -> quad.bottomRight to quad.bottomLeft
+                    3 -> quad.bottomLeft to quad.topLeft
+                    else -> null to null
+                }
+                if (p1 != null && p2 != null) {
+                    val mid = Point(
+                        (p1.x + p2.x) / 2.0,
+                        (p1.y + p2.y) / 2.0
+                    )
+                    QuadCoordinateUtils.normalizedToScreen(mid, containerSize, displaySize)
+                } else null
+            }
+            else -> null
+        }
+    } else null
+
+    if (focusPosition != null) {
+        MagnifyingGlass(
+            bitmap = bmp,
+            fingerPosition = state.dragPosition!!,
+            focusPosition = focusPosition,
+            containerSize = containerSize,
+            displaySize = displaySize,
         )
     }
 }

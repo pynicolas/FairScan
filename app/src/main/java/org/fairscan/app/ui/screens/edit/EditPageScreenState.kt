@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntSize
 import org.fairscan.imageprocessing.Quad
 
@@ -27,6 +28,7 @@ class EditPageScreenState {
     var editableQuad by mutableStateOf<Quad?>(null)
     var draggedCornerIndex by mutableIntStateOf(-1)
     var draggedEdgeIndex by mutableIntStateOf(-1)
+    var dragPosition by mutableStateOf<Offset?>(null)
 
     val history = QuadEditingHistory()
     private var quadBeforeDrag: Quad? = null
@@ -60,6 +62,7 @@ class EditPageScreenState {
         quadBeforeDrag = null
         draggedCornerIndex = -1
         draggedEdgeIndex = -1
+        dragPosition = null
     }
 
     fun undo() {
