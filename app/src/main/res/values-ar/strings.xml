@@ -1,0 +1,80 @@
+<resources>
+    <string name="about">عن</string>
+    <string name="add_page">أضف صفحة</string>
+    <string name="app_name" translatable="false">FairScan</string>
+    <string name="app_tagline">تطبيق بسيط ومحترم لمسح مستنداتك ضوئيًا.</string>
+    <string name="back">ارجع</string>
+    <string name="camera_permission_denied">رُفض إذن الوصول إلى الكاميرا</string>
+    <string name="camera_permission_rationale">يتطلب التطبيق الوصول إلى الكاميرا لمسح المستندات ضوئيًا. تُخزن الصور الملتقطة على هذا الجهاز فقط، وسيتم حذفها عند إغلاق المستند الحالي.</string>
+    <string name="cancel">ألغِ</string>
+    <string name="change_directory">غيّر المجلد</string>
+    <string name="clear_text">امحُ النص</string>
+    <string name="contact">تواصل</string>
+    <string name="copied_logs">نُسخت السجلات إلى الحافظة</string>
+    <string name="copy_logs">انسخ السجلات</string>
+    <string name="creating_export">يجهز التصدير…</string>
+    <string name="delete_page">احذف الصفحة</string>
+    <string name="delete_page_warning">هل تريد حذف هذه الصفحة؟</string>
+    <string name="developer">مطوّر</string>
+    <string name="discard_scan">أهمِل المسح</string>
+    <string name="download_dirname">التنزيلات</string>
+    <string name="end_scan">أنهِ المسح</string>
+    <string name="error">خطأ: %1$s</string>
+    <string name="error_context_folder">مجلد التصدير: %1$s</string>
+    <string name="error_context_provider">المزود: %1$s</string>
+    <string name="error_export_dir_permission_lost">لم يعد من الممكن الوصول إلى مجلد التصدير المحدّد. يُرجى اختيار مجلد آخر.</string>
+    <!-- Rare error messages should not be translated -->
+    <string name="error_file_picker_launch" translatable="false">Failed to launch system file picker on this device</string>
+    <string name="error_file_picker_result" translatable="false">Failed to set export directory</string>
+    <string name="error_no_app">لم يُعثر على تطبيق لفتح هذا الملف</string>
+    <string name="error_no_document">لم يكتشف أي مستند</string>
+    <string name="error_save">فشل حفظ الملف</string>
+    <string name="export">صدِّر</string>
+    <string name="export_as">صدِّر ك %1$s</string>
+    <string name="export_directory">مجلد التصدير</string>
+    <string name="export_folder_permission_lost">فُقدت صلاحية الوصول إلى المجلد</string>
+    <string name="export_format">صيغة التصدير</string>
+    <string name="export_quality">جودة تصدير</string>
+    <string name="export_quality_low">منخفضة</string>
+    <string name="export_quality_balanced">متوازنة</string>
+    <string name="export_quality_high">عالية</string>
+    <string name="file_size">حجم الملف: %1$s</string>
+    <string name="file_size_total">الحجم الكلي: %1$s</string>
+    <string name="filename">اسم الملف</string>
+    <string name="grant_permission">امنح الأذن</string>
+    <string name="last_saved_pdf_files">ملفات PDF المحفوظة حديثًا على هذا الجهاز:</string>
+    <string name="libraries">المكتبات</string>
+    <string name="libraries_open_source">مكتبات مفتوحة المصدر</string>
+    <string name="license">الترخيص</string>
+    <string name="licensed_under">هذا التطبيق مرخص بموجب رخصة جنو العمومية العامة، الإصدار 3.0.</string>
+    <string name="menu">قائمة</string>
+    <string name="new_document_warning">سيتم فقدان عملية المسح الحالية. أتريد الاستمرار؟</string>
+    <string name="open">افتح</string>
+    <string name="open_file">افتح الملف</string>
+    <string name="reset_to_default">صفّر للإعدادات المبدئية</string>
+    <string name="resume">استكمل</string>
+    <string name="save">احفظ</string>
+    <string name="scan_button">مسح جديد</string>
+    <string name="scan_in_progress">المسح قيد التقدم</string>
+    <string name="settings">الإعدادات</string>
+    <string name="share">شارك</string>
+    <string name="share_document">شارك المستند</string>
+    <string name="storage_permission_denied">تعذر حفظ الملف: رُفض الإذن</string>
+    <string name="support">المساعدة</string>
+    <string name="support_last_image">أبلِغ عن مشكلة في آخر صورة مُلتقطَة </string>
+    <string name="turn_off_torch">أطفئ الكشاف</string>
+    <string name="turn_on_torch">شغّل الكشاف</string>
+    <string name="unknown_size">حجم مجهول</string>
+    <string name="version">الإصدار</string>
+    <string name="view_full_list">اعرض القائمة الكاملة</string>
+    <string name="view_the_full_license">اعرض الترخيص الكامل</string>
+    <string name="yes">نعم</string>
+    <plurals name="files_saved_to">
+        <item quantity="one">حُفظ %2$s في %3$s</item>
+        <item quantity="other">حُفظ %1$d من الملفات في %3$s</item>
+    </plurals>
+    <plurals name="page_count">
+        <item quantity="one">%d صفحة</item>
+        <item quantity="other">%d صفحات</item>
+    </plurals>
+</resources>
