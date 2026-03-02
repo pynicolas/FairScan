@@ -1,7 +1,6 @@
 <resources>
     <string name="about">عن</string>
     <string name="add_page">أضف صفحة</string>
-    <string name="app_name" translatable="false">FairScan</string>
     <string name="app_tagline">تطبيق بسيط ومحترم لمسح مستنداتك ضوئيًا.</string>
     <string name="back">ارجع</string>
     <string name="camera_permission_denied">رُفض إذن الوصول إلى الكاميرا</string>
@@ -23,9 +22,6 @@
     <string name="error_context_folder">مجلد التصدير: %1$s</string>
     <string name="error_context_provider">المزود: %1$s</string>
     <string name="error_export_dir_permission_lost">لم يعد من الممكن الوصول إلى مجلد التصدير المحدّد. يُرجى اختيار مجلد آخر.</string>
-    <!-- Rare error messages should not be translated -->
-    <string name="error_file_picker_launch" translatable="false">Failed to launch system file picker on this device</string>
-    <string name="error_file_picker_result" translatable="false">Failed to set export directory</string>
     <string name="error_no_app">لم يُعثر على تطبيق لفتح هذا الملف</string>
     <string name="error_no_document">لم يكتشف أي مستند</string>
     <string name="error_save">فشل حفظ الملف</string>
@@ -70,11 +66,19 @@
     <string name="view_the_full_license">اعرض الترخيص الكامل</string>
     <string name="yes">نعم</string>
     <plurals name="files_saved_to">
+        <item quantity="zero">لم يُحفظ أي ملفات في %3$s</item>
         <item quantity="one">حُفظ %2$s في %3$s</item>
-        <item quantity="other">حُفظ %1$d من الملفات في %3$s</item>
+        <item quantity="two">حُفظ ملفين في %3$s</item>
+        <item quantity="few">حُفظ %1$d ملفات في %3$s</item>
+        <item quantity="many">حُفظ %1$d ملفًا في %3$s</item>
+        <item quantity="other">حُفظ %1$d ملف في %3$s</item>
     </plurals>
     <plurals name="page_count">
+        <item quantity="zero">لا صفحات</item>
         <item quantity="one">%d صفحة</item>
-        <item quantity="other">%d صفحات</item>
+        <item quantity="two">%d صفحتان</item>
+        <item quantity="few">%d صفحات</item>
+        <item quantity="many">%d صفحة</item>
+        <item quantity="other">%d صفحة</item>
     </plurals>
 </resources>
