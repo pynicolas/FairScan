@@ -32,3 +32,12 @@ jobs:
 
       - name: Run Gradle
         run: ./gradlew clean license check assembleRelease --no-daemon
+
+      - name: Upload APKs
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: FairScan-APKs-PR-${{ github.event.pull_request.number }}
+          path: |
+            app/build/outputs/apk/release/*.apk
+          retention-days: 30
