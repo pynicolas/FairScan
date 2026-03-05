@@ -14,10 +14,11 @@
  */
 package org.fairscan.imageprocessing
 
-import org.fairscan.imageprocessing.quad.detectDocumentQuadFromProbmap
-import org.fairscan.imageprocessing.quad.findQuadFromRightAngles
+import org.fairscan.imageprocessing.quad.findQuadFromContourOrientation
 import org.fairscan.imageprocessing.quad.minAreaRect
+import org.fairscan.imageprocessing.quad.scoreQuadAgainstProbmap
 import org.opencv.core.Core
+import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.MatOfPoint
 import org.opencv.core.MatOfPoint2f
@@ -31,35 +32,64 @@ interface Mask {
     fun toMat(): Mat
 }
 
-fun detectDocumentQuad(mask: Mask, isLiveAnalysis: Boolean, minQuadAreaRatio: Double = 0.02): Quad? {
+fun detectDocumentQuad(mask: Mask, originalSize: ImageSize, isLiveAnalysis: Boolean): Quad? {
     val mat = mask.toMat()
-    val (biggest: MatOfPoint2f?, area) = biggestContour(mat)
-    var vertices: List<Point>?
-    if (biggest != null && biggest.total() == 4L && area > mask.width * mask.height * minQuadAreaRatio) {
-        vertices = biggest.toList()?.map { Point(it.x, it.y) }
-    } else {
-
-        // Fallback 1: adjust threshold
-        val thresholds =
-            if (isLiveAnalysis) listOf(25.0, 50.0, 75.0) else (0..12).map { 0.2 + it * 0.05 }
-        vertices = detectDocumentQuadFromProbmap(mat, thresholds)
-            ?.map { Point(it.x, it.y) }
-        if (vertices == null && biggest != null && biggest.total() > 4) {
-
-            // Fallback 2: look for right angles
+    var vertices = findQuadFromOrientationWithAdaptiveThreshold(mat, originalSize)
+        ?.map { Point(it.x, it.y) }
+    if (vertices == null && !isLiveAnalysis) {
+        // Fallback: bounding rectangle
+        val biggest = biggestContour(mat)
+        if (biggest != null) {
             val polygon = biggest.toList().map { Point(it.x, it.y) }
-            vertices = findQuadFromRightAngles(polygon, mask.width, mask.height)
-            if (vertices == null && !isLiveAnalysis) {
-
-                // Fallback 3: bounding rectangle
-                vertices = minAreaRect(polygon, mask.width, mask.height)
-            }
+            vertices = minAreaRect(polygon, mask.width, mask.height)
         }
     }
     return if (vertices?.size == 4) createQuad(vertices) else null
 }
 
-private fun biggestContour(mat: Mat): Pair<MatOfPoint2f?, Double> {
+fun findQuadFromOrientationWithAdaptiveThreshold(maskMat: Mat, originalSize: ImageSize): List<org.opencv.core.Point>? {
+    val probmapU8 = Mat()
+    val probmap = maskMat
+    probmap.convertTo(probmapU8, CvType.CV_8U, 255.0)
+    val probmapSmooth = Mat()
+    Imgproc.GaussianBlur(probmapU8, probmapSmooth, Size(3.0, 3.0), 0.0)
+
+    // Best thresholds on test dataset: {0.95=146, 0.85=39, 0.75=35, 0.90=8, 0.70=1, 0.35=1}
+    val thresholds = listOf(0.5, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
+    var bestQuad: List<org.opencv.core.Point>? = null
+    var bestScore = 0.0
+    for (thr in thresholds) {
+        val bin = Mat()
+        Imgproc.threshold(probmapSmooth, bin, thr * 255.0, 255.0, Imgproc.THRESH_BINARY)
+        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(5.0, 5.0))
+        Imgproc.morphologyEx(bin, bin, Imgproc.MORPH_CLOSE, kernel)
+        val quad = findQuadFromOrientation(bin, originalSize)
+        if (quad != null) {
+            val probFloat = Mat()
+            probmap.convertTo(probFloat, CvType.CV_32F)
+            val score = scoreQuadAgainstProbmap(quad, probFloat, minQuadAreaRatio = 0.02)
+            if (score > bestScore) {
+                bestScore = score
+                bestQuad = quad
+            }
+        }
+    }
+    return bestQuad
+}
+
+fun findQuadFromOrientation(maskMat: Mat, originalSize: ImageSize): List<org.opencv.core.Point>? {
+    val contour = biggestContour(maskMat)
+    contour?:return null
+
+    val scaleX = originalSize.width / maskMat.size().width
+    val scaleY = originalSize.height / maskMat.size().height
+
+    return findQuadFromContourOrientation(
+        contour.toList().map { org.opencv.core.Point(it.x * scaleX, it.y * scaleY) }
+    )?.map { org.opencv.core.Point(it.x / scaleX, it.y / scaleY) }
+}
+
+fun biggestContour(mat: Mat): MatOfPoint? {
     val refinedMask = refineMask(mat)
 
     val blurred = Mat()
@@ -70,24 +100,19 @@ private fun biggestContour(mat: Mat): Pair<MatOfPoint2f?, Double> {
 
     val contours = mutableListOf<MatOfPoint>()
     val hierarchy = Mat()
-    Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE)
+    Imgproc.findContours(edges, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_NONE)
 
-    var biggest: MatOfPoint2f? = null
+    var biggest: MatOfPoint? = null
     var maxArea = 0.0
 
     for (contour in contours) {
-        val contour2f = MatOfPoint2f(*contour.toArray())
-        val peri = Imgproc.arcLength(contour2f, true)
-        val approx = MatOfPoint2f()
-        Imgproc.approxPolyDP(contour2f, approx, 0.02 * peri, true)
-
-        val area = abs(Imgproc.contourArea(approx))
+        val area = abs(Imgproc.contourArea(contour))
         if (area > maxArea) {
             maxArea = area
-            biggest = approx
+            biggest = contour
         }
     }
-    return Pair(biggest, maxArea)
+    return biggest
 }
 
 /**
@@ -171,3 +196,6 @@ fun Point.toCv(): org.opencv.core.Point {
     return org.opencv.core.Point(x, y)
 }
 
+fun Size.toImageSize(): ImageSize {
+    return ImageSize(width, height)
+}

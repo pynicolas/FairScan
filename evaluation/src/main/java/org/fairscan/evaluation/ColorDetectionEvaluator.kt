@@ -18,6 +18,7 @@ import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.extractDocument
 import org.fairscan.imageprocessing.isColoredDocument
 import org.fairscan.imageprocessing.scaledTo
+import org.fairscan.imageprocessing.toImageSize
 import org.opencv.imgcodecs.Imgcodecs
 import java.io.File
 
@@ -57,7 +58,7 @@ object ColorDetectionEvaluator {
 
             val mask = MatMask(maskMat)
 
-            val quad = detectDocumentQuad(mask, isLiveAnalysis = false)
+            val quad = detectDocumentQuad(mask, mat.size().toImageSize(), isLiveAnalysis = false)
                 ?.scaledTo(mask.width, mask.height, mat.width(), mat.height())
 
             if (quad == null) continue

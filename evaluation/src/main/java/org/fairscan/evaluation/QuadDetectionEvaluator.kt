@@ -18,6 +18,7 @@ import nu.pattern.OpenCV
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.scaledTo
 import org.fairscan.imageprocessing.toCv
+import org.fairscan.imageprocessing.toImageSize
 import org.opencv.core.Core
 import org.opencv.core.Mat
 import org.opencv.core.Scalar
@@ -63,7 +64,8 @@ object QuadDetectionEvaluator {
 
             val mask = MatMask(maskMat)
 
-            val quad = detectDocumentQuad(mask, isLiveAnalysis = false)
+            val originalSize = inputMat.size().toImageSize()
+            val quad = detectDocumentQuad(mask, originalSize, isLiveAnalysis = false)
                 ?.scaledTo(mask.width, mask.height, inputMat.width(), inputMat.height())
 
             val inputOut = File(outputDir, "${e.name}_input.jpg")

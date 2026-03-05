@@ -76,8 +76,9 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
                     val binaryMask = result.segmentation.toBinaryMask()
                     val rawQuad = detectDocumentQuad(
                         result.segmentation,
+                        result.originalSize,
                         isLiveAnalysis = true
-                    )
+                    )?.rotate90(result.rotationDegrees / 90, binaryMask.width, binaryMask.height)
                     val stableQuad = quadStabilizer.update(rawQuad)
                     _liveAnalysisState.value = LiveAnalysisState(
                         inferenceTime = result.inferenceTime,
@@ -151,7 +152,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         val segmentation = imageSegmentationService.runSegmentationAndReturn(source, 0)
         if (segmentation != null) {
             val mask = segmentation.segmentation
-            val quad = detectDocumentQuad(mask, isLiveAnalysis = false)
+            val quad = detectDocumentQuad(mask, segmentation.originalSize, isLiveAnalysis = false)
             if (quad != null) {
                 val resizedQuad = quad.scaledTo(mask.width, mask.height, source.width, source.height)
                 result = extractDocumentFromBitmap(source, resizedQuad, rotationDegrees, mask)
