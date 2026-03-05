@@ -212,23 +212,45 @@ private fun computeSmoothedAngles(
     window: Int
 ): DoubleArray {
     val n = contour.size
-    val angles = DoubleArray(n)
 
+    // --- Step 1: raw angles ---
+    val angles = DoubleArray(n)
     for (i in 0 until n) {
         val p0 = contour[(i - 1 + n) % n]
         val p1 = contour[(i + 1) % n]
         angles[i] = atan2(p1.y - p0.y, p1.x - p0.x)
     }
 
-    val smooth = DoubleArray(n)
+    // --- Step 2: precompute cos/sin ---
+    val cosA = DoubleArray(n)
+    val sinA = DoubleArray(n)
     for (i in 0 until n) {
-        var sx = 0.0
-        var sy = 0.0
-        for (k in -window..window) {
-            val a = angles[(i + k + n) % n]
-            sx += cos(a)
-            sy += sin(a)
-        }
+        cosA[i] = cos(angles[i])
+        sinA[i] = sin(angles[i])
+    }
+
+    // --- Step 3: sliding window smoothing ---
+    val smooth = DoubleArray(n)
+
+    var sx = 0.0
+    var sy = 0.0
+
+    // initial window centered on index 0
+    for (k in -window..window) {
+        val idx = (k + n) % n
+        sx += cosA[idx]
+        sy += sinA[idx]
+    }
+
+    smooth[0] = atan2(sy, sx)
+
+    for (i in 1 until n) {
+        val outIdx = (i - window - 1 + n) % n
+        val inIdx  = (i + window) % n
+        sx -= cosA[outIdx]
+        sy -= sinA[outIdx]
+        sx += cosA[inIdx]
+        sy += sinA[inIdx]
         smooth[i] = atan2(sy, sx)
     }
     return smooth
