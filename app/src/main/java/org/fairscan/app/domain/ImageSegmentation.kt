@@ -165,6 +165,8 @@ class ImageSegmentationService(private val context: Context, private val logger:
             mask.put(0, 0, data)
             return mask
         }
+
+        fun maskSize() = ImageSize(width, height)
     }
 
     data class SegmentationResult(

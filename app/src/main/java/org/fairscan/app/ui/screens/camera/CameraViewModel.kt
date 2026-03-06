@@ -15,6 +15,7 @@
 package org.fairscan.app.ui.screens.camera
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import androidx.camera.core.ImageProxy
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
@@ -72,17 +73,29 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
             imageSegmentationService.segmentation
                 .filterNotNull()
                 .collect { result ->
-                    // TODO Should we really call toBinaryMask if it's used only in debug mode?
-                    val binaryMask = result.segmentation.toBinaryMask()
+                    val binaryMaskProvider = { ->
+                        var binaryMask: Bitmap = result.segmentation.toBinaryMask()
+                        if (result.rotationDegrees != 0) {
+                            binaryMask = rotateBitmap(binaryMask, result.rotationDegrees.toFloat())
+                        }
+                        binaryMask
+                    }
+
                     val rawQuad = detectDocumentQuad(
                         result.segmentation,
                         result.originalSize,
                         isLiveAnalysis = true
-                    )?.rotate90(result.rotationDegrees / 90, binaryMask.width, binaryMask.height)
+                    )?.rotate90(
+                        result.rotationDegrees / 90,
+                        result.segmentation.width,
+                        result.segmentation.height
+                    )
+
                     val stableQuad = quadStabilizer.update(rawQuad)
                     _liveAnalysisState.value = LiveAnalysisState(
                         inferenceTime = result.inferenceTime,
-                        binaryMask = binaryMask,
+                        binaryMaskProvider = binaryMaskProvider,
+                        maskSize = result.segmentation.maskSize(),
                         documentQuad = rawQuad,
                         stableQuad = stableQuad,
                     )
@@ -146,7 +159,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
     private suspend fun processCapturedImage(
         source: Bitmap,
-        rotationDegrees: Int
+        rotationDegrees: Int,
     ): CapturedPage? = withContext(Dispatchers.IO) {
         var result: CapturedPage? = null
         val segmentation = imageSegmentationService.runSegmentationAndReturn(source, 0)
@@ -230,4 +243,10 @@ fun toBitmap(bgr: Mat): Bitmap {
 
     rgba.release()
     return bmp
+}
+
+fun rotateBitmap(source: Bitmap, angle: Float): Bitmap {
+    val matrix = Matrix()
+    matrix.postRotate(angle)
+    return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true)
 }
