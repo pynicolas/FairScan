@@ -34,7 +34,10 @@ interface Mask {
 
 fun detectDocumentQuad(mask: Mask, originalSize: ImageSize, isLiveAnalysis: Boolean): Quad? {
     val mat = mask.toMat()
-    var vertices = findQuadFromOrientationWithAdaptiveThreshold(mat, originalSize)
+    // Best thresholds on test dataset: {0.95=146, 0.85=39, 0.75=35, 0.90=8, 0.70=1, 0.35=1}
+    val thresholds =
+        if (isLiveAnalysis) listOf(0.9) else listOf(0.5, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
+    var vertices = findQuadFromOrientationWithAdaptiveThreshold(mat, originalSize, thresholds)
         ?.map { Point(it.x, it.y) }
     if (vertices == null && !isLiveAnalysis) {
         // Fallback: bounding rectangle
@@ -47,15 +50,15 @@ fun detectDocumentQuad(mask: Mask, originalSize: ImageSize, isLiveAnalysis: Bool
     return if (vertices?.size == 4) createQuad(vertices) else null
 }
 
-fun findQuadFromOrientationWithAdaptiveThreshold(maskMat: Mat, originalSize: ImageSize): List<org.opencv.core.Point>? {
+fun findQuadFromOrientationWithAdaptiveThreshold(
+    maskMat: Mat, originalSize: ImageSize, thresholds: List<Double>
+): List<org.opencv.core.Point>? {
     val probmapU8 = Mat()
     val probmap = maskMat
     probmap.convertTo(probmapU8, CvType.CV_8U, 255.0)
     val probmapSmooth = Mat()
     Imgproc.GaussianBlur(probmapU8, probmapSmooth, Size(3.0, 3.0), 0.0)
 
-    // Best thresholds on test dataset: {0.95=146, 0.85=39, 0.75=35, 0.90=8, 0.70=1, 0.35=1}
-    val thresholds = listOf(0.5, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
     var bestQuad: List<org.opencv.core.Point>? = null
     var bestScore = 0.0
     for (thr in thresholds) {
@@ -73,7 +76,11 @@ fun findQuadFromOrientationWithAdaptiveThreshold(maskMat: Mat, originalSize: Ima
                 bestQuad = quad
             }
         }
+        bin.release()
     }
+
+    probmapSmooth.release()
+    probmapU8.release()
     return bestQuad
 }
 
