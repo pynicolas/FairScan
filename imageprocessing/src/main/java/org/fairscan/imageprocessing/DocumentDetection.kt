@@ -67,7 +67,7 @@ fun findQuadFromOrientationWithAdaptiveThreshold(
         val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(5.0, 5.0))
         Imgproc.morphologyEx(bin, bin, Imgproc.MORPH_CLOSE, kernel)
         val quad = findQuadFromOrientation(bin, originalSize)
-        if (quad != null) {
+        if (quad != null && isValidQuad(quad, originalSize)) {
             val probFloat = Mat()
             probmap.convertTo(probFloat, CvType.CV_32F)
             val score = scoreQuadAgainstProbmap(quad, probFloat, minQuadAreaRatio = 0.02)
@@ -82,6 +82,13 @@ fun findQuadFromOrientationWithAdaptiveThreshold(
     probmapSmooth.release()
     probmapU8.release()
     return bestQuad
+}
+
+fun isValidQuad(quad: List<org.opencv.core.Point>, originalSize: ImageSize): Boolean {
+    return quad.all {
+          it.x >= 0 && it.x <= originalSize.width
+       && it.y >= 0 && it.y <= originalSize.height
+    }
 }
 
 fun findQuadFromOrientation(maskMat: Mat, originalSize: ImageSize): List<org.opencv.core.Point>? {
