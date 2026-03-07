@@ -103,3 +103,7 @@ fun Quad.scaledTo(fromWidth: Int, fromHeight: Int, toWidth: Int, toHeight: Int):
 fun Point.scaled(scaleX: Double, scaleY: Double): Point {
     return Point((x * scaleX), (y * scaleY))
 }
+
+data class ImageSize(val width: Double, val height: Double) {
+    constructor(width: Int, height: Int) : this (width.toDouble(), height.toDouble())
+}

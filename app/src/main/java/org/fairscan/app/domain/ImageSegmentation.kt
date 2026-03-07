@@ -29,6 +29,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.fairscan.app.data.Logger
+import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Mask
 import org.opencv.core.CvType
 import org.opencv.core.Mat
@@ -39,7 +40,6 @@ import org.tensorflow.lite.support.common.ops.NormalizeOp
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
-import org.tensorflow.lite.support.image.ops.Rot90Op
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -73,13 +73,11 @@ class ImageSegmentationService(private val context: Context, private val logger:
     private fun runSegmentation(interpreter: Interpreter, bitmap: Bitmap, rotationDegrees: Int): SegmentationResult {
         val startTime = SystemClock.uptimeMillis()
 
-        val rotation = -rotationDegrees / 90
         val (_, h, w, _) = interpreter.getOutputTensor(0).shape()
         val imageProcessor =
             ImageProcessor
                 .Builder()
                 .add(ResizeOp(h, w, ResizeOp.ResizeMethod.BILINEAR))
-                .add(Rot90Op(rotation))
                 .add(NormalizeOp(127.5f, 127.5f)) // TODO check if it's correct
                 .build()
         val tensorImage = TensorImage(DataType.FLOAT32)
@@ -88,7 +86,11 @@ class ImageSegmentationService(private val context: Context, private val logger:
         val segmentResult = segment(interpreter, processedImage)
 
         val inferenceTime = SystemClock.uptimeMillis() - startTime
-        return SegmentationResult(segmentResult, inferenceTime)
+        return SegmentationResult(
+            segmentResult,
+            ImageSize(bitmap.width, bitmap.height),
+            rotationDegrees,
+            inferenceTime)
     }
 
     suspend fun runSegmentationAndReturn(bitmap: Bitmap, rotationDegrees: Int): SegmentationResult? {
@@ -163,10 +165,14 @@ class ImageSegmentationService(private val context: Context, private val logger:
             mask.put(0, 0, data)
             return mask
         }
+
+        fun maskSize() = ImageSize(width, height)
     }
 
     data class SegmentationResult(
         val segmentation: Segmentation,
+        val originalSize: ImageSize,
+        val rotationDegrees: Int,
         val inferenceTime: Long
     )
 }

@@ -16,12 +16,14 @@ package org.fairscan.app.ui.screens.camera
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.Immutable
+import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Quad
 
 @Immutable
 data class LiveAnalysisState(
     val inferenceTime: Long = 0L,
-    val binaryMask: Bitmap? = null,
+    val maskSize: ImageSize? = null,
+    val binaryMaskProvider: () -> Bitmap? = { -> null },
     val documentQuad: Quad? = null,
     val stableQuad: Quad? = null,
 )

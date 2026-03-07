@@ -211,7 +211,7 @@ fun bindCameraUseCases(
 
 @Composable
 fun AnalysisOverlay(liveAnalysisState: LiveAnalysisState, debugMode: Boolean) {
-    val binaryMask = liveAnalysisState.binaryMask ?: return
+    val maskSize = liveAnalysisState.maskSize ?: return
     val targetQuad = liveAnalysisState.stableQuad
     var displayedQuad by remember { mutableStateOf<Quad?>(null) }
     val quadColor = MaterialTheme.colorScheme.primary
@@ -233,14 +233,15 @@ fun AnalysisOverlay(liveAnalysisState: LiveAnalysisState, debugMode: Boolean) {
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         if (debugMode) {
-            drawMask(this, binaryMask)
+            val binaryMask = liveAnalysisState.binaryMaskProvider.invoke()
+            binaryMask?.let { drawMask(this, it) }
         }
         displayedQuad?.let { quad ->
             val scaledQuad = quad.scaledTo(
-                fromWidth = binaryMask.width,
-                fromHeight = binaryMask.height,
-                toWidth = size.width.toInt(),
-                toHeight = size.height.toInt()
+                fromWidth = maskSize.width,
+                fromHeight = maskSize.height,
+                toWidth = size.width.toDouble(),
+                toHeight = size.height.toDouble()
             )
             scaledQuad.edges().forEach {
                 drawLine(quadColor, it.from.toOffset(), it.to.toOffset(), 10.0f)
