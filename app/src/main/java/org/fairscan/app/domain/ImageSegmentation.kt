@@ -61,7 +61,7 @@ class ImageSegmentationService(private val context: Context, private val logger:
         }
     }
 
-    private fun runSegmentation(interpreter: Interpreter, bitmap: Bitmap, rotationDegrees: Int): SegmentationResult {
+    private fun runSegmentation(interpreter: Interpreter, bitmap: Bitmap): SegmentationResult {
         val startTime = SystemClock.uptimeMillis()
 
         val (_, h, w, _) = interpreter.getOutputTensor(0).shape()
@@ -77,19 +77,15 @@ class ImageSegmentationService(private val context: Context, private val logger:
         val segmentResult = segment(interpreter, processedImage)
 
         val inferenceTime = SystemClock.uptimeMillis() - startTime
-        return SegmentationResult(
-            segmentResult,
-            ImageSize(bitmap.width, bitmap.height),
-            rotationDegrees,
-            inferenceTime)
+        return SegmentationResult(segmentResult, inferenceTime)
     }
 
-    suspend fun runSegmentationAndReturn(bitmap: Bitmap, rotationDegrees: Int): SegmentationResult? {
+    suspend fun runSegmentationAndReturn(bitmap: Bitmap): SegmentationResult? {
         if (interpreter == null) {
             return null
         }
         return inferenceLock.withLock {
-            runSegmentation(interpreter!!, bitmap, rotationDegrees)
+            runSegmentation(interpreter!!, bitmap)
         }
     }
 
@@ -149,8 +145,6 @@ class ImageSegmentationService(private val context: Context, private val logger:
 
     data class SegmentationResult(
         val segmentation: Segmentation,
-        val originalSize: ImageSize,
-        val rotationDegrees: Int,
         val inferenceTime: Long
     )
 }

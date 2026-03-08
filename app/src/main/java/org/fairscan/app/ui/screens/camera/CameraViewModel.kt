@@ -33,6 +33,7 @@ import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.Rotation
+import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
@@ -100,30 +101,23 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         }
 
         viewModelScope.launch {
+            val rotationDegrees = imageProxy.imageInfo.rotationDegrees
             val result = withContext(Dispatchers.IO) {
-                imageSegmentationService.runSegmentationAndReturn(
-                    imageProxy.toBitmap(),
-                    imageProxy.imageInfo.rotationDegrees,
-                )
+                imageSegmentationService.runSegmentationAndReturn(imageProxy.toBitmap())
             }
 
             result?.let {
+                val segmentation = result.segmentation
+                val maskSize = segmentation.maskSize()
+                val originalSize = ImageSize(imageProxy.width, imageProxy.height)
                 val rawQuad = withContext(Dispatchers.Default) {
-                     detectDocumentQuad(
-                        result.segmentation,
-                        result.originalSize,
-                        isLiveAnalysis = true
-                    )?.rotate90(
-                        result.rotationDegrees / 90,
-                        result.segmentation.width,
-                        result.segmentation.height
-                    )
+                    detectDocumentQuad(segmentation, originalSize, isLiveAnalysis = true)
+                        ?.rotate90(rotationDegrees / 90, maskSize)
                 }
                 val binaryMaskProvider = { ->
-                    var binaryMask: Bitmap = result.segmentation.toBinaryMask()
-                    if (result.rotationDegrees != 0) {
-                        binaryMask =
-                            rotateBitmap(binaryMask, result.rotationDegrees.toFloat())
+                    var binaryMask: Bitmap = segmentation.toBinaryMask()
+                    if (rotationDegrees != 0) {
+                        binaryMask = rotateBitmap(binaryMask, rotationDegrees.toFloat())
                     }
                     binaryMask
                 }
@@ -131,8 +125,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
                 _liveAnalysisState.value = LiveAnalysisState(
                     inferenceTime = result.inferenceTime,
                     binaryMaskProvider = binaryMaskProvider,
-                    maskSize = result.segmentation.maskSize(),
-                    documentQuad = rawQuad,
+                    maskSize = maskSize,
                     stableQuad = stableQuad,
                 )
             }
@@ -164,10 +157,11 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         rotationDegrees: Int,
     ): CapturedPage? = withContext(Dispatchers.IO) {
         var result: CapturedPage? = null
-        val segmentation = imageSegmentationService.runSegmentationAndReturn(source, 0)
+        val segmentation = imageSegmentationService.runSegmentationAndReturn(source)
         if (segmentation != null) {
             val mask = segmentation.segmentation
-            val quad = detectDocumentQuad(mask, segmentation.originalSize, isLiveAnalysis = false)
+            val originalSize = ImageSize(source.width, source.height)
+            val quad = detectDocumentQuad(mask, originalSize, isLiveAnalysis = false)
             if (quad != null) {
                 val resizedQuad = quad.scaledTo(mask.width, mask.height, source.width, source.height)
                 result = extractDocumentFromBitmap(source, resizedQuad, rotationDegrees, mask)

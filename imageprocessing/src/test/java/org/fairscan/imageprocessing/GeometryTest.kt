@@ -40,21 +40,21 @@ class GeometryTest {
     fun rotateQuad() {
         val quad = createQuad(listOf(
             Point(1,2), Point(10, 3), Point(11,12), Point(3, 9)))
-        assertThat(quad.rotate90(1, 100, 50)).isEqualTo(
+        assertThat(quad.rotate90(1, ImageSize(100, 50))).isEqualTo(
             createQuad(listOf(
                 Point(48,1), Point(47, 10), Point(38,11), Point(41, 3)
             )))
-        assertThat(quad.rotate90(2, 100, 50)).isEqualTo(
+        assertThat(quad.rotate90(2, ImageSize(100, 50))).isEqualTo(
             createQuad(listOf(
                 Point(99,48), Point(90, 47), Point(89,38), Point(97, 41)
             )))
-        assertThat(quad.rotate90(3, 100, 50)).isEqualTo(
+        assertThat(quad.rotate90(3, ImageSize(100, 50))).isEqualTo(
             createQuad(listOf(
                 Point(2,99), Point(3, 90), Point(12,89), Point(9, 97)
             )))
-        assertThat(quad.rotate90(4, 100, 50)).isEqualTo(quad)
-        assertThat(quad.rotate90(5, 100, 50)).isEqualTo(
-            quad.rotate90(1, 100, 50)
+        assertThat(quad.rotate90(4, ImageSize(100, 50))).isEqualTo(quad)
+        assertThat(quad.rotate90(5, ImageSize(100, 50)))
+            .isEqualTo(quad.rotate90(1, ImageSize(100, 50))
         )
     }
 }

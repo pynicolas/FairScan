@@ -24,7 +24,6 @@ data class LiveAnalysisState(
     val inferenceTime: Long = 0L,
     val maskSize: ImageSize? = null,
     val binaryMaskProvider: () -> Bitmap? = { -> null },
-    val documentQuad: Quad? = null,
     val stableQuad: Quad? = null,
 )
 

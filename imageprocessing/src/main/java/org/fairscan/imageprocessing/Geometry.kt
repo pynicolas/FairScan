@@ -47,16 +47,18 @@ data class Quad(
             Line(bottomLeft, topLeft))
     }
 
-    fun rotate90(iterations: Int, imageWidth: Int, imageHeight: Int): Quad {
+    fun rotate90(iterations: Int, imageSize: ImageSize): Quad {
         val rotatedPoints = listOf(
-            rotate90(topLeft, imageWidth, imageHeight, iterations),
-            rotate90(topRight, imageWidth, imageHeight, iterations),
-            rotate90(bottomRight, imageWidth, imageHeight, iterations),
-            rotate90(bottomLeft, imageWidth, imageHeight, iterations)
+            rotate90(topLeft, imageSize, iterations),
+            rotate90(topRight, imageSize, iterations),
+            rotate90(bottomRight, imageSize, iterations),
+            rotate90(bottomLeft, imageSize, iterations)
         )
         return createQuad(rotatedPoints)
     }
-    private fun rotate90(p: Point, width: Int, height: Int, iterations: Int): Point {
+    private fun rotate90(p: Point, imageSize: ImageSize, iterations: Int): Point {
+        val width = imageSize.width
+        val height = imageSize.height
         return when (iterations % 4) {
             1 -> Point(height - p.y, p.x)         // 90°
             2 -> Point(width - p.x, height - p.y) // 180°
