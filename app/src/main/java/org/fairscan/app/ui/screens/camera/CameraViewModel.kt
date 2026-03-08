@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
@@ -70,36 +69,6 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     init {
         viewModelScope.launch {
             imageSegmentationService.initialize()
-            imageSegmentationService.segmentation
-                .filterNotNull()
-                .collect { result ->
-                    val binaryMaskProvider = { ->
-                        var binaryMask: Bitmap = result.segmentation.toBinaryMask()
-                        if (result.rotationDegrees != 0) {
-                            binaryMask = rotateBitmap(binaryMask, result.rotationDegrees.toFloat())
-                        }
-                        binaryMask
-                    }
-
-                    val rawQuad = detectDocumentQuad(
-                        result.segmentation,
-                        result.originalSize,
-                        isLiveAnalysis = true
-                    )?.rotate90(
-                        result.rotationDegrees / 90,
-                        result.segmentation.width,
-                        result.segmentation.height
-                    )
-
-                    val stableQuad = quadStabilizer.update(rawQuad)
-                    _liveAnalysisState.value = LiveAnalysisState(
-                        inferenceTime = result.inferenceTime,
-                        binaryMaskProvider = binaryMaskProvider,
-                        maskSize = result.segmentation.maskSize(),
-                        documentQuad = rawQuad,
-                        stableQuad = stableQuad,
-                    )
-                }
         }
     }
 
@@ -131,10 +100,43 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         }
 
         viewModelScope.launch {
-            imageSegmentationService.runSegmentationAndEmit(
-                imageProxy.toBitmap(),
-                imageProxy.imageInfo.rotationDegrees,
-            )
+            val result = withContext(Dispatchers.IO) {
+                imageSegmentationService.runSegmentationAndReturn(
+                    imageProxy.toBitmap(),
+                    imageProxy.imageInfo.rotationDegrees,
+                )
+            }
+
+            result?.let {
+                val rawQuad = withContext(Dispatchers.Default) {
+                     detectDocumentQuad(
+                        result.segmentation,
+                        result.originalSize,
+                        isLiveAnalysis = true
+                    )?.rotate90(
+                        result.rotationDegrees / 90,
+                        result.segmentation.width,
+                        result.segmentation.height
+                    )
+                }
+                val binaryMaskProvider = { ->
+                    var binaryMask: Bitmap = result.segmentation.toBinaryMask()
+                    if (result.rotationDegrees != 0) {
+                        binaryMask =
+                            rotateBitmap(binaryMask, result.rotationDegrees.toFloat())
+                    }
+                    binaryMask
+                }
+                val stableQuad = quadStabilizer.update(rawQuad)
+                _liveAnalysisState.value = LiveAnalysisState(
+                    inferenceTime = result.inferenceTime,
+                    binaryMaskProvider = binaryMaskProvider,
+                    maskSize = result.segmentation.maskSize(),
+                    documentQuad = rawQuad,
+                    stableQuad = stableQuad,
+                )
+            }
+
             imageProxy.close()
         }
     }

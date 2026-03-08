@@ -20,14 +20,8 @@ import android.graphics.Bitmap.createBitmap
 import android.graphics.Color
 import android.os.SystemClock
 import android.util.Log
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.fairscan.app.data.Logger
 import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Mask
@@ -48,9 +42,6 @@ class ImageSegmentationService(private val context: Context, private val logger:
     companion object {
         private const val TAG = "ImageSegmentation"
     }
-
-    private val _segmentation = MutableStateFlow<SegmentationResult?>(null)
-    val segmentation: StateFlow<SegmentationResult?> = _segmentation.asStateFlow()
 
     private var interpreter: Interpreter? = null
     private val inferenceLock = Mutex()
@@ -99,19 +90,6 @@ class ImageSegmentationService(private val context: Context, private val logger:
         }
         return inferenceLock.withLock {
             runSegmentation(interpreter!!, bitmap, rotationDegrees)
-        }
-    }
-
-    suspend fun runSegmentationAndEmit(bitmap: Bitmap, rotationDegrees: Int) {
-        try {
-            withContext(Dispatchers.IO) {
-                val segmentationResult = runSegmentationAndReturn(bitmap, rotationDegrees)
-                if (isActive) {
-                    _segmentation.value = segmentationResult
-                }
-            }
-        } catch (e: Exception) {
-            logger.e(TAG, "Error occurred in image segmentation", e)
         }
     }
 
