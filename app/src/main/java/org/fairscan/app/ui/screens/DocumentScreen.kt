@@ -31,9 +31,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.RotateLeft
-import androidx.compose.material.icons.automirrored.filled.RotateRight
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.RotateLeft
+import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ButtonDefaults
@@ -203,14 +203,17 @@ fun RotationButtons(
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier.padding(4.dp)) {
+        // Using AutoMirrored icons would lead to an opposite rotation in RTL languages
+        @Suppress("DEPRECATION")
         SecondaryActionButton(
-            icon = Icons.AutoMirrored.Default.RotateLeft,
+            icon = Icons.Default.RotateLeft,
             contentDescription = "Rotate left",
             onClick = { onRotateImage(imageId, false) }
         )
         Spacer(Modifier.width(8.dp))
+        @Suppress("DEPRECATION")
         SecondaryActionButton(
-            icon = Icons.AutoMirrored.Default.RotateRight,
+            icon = Icons.Default.RotateRight,
             contentDescription = "Rotate right",
             onClick = { onRotateImage(imageId, true) }
         )
