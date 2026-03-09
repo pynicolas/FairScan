@@ -24,6 +24,7 @@ class QuadStabilizer {
     private var lastRawQuad: Quad? = null
 
     fun update(rawQuad: Quad?): Quad? {
+        val previousQuad = lastRawQuad
         lastRawQuad = rawQuad
 
         if (rawQuad == null) {
@@ -31,13 +32,12 @@ class QuadStabilizer {
             return null
         }
 
-        val lastRaw = lastRawQuad
-        if (lastRaw == null) {
+        if (previousQuad == null) {
             stableCount = 1
             return null
         }
 
-        val dist = lastRaw.maxCornerDistanceTo(rawQuad)
+        val dist = previousQuad.maxCornerDistanceTo(rawQuad)
         // 20f is based on the assumption that the preview has a size of 640×480
         if (dist < 20f) {
             stableCount++
