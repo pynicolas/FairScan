@@ -48,8 +48,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.fairscan.app.THUMBNAIL_SIZE_DP
@@ -116,10 +118,12 @@ fun CommonPageList(
         )
     }
     if (state.document.isEmpty()) {
+        val layoutDirection = LocalLayoutDirection.current
         Box(
             modifier = Modifier
                 .height(THUMBNAIL_SIZE_DP.dp)
-                .addPositionCallback(state.onLastItemPosition, LocalDensity.current, 0.5f)
+                .addPositionCallback(
+                    state.onLastItemPosition, LocalDensity.current, 0.5f, layoutDirection)
         ) {}
     }
 }
@@ -143,7 +147,9 @@ private fun PageThumbnail(
             Modifier.width(maxImageSize)
     if (index == state.document.lastIndex()) {
         val density = LocalDensity.current
-        imageModifier = imageModifier.addPositionCallback(state.onLastItemPosition, density, 1.0f)
+        val layoutDirection = LocalLayoutDirection.current
+        imageModifier = imageModifier.addPositionCallback(
+            state.onLastItemPosition, density, 1.0f, layoutDirection)
     }
     Box(modifier = modifier.height(PAGE_LIST_ELEMENT_SIZE_DP.dp)) {
         Card(
@@ -182,16 +188,28 @@ private fun BoxScope.PageNumberBadge(index: Int) {
     }
 }
 
-fun Modifier.addPositionCallback(callback: ((Offset) -> Unit)?, density: Density, xFactor: Float): Modifier {
+fun Modifier.addPositionCallback(
+    callback: ((Offset) -> Unit)?,
+    density: Density,
+    xFactor: Float,
+    layoutDirection: LayoutDirection
+): Modifier {
     if (callback == null) {
         return this
     }
+
     return this.onGloballyPositioned { coordinates ->
         with(density) {
-            callback(coordinates.localToWindow(
-                Offset(
-                    x = PAGE_LIST_ELEMENT_SIZE_DP.dp.toPx() * xFactor,
-                    y = PAGE_LIST_ELEMENT_SIZE_DP.dp.toPx() / 2)))
+            val width = PAGE_LIST_ELEMENT_SIZE_DP.dp.toPx()
+
+            val x = when (layoutDirection) {
+                LayoutDirection.Ltr -> width * xFactor
+                LayoutDirection.Rtl -> width * (0.5f - xFactor)
+            }
+
+            callback(
+                coordinates.localToWindow(Offset(x = x, y = width / 2))
+            )
         }
     }
 }
