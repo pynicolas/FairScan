@@ -49,6 +49,8 @@
     <string name="open_file">打开文件</string>
     <string name="reset_to_default">恢复默认设置</string>
     <string name="resume">恢复</string>
+    <string name="rotate_left">向左旋转</string>
+    <string name="rotate_right">向右旋转</string>
     <string name="save">保存</string>
     <string name="scan_button">新建扫描</string>
     <string name="scan_in_progress">正在进行扫描</string>

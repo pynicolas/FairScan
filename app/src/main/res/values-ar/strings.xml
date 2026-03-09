@@ -49,6 +49,8 @@
     <string name="open_file">افتح الملف</string>
     <string name="reset_to_default">صفّر للإعدادات المبدئية</string>
     <string name="resume">استكمل</string>
+    <string name="rotate_left">تدوير إلى اليسار</string>
+    <string name="rotate_right">تدوير إلى اليمين</string>
     <string name="save">احفظ</string>
     <string name="scan_button">مسح جديد</string>
     <string name="scan_in_progress">المسح قيد التقدم</string>

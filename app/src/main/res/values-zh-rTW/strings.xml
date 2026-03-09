@@ -49,6 +49,8 @@
     <string name="open_file">開啟檔案</string>
     <string name="reset_to_default">重設為預設值</string>
     <string name="resume">繼續</string>
+    <string name="rotate_left">向左旋轉</string>
+    <string name="rotate_right">向右旋轉</string>
     <string name="save">儲存</string>
     <string name="scan_button">開始掃描</string>
     <string name="scan_in_progress">掃描進行中</string>

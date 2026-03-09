@@ -49,6 +49,8 @@
     <string name="open_file">Dosyayı aç</string>
     <string name="reset_to_default">Varsayılana sıfırla</string>
     <string name="resume">Devam et</string>
+    <string name="rotate_left">Sola döndür</string>
+    <string name="rotate_right">Sağa döndür</string>
     <string name="save">Kaydet</string>
     <string name="scan_button">Yeni Tarama</string>
     <string name="scan_in_progress">Tarama devam ediyor</string>

@@ -53,6 +53,8 @@
     <string name="open_file">Open file</string>
     <string name="reset_to_default">Reset to default</string>
     <string name="resume">Resume</string>
+    <string name="rotate_left">Rotate left</string>
+    <string name="rotate_right">Rotate right</string>
     <string name="save">Save</string>
     <string name="scan_button">New Scan</string>
     <string name="scan_in_progress">Scan in progress</string>

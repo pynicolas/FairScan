@@ -49,6 +49,8 @@
     <string name="open_file">Otevřít soubor</string>
     <string name="reset_to_default">Obnovit výchozí</string>
     <string name="resume">Obnovit</string>
+    <string name="rotate_left">Otočit doleva</string>
+    <string name="rotate_right">Otočit doprava</string>
     <string name="save">Uložit</string>
     <string name="scan_button">Nové skenování</string>
     <string name="scan_in_progress">Probíhá skenování</string>

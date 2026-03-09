@@ -49,6 +49,8 @@
     <string name="open_file">Datei öffnen</string>
     <string name="reset_to_default">Auf Standard zurücksetzen</string>
     <string name="resume">Fortsetzen</string>
+    <string name="rotate_left">Nach links drehen</string>
+    <string name="rotate_right">Nach rechts drehen</string>
     <string name="save">Speichern</string>
     <string name="scan_button">Neuer Scan</string>
     <string name="scan_in_progress">Scan läuft</string>

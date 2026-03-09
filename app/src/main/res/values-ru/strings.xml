@@ -49,6 +49,8 @@
     <string name="open_file">Открыть файл</string>
     <string name="reset_to_default">Сбросить по умолчанию</string>
     <string name="resume">Продолжить</string>
+    <string name="rotate_left">Повернуть влево</string>
+    <string name="rotate_right">Повернуть вправо</string>
     <string name="save">Сохранить</string>
     <string name="scan_button">Начать</string>
     <string name="scan_in_progress">Сканирование выполняется</string>

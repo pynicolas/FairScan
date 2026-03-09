@@ -49,6 +49,8 @@
     <string name="open_file">Abrir arquivo</string>
     <string name="reset_to_default">Restaurar padrão</string>
     <string name="resume">Retomar</string>
+    <string name="rotate_left">Girar para a esquerda</string>
+    <string name="rotate_right">Girar para a direita</string>
     <string name="save">Salvar</string>
     <string name="scan_button">Nova digitalização</string>
     <string name="scan_in_progress">Digitalização em andamento</string>

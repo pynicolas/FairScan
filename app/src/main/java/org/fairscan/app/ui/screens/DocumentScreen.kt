@@ -207,14 +207,14 @@ fun RotationButtons(
         @Suppress("DEPRECATION")
         SecondaryActionButton(
             icon = Icons.Default.RotateLeft,
-            contentDescription = "Rotate left",
+            contentDescription = stringResource(R.string.rotate_left),
             onClick = { onRotateImage(imageId, false) }
         )
         Spacer(Modifier.width(8.dp))
         @Suppress("DEPRECATION")
         SecondaryActionButton(
             icon = Icons.Default.RotateRight,
-            contentDescription = "Rotate right",
+            contentDescription = stringResource(R.string.rotate_right),
             onClick = { onRotateImage(imageId, true) }
         )
     }
