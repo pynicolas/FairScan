@@ -1,0 +1,2 @@
+- Improved automatic document edge detection
+- New translations: Arabic and Galician
