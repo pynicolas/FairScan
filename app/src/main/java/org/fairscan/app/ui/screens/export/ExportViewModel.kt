@@ -61,6 +61,7 @@ import kotlin.coroutines.suspendCoroutine
 
 sealed interface ExportEvent {
     data object RequestSave : ExportEvent
+    data class Share(val result: ExportResult) : ExportEvent
 }
 
 class ExportViewModel(container: AppContainer, val imageRepository: ImageRepository): ViewModel() {
@@ -160,7 +161,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                     val message = "Failed to prepare $exportFormat export"
                     logger.e("FairScan", message, e)
                     _uiState.update {
-                        it.copy(error = ExportError.OnPrepare(message, e))
+                        it.copy(error = ExportError.OnPrepareOrShare(message, e))
                     }
                 } finally {
                     _uiState.update { it.copy(isGenerating = false) }
@@ -184,29 +185,27 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         ExportResult.Jpeg(files, sizeInBytes)
     }
 
-    fun setAsShared() {
-        _uiState.update { it.copy(hasShared = true) }
+    private fun renameFile(source: File, target: File) {
+        if (source.absolutePath == target.absolutePath) return
+        if (target.exists() && !target.delete()) {
+            throw IOException("Cannot delete existing file ${target.absolutePath}")
+        }
+        if (!source.renameTo(target)) {
+            throw IOException("Failed to rename ${source.name} to ${target.name}")
+        }
     }
 
-    fun applyRenaming(): ExportResult? {
-        val result = _uiState.value.result ?: return null
+    private fun applyRenaming(): ExportResult {
+        val result = _uiState.value.result
+            ?: throw IllegalStateException("Export result missing")
         ensureValidFilename()
         val filename = _uiState.value.filename
-        when (result) {
+        val updated = when (result) {
             is ExportResult.Pdf -> {
                 val fileName = FileManager.addPdfExtensionIfMissing(filename)
                 val newFile = File(result.file.parentFile, fileName)
-                val tempFile = result.file
-                if (tempFile.absolutePath != newFile.absolutePath) {
-                    if (newFile.exists()) newFile.delete()
-                    val success = tempFile.renameTo(newFile)
-                    if (!success) return null
-                    _uiState.update {
-                        it.copy(result = ExportResult.Pdf(
-                            newFile, result.sizeInBytes, result.pageCount)
-                        )
-                    }
-                }
+                renameFile(result.file, newFile)
+                ExportResult.Pdf(newFile, result.sizeInBytes, result.pageCount)
             }
             is ExportResult.Jpeg -> {
                 val base = filename.removeSuffix(".jpg")
@@ -214,17 +213,28 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                 val renamedFiles = files.mapIndexed { index, file ->
                     val indexSuffix = if (files.size == 1) "" else "_${index + 1}"
                     val newFile = File(file.parentFile, "${base}${indexSuffix}.jpg")
-                    if (file.absolutePath != newFile.absolutePath) {
-                        if (newFile.exists()) newFile.delete()
-                        file.renameTo(newFile)
-                    }
+                    renameFile(file, newFile)
                     newFile
                 }
-                val updated = result.copy(jpegFiles = renamedFiles)
-                _uiState.update { it.copy(result = updated) }
+                result.copy(jpegFiles = renamedFiles)
             }
         }
-        return _uiState.value.result
+        _uiState.update { it.copy(result = updated) }
+        return updated
+    }
+
+    fun onShareClicked() {
+        viewModelScope.launch {
+            try {
+                val result = applyRenaming()
+                _events.emit(ExportEvent.Share(result))
+                _uiState.update { it.copy(hasShared = true) }
+            } catch (e: Exception) {
+                val message = "Failed to prepare share"
+                logger.e("FairScan", message, e)
+                _uiState.update { it.copy(error = ExportError.OnPrepareOrShare(message, e)) }
+            }
+        }
     }
 
     fun onSaveClicked() {

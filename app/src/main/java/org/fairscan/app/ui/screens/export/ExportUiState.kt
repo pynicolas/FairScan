@@ -48,7 +48,7 @@ data class SaveDir(
 
 sealed class ExportError {
 
-    data class OnPrepare(
+    data class OnPrepareOrShare(
         val message: String,
         val throwable: Throwable,
     ) : ExportError()

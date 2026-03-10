@@ -187,7 +187,7 @@ class MainActivity : ComponentActivity() {
                             pdfActions = ExportActions(
                                 prepareExportIfNeeded = exportViewModel::prepareExportIfNeeded,
                                 setFilename = exportViewModel::setFilename,
-                                share = { share(exportViewModel.applyRenaming(), exportViewModel) },
+                                share = { exportViewModel.onShareClicked() },
                                 save = { exportViewModel.onSaveClicked() },
                                 open = { item -> openUri(item.uri, item.format.mimeType) },
                             ),
@@ -324,6 +324,9 @@ class MainActivity : ComponentActivity() {
                             exportViewModel.onRequestSave(context)
                         }
                     }
+                    is ExportEvent.Share -> {
+                        share(event.result)
+                    }
                 }
             }
         }
@@ -343,10 +346,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun share(result: ExportResult?, viewModel: ExportViewModel) {
-        if (result == null || result.files.isEmpty()) return
-
-        viewModel.setAsShared()
+    private fun share(result: ExportResult) {
+        if (result.files.isEmpty()) return
 
         val uris = result.files.map(::uriForFile)
         val intent = Intent().apply {

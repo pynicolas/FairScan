@@ -584,7 +584,7 @@ private fun ErrorBar(error: ExportError) {
 @Composable
 private fun ExportError.toDisplayText(): Pair<String, String?> {
     return when (this) {
-        is ExportError.OnPrepare -> {
+        is ExportError.OnPrepareOrShare -> {
             val summary = message
             val details = throwable.message
             summary to details
@@ -684,7 +684,7 @@ fun PreviewExportScreenAfterSave() {
 fun ExportScreenPreviewWithError() {
     ExportPreviewToCustomize(
         ExportUiState(error =
-            ExportError.OnPrepare("PDF generation failed", IOException("Boom")))
+            ExportError.OnPrepareOrShare("PDF generation failed", IOException("Boom")))
     )
 }
 
