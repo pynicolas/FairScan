@@ -415,9 +415,13 @@ class MainActivity : ComponentActivity() {
         val openIntent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uriToOpen, mimeType)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            clipData = ClipData.newRawUri(null, uriToOpen)
+        }
+        val chooser = Intent.createChooser(openIntent, getString(R.string.open_file)).apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         try {
-            startActivity(Intent.createChooser(openIntent, getString(R.string.open_file)))
+            startActivity(chooser)
         } catch (_: ActivityNotFoundException) {
             Toast.makeText(this, getString(R.string.error_no_app), Toast.LENGTH_SHORT).show()
         }
