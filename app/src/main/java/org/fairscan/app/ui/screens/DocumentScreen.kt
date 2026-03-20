@@ -43,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.mutableIntStateOf
@@ -55,9 +56,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.toImmutableList
 import net.engawapg.lib.zoomable.ZoomState
@@ -202,21 +205,24 @@ fun RotationButtons(
     onRotateImage: (String, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(modifier = modifier.padding(4.dp)) {
-        // Using AutoMirrored icons would lead to an opposite rotation in RTL languages
-        @Suppress("DEPRECATION")
-        SecondaryActionButton(
-            icon = Icons.Default.RotateLeft,
-            contentDescription = stringResource(R.string.rotate_left),
-            onClick = { onRotateImage(imageId, false) }
-        )
-        Spacer(Modifier.width(8.dp))
-        @Suppress("DEPRECATION")
-        SecondaryActionButton(
-            icon = Icons.Default.RotateRight,
-            contentDescription = stringResource(R.string.rotate_right),
-            onClick = { onRotateImage(imageId, true) }
-        )
+    // RotateLeft on the left, RotateRight on the right: for both LTR and RTL languages
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Row(modifier = modifier.padding(4.dp)) {
+            // Using AutoMirrored icons would lead to an opposite rotation in RTL languages
+            @Suppress("DEPRECATION")
+            SecondaryActionButton(
+                icon = Icons.Default.RotateLeft,
+                contentDescription = stringResource(R.string.rotate_left),
+                onClick = { onRotateImage(imageId, false) }
+            )
+            Spacer(Modifier.width(8.dp))
+            @Suppress("DEPRECATION")
+            SecondaryActionButton(
+                icon = Icons.Default.RotateRight,
+                contentDescription = stringResource(R.string.rotate_right),
+                onClick = { onRotateImage(imageId, true) }
+            )
+        }
     }
 }
 
@@ -255,6 +261,7 @@ private fun BottomBar(
 
 @Composable
 @Preview
+@Preview(locale = "ar")
 @Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Preview(name = "Landscape", showBackground = true, widthDp = 640, heightDp = 320)
 fun DocumentScreenPreview() {
