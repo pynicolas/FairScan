@@ -29,11 +29,7 @@ fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
     return if (isColored) {
         multiScaleRetinexOnL(img)
     } else {
-        val gray = multiScaleRetinex(img)
-        val contrastedGray = enhanceContrastAuto(gray)
-        val result = Mat()
-        Imgproc.cvtColor(contrastedGray, result, Imgproc.COLOR_GRAY2BGR)
-        result
+        enhanceGrayscaleImage(img)
     }
 }
 
@@ -199,31 +195,29 @@ fun percentileL(l: Mat, p: Double): Double {
     return 255.0
 }
 
-private fun multiScaleRetinex(img: Mat): Mat {
-    val imageSize = img.size()
-    val maxDim = max(imageSize.width, imageSize.height)
-    val kernelSizes: List<Double> = listOf(maxDim / 50, maxDim / 3)
+fun enhanceGrayscaleImage(img: Mat): Mat {
 
-    // Convert to grayscale (1 channel)
+    // -- 1. Convert to grayscale --------
     val gray = Mat()
-    if (img.channels() == 4) {
-        Imgproc.cvtColor(img, gray, Imgproc.COLOR_BGRA2GRAY)
-    } else if (img.channels() == 3) {
-        Imgproc.cvtColor(img, gray, Imgproc.COLOR_BGR2GRAY)
-    } else {
-        img.copyTo(gray)
+    when (img.channels()) {
+        4    -> Imgproc.cvtColor(img, gray, Imgproc.COLOR_BGRA2GRAY)
+        3    -> Imgproc.cvtColor(img, gray, Imgproc.COLOR_BGR2GRAY)
+        else -> img.copyTo(gray)
     }
+
+    // -- 2. Multi-scale Retinex ---------
+    val maxDim = max(gray.cols(), gray.rows()).toDouble()
 
     val imgFloat = Mat()
     gray.convertTo(imgFloat, CvType.CV_32F)
-    Core.add(imgFloat, Scalar(1.0), imgFloat) // img + 1
-
-    val weight = 1.0 / kernelSizes.size
-    val retinex = Mat.zeros(gray.size(), CvType.CV_32F)
+    Core.add(imgFloat, Scalar(1.0), imgFloat)
 
     val logImg = Mat()
     Core.log(imgFloat, logImg)
 
+    val kernelSizes = listOf(maxDim / 6, maxDim / 50)
+    val weight = 1.0 / kernelSizes.size
+    val retinex = Mat.zeros(gray.size(), CvType.CV_32F)
     val blur = Mat()
     val logBlur = Mat()
     val diff = Mat()
@@ -232,7 +226,6 @@ private fun multiScaleRetinex(img: Mat): Mat {
         Imgproc.boxFilter(imgFloat, blur, -1, Size(kernelSize, kernelSize))
         Core.add(blur, Scalar(1.0), blur)
         Core.log(blur, logBlur)
-
         Core.subtract(logImg, logBlur, diff)
         val diffGray = Mat()
         if (diff.channels() > 1) {
@@ -244,65 +237,93 @@ private fun multiScaleRetinex(img: Mat): Mat {
         diffGray.release()
     }
 
-    // Normalize
-    val minMax = Core.minMaxLoc(retinex)
+    // -- 3. exp() + p1/p99 normalization ---------
+    // exp() compensates for the compression of bright tones caused by
+    // the Retinex log-space computation, making annotations and light
+    // gray areas more visible.
+    val retinexExp = Mat()
+    Core.exp(retinex, retinexExp)
+
+    val flat = Mat()
+    retinexExp.reshape(1, 1).copyTo(flat)
+    val sorted = Mat()
+    Core.sort(flat, sorted, Core.SORT_ASCENDING)
+    val n = sorted.cols()
+    val pLow  = sorted.get(0, (n * 0.01).toInt())[0]
+    val pHigh = sorted.get(0, (n * 0.99).toInt())[0]
+    flat.release(); sorted.release()
+
     val normalized = Mat()
-    Core.subtract(retinex, Scalar(minMax.minVal), normalized)
-    val scale = if (minMax.maxVal > minMax.minVal) 255.0 / (minMax.maxVal - minMax.minVal) else 1.0
+    Core.subtract(retinexExp, Scalar(pLow), normalized)
+    val scale = if (pHigh > pLow) 255.0 / (pHigh - pLow) else 1.0
     Core.multiply(normalized, Scalar(scale), normalized)
+    Core.min(normalized, Scalar(255.0), normalized)
+    Core.max(normalized, Scalar(0.0), normalized)
+    retinexExp.release()
 
-    val result = Mat()
-    normalized.convertTo(result, CvType.CV_8U)
-
-    // Cleanup
-    gray.release()
-    imgFloat.release()
-    retinex.release()
-    logImg.release()
-    blur.release()
-    logBlur.release()
-    diff.release()
+    val result8u = Mat()
+    normalized.convertTo(result8u, CvType.CV_8U)
     normalized.release()
 
-    return result
-}
+    // -- 4. Stretch toward white --------
+    // Find the histogram mode in [180..255] as an estimate of the background level,
+    // then stretch so that level maps to 255.
+    // If modeVal >= 254, Retinex has over-amplified the image (typically happens
+    // when the document contains large dark areas). In that case, fall back to
+    // a simple normalization of the original grayscale image.
+    val hist = Mat()
+    Imgproc.calcHist(listOf(result8u), MatOfInt(0), Mat(), hist,
+        MatOfInt(256), MatOfFloat(0f, 256f))
 
-private fun enhanceContrastAuto(img: Mat): Mat {
-    val gray = if (img.channels() == 1) img else {
-        val tmp = Mat()
-        Imgproc.cvtColor(img, tmp, Imgproc.COLOR_BGR2GRAY)
-        tmp
+    var modeVal = 220; var modeCount = 0.0
+    for (i in 180 until 256) {
+        val c = hist.get(i, 0)[0]
+        if (c > modeCount) { modeCount = c; modeVal = i }
+    }
+    hist.release()
+
+    val stretched8u = Mat()
+
+    if (modeVal >= 254) {
+        val grayF = Mat()
+        gray.convertTo(grayF, CvType.CV_32F)
+        val grayFlat = Mat()
+        grayF.reshape(1, 1).copyTo(grayFlat)
+        val graySorted = Mat()
+        Core.sort(grayFlat, graySorted, Core.SORT_ASCENDING)
+        val gN = graySorted.cols()
+        val gLow  = graySorted.get(0, (gN * 0.01).toInt())[0]
+        val gHigh = graySorted.get(0, (gN * 0.99).toInt())[0]
+        grayFlat.release(); graySorted.release()
+        Core.subtract(grayF, Scalar(gLow), grayF)
+        Core.multiply(grayF, Scalar(255.0 / (gHigh - gLow + 1e-6)), grayF)
+        Core.min(grayF, Scalar(255.0), grayF)
+        Core.max(grayF, Scalar(0.0), grayF)
+        grayF.convertTo(stretched8u, CvType.CV_8U)
+        grayF.release()
+    } else {
+        val stretchedF = Mat()
+        result8u.convertTo(stretchedF, CvType.CV_32F)
+        Core.multiply(stretchedF, Scalar(255.0 / modeVal), stretchedF)
+        Core.min(stretchedF, Scalar(255.0), stretchedF)
+        stretchedF.convertTo(stretched8u, CvType.CV_8U)
+        stretchedF.release()
     }
 
-    // Flatten and sort pixel values
-    val flat = Mat()
-    gray.reshape(1, 1).convertTo(flat, CvType.CV_32F)
-    val sortedVals = Mat()
-    Core.sort(flat, sortedVals, Core.SORT_ASCENDING)
+    // -- 5. Bilateral denoising ---------
+    // Smooths background texture and fine grain amplified by exp() and stretch,
+    // while preserving sharp edges (text, lines, annotations).
+    val denoised = Mat()
+    Imgproc.bilateralFilter(stretched8u, denoised, 9, 20.0, 10.0)
 
-    val totalPixels = sortedVals.cols()
-    val pLow = sortedVals.get(0, (totalPixels * 0.005).toInt())[0]
-    val pHigh = sortedVals.get(0, (totalPixels * 0.80).toInt())[0]
+    val finalBgr = Mat()
+    Imgproc.cvtColor(denoised, finalBgr, Imgproc.COLOR_GRAY2BGR)
 
-    flat.release()
-    sortedVals.release()
+    // -- Cleanup -----------
+    gray.release(); imgFloat.release(); logImg.release()
+    blur.release(); logBlur.release(); diff.release()
+    retinex.release(); result8u.release()
+    stretched8u.release(); denoised.release()
 
-    val imgF = Mat()
-    img.convertTo(imgF, CvType.CV_32F)
-    val adjusted = Mat()
-    Core.subtract(imgF, Scalar(pLow), adjusted)
-    Core.multiply(adjusted, Scalar(255.0 / max((pHigh - pLow), 1.0)), adjusted)
-    Core.min(adjusted, Scalar(255.0), adjusted)
-    Core.max(adjusted, Scalar(0.0), adjusted)
-
-    val result = Mat()
-    adjusted.convertTo(result, CvType.CV_8U)
-    imgF.release()
-    adjusted.release()
-
-    val final = Mat()
-    Core.convertScaleAbs(result, final, 1.15, -25.0)
-    result.release()
-
-    return final
+    return finalBgr
 }
