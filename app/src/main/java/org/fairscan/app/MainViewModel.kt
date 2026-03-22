@@ -33,7 +33,10 @@ import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
-import java.io.ByteArrayOutputStream
+import org.fairscan.imageprocessing.encodeJpeg
+import org.opencv.android.Utils
+import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
 
 class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
 
@@ -115,8 +118,15 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
     }
 
     private fun compressJpeg(bitmap: Bitmap, quality: Int): ByteArray {
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-        return outputStream.toByteArray()
+        val rgba = Mat()
+        Utils.bitmapToMat(bitmap, rgba)
+        val bgr = Mat()
+        Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR)
+        rgba.release()
+        return try {
+            encodeJpeg(bgr, quality)
+        } finally {
+            bgr.release()
+        }
     }
 }
