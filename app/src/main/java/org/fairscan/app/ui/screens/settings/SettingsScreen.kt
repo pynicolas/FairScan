@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -58,6 +59,7 @@ fun SettingsScreen(
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
     onExportQualityChanged: (ExportQuality) -> Unit,
+    onImageEditingEnabledChanged: (Boolean) -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler { onBack() }
@@ -75,6 +77,7 @@ fun SettingsScreen(
             onResetExportDirClick,
             onExportFormatChanged,
             onExportQualityChanged,
+            onImageEditingEnabledChanged,
             modifier = Modifier.padding(paddingValues))
     }
 }
@@ -86,6 +89,7 @@ private fun SettingsContent(
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
     onExportQualityChanged: (ExportQuality) -> Unit,
+    onImageEditingEnabledChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val (folderLabel, folderLabelColor) = when {
@@ -159,6 +163,22 @@ private fun SettingsContent(
             )
             Text("JPEG")
         }
+
+        Spacer(Modifier.height(32.dp))
+
+        Text(stringResource(R.string.features), style = MaterialTheme.typography.titleLarge)
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.image_editing_setting))
+            Switch(
+                checked = uiState.imageEditingEnabled,
+                onCheckedChange = onImageEditingEnabledChanged
+            )
+        }
     }
 }
 
@@ -227,6 +247,7 @@ fun SettingsScreenPreview(uiState: SettingsUiState) {
             onResetExportDirClick = {},
             onExportFormatChanged = {},
             onExportQualityChanged = {},
+            onImageEditingEnabledChanged = {},
             onBack = {}
         )
     }

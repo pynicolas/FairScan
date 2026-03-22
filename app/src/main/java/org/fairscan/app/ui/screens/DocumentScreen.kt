@@ -88,6 +88,7 @@ fun DocumentScreen(
     onDeleteImage: (String) -> Unit,
     onRotateImage: (String, Boolean) -> Unit,
     onPageReorder: (String, Int) -> Unit,
+    showEditButton: Boolean = false,
 ) {
     // TODO Check how often images are loaded
     val showDeletePageDialog = rememberSaveable { mutableStateOf(false) }
@@ -127,6 +128,7 @@ fun DocumentScreen(
             { showDeletePageDialog.value = true },
             onRotateImage,
             navigation.toEditImageScreen,
+            showEditButton,
             modifier
         )
         if (showDeletePageDialog.value) {
@@ -146,6 +148,7 @@ private fun DocumentPreview(
     onDeleteImage: (String) -> Unit,
     onRotateImage: (String, Boolean) -> Unit,
     onEditImage: (Int) -> Unit,
+    showEditButton: Boolean,
     modifier: Modifier,
 ) {
     val imageId = document.pageId(currentPageIndex.intValue)
@@ -178,7 +181,7 @@ private fun DocumentPreview(
                     )
                 }
             }
-            RotationButtons(imageId, currentPageIndex.intValue, onRotateImage, onEditImage, Modifier.align(Alignment.BottomCenter))
+            RotationButtons(imageId, currentPageIndex.intValue, onRotateImage, onEditImage, showEditButton, Modifier.align(Alignment.BottomCenter))
             SecondaryActionButton(
                 Icons.Outlined.Delete,
                 contentDescription = stringResource(R.string.delete_page),
@@ -208,6 +211,7 @@ fun RotationButtons(
     pageIndex: Int,
     onRotateImage: (String, Boolean) -> Unit,
     onEditImage: (Int) -> Unit,
+    showEditButton: Boolean,
     modifier: Modifier = Modifier
 ) {
     // RotateLeft on the left, RotateRight on the right: for both LTR and RTL languages
@@ -227,12 +231,14 @@ fun RotationButtons(
                 contentDescription = stringResource(R.string.rotate_right),
                 onClick = { onRotateImage(imageId, true) }
             )
-            Spacer(Modifier.width(8.dp))
-            SecondaryActionButton(
-                icon = Icons.Filled.Edit,
-                contentDescription = "Edit image",
-                onClick = { onEditImage(pageIndex) }
-            )
+            if (showEditButton) {
+                Spacer(Modifier.width(8.dp))
+                SecondaryActionButton(
+                    icon = Icons.Filled.Edit,
+                    contentDescription = stringResource(R.string.image_editing),
+                    onClick = { onEditImage(pageIndex) }
+                )
+            }
         }
     }
 }

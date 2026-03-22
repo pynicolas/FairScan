@@ -16,6 +16,7 @@ package org.fairscan.app.ui.screens.settings
 
 import android.content.Context
 import androidx.core.net.toUri
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -31,6 +32,7 @@ class SettingsRepository(private val context: Context) {
     private val EXPORT_DIR_URI = stringPreferencesKey("export_dir_uri")
     private val EXPORT_FORMAT = stringPreferencesKey("export_format")
     private val EXPORT_QUALITY = stringPreferencesKey("export_quality")
+    private val IMAGE_EDITING_ENABLED = booleanPreferencesKey("image_editing_enabled")
 
     val exportDirUri: Flow<String?> =
         context.dataStore.data.map { prefs ->
@@ -79,6 +81,17 @@ class SettingsRepository(private val context: Context) {
     suspend fun setExportQuality(quality: ExportQuality) {
         context.dataStore.edit { prefs ->
             prefs[EXPORT_QUALITY] = quality.name
+        }
+    }
+
+    val imageEditingEnabled: Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[IMAGE_EDITING_ENABLED] ?: false
+        }
+
+    suspend fun setImageEditingEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[IMAGE_EDITING_ENABLED] = enabled
         }
     }
 }

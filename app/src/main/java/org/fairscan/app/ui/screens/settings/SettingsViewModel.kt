@@ -31,6 +31,7 @@ data class SettingsUiState(
     val exportDirName: String? = null,
     val exportFormat: ExportFormat = ExportFormat.PDF,
     val exportQuality: ExportQuality = ExportQuality.BALANCED,
+    val imageEditingEnabled: Boolean = false,
 )
 
 class SettingsViewModel(container: AppContainer) : ViewModel() {
@@ -45,12 +46,14 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
         dirName,
         repo.exportFormat,
         repo.exportQuality,
-    ) { uri, name, format, quality ->
+        repo.imageEditingEnabled,
+    ) { uri, name, format, quality, imageEditingEnabled ->
         SettingsUiState(
             exportDirUri = uri,
             exportDirName = name,
             exportFormat = format,
             exportQuality = quality,
+            imageEditingEnabled = imageEditingEnabled,
         )
     }.stateIn(
         viewModelScope,
@@ -74,6 +77,12 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
     fun setExportQuality(quality: ExportQuality) {
         viewModelScope.launch {
             repo.setExportQuality(quality)
+        }
+    }
+
+    fun setImageEditingEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            repo.setImageEditingEnabled(enabled)
         }
     }
 

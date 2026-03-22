@@ -45,7 +45,7 @@ And **respectful**: open source, minimal permissions, no tracking, no ads.
 - **Clear, distraction-free interface**
 - **Easy flow**: scan, review if needed, save or share
 - **Automatic document detection** using a custom segmentation model
-- **Automatic perspective correction**
+- **Automatic perspective correction** with optional manual adjustments
 - **Automatic image enhancement**
 - **Fast PDF generation** with no manual adjustments
 - **Fully offline** – the app has *no* internet permission

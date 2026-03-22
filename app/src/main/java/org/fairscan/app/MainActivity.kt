@@ -125,6 +125,7 @@ class MainActivity : ComponentActivity() {
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val exportUiState by exportViewModel.uiState.collectAsStateWithLifecycle()
+            val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
             CollectExportEvents(context, exportViewModel)
@@ -193,6 +194,7 @@ class MainActivity : ComponentActivity() {
                             onDeleteImage =  { id -> viewModel.deletePage(id) },
                             onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
+                            showEditButton = settingsUiState.imageEditingEnabled,
                         )
                     }
                     is Screen.Main.Export -> {
@@ -288,6 +290,7 @@ class MainActivity : ComponentActivity() {
             onResetExportDirClick = { settingsViewModel.setExportDirUri(null) },
             onExportFormatChanged = { format -> settingsViewModel.setExportFormat(format) },
             onExportQualityChanged = { quality -> settingsViewModel.setExportQuality(quality) },
+            onImageEditingEnabledChanged = { enabled -> settingsViewModel.setImageEditingEnabled(enabled) },
             onBack = nav.back,
         )
     }
