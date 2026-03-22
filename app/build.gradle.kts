@@ -100,7 +100,7 @@ android {
     }
 }
 
-apply(from = "download-tflite.gradle.kts")
+apply(from = file("download-tflite.gradle.kts"))
 
 dependencies {
 
