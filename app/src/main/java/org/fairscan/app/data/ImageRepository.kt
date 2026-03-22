@@ -300,6 +300,11 @@ class ImageRepository(
         return pages.get(id)?.toMetadata()
     }
 
+    fun getManualRotation(id: String): Rotation {
+        val degrees = pages.get(id)?.manualRotationDegrees ?: 0
+        return Rotation.fromDegrees(degrees)
+    }
+
     fun updatePageQuad(id: String, newQuad: Quad) {
         val page = pages.get(id) ?: return
 
@@ -315,12 +320,16 @@ class ImageRepository(
             return
         }
 
+        val baseRotation = Rotation.fromDegrees(page.baseRotationDegrees)
+        val manualRotation = Rotation.fromDegrees(page.manualRotationDegrees)
+        val totalRotation = baseRotation.add(manualRotation)
+
         val workFile = File(scanDir, page.workFileName())
         transformations.extractDocument(
             sourceFile,
             workFile,
             newQuad,
-            page.manualRotationDegrees,
+            totalRotation.degrees,
             page.isColored == true,
             ExportQuality.BALANCED
         )
@@ -334,7 +343,7 @@ class ImageRepository(
                 sourceFile,
                 r0WorkFile,
                 newQuad,
-                Rotation.R0.degrees,
+                baseRotation.degrees,
                 page.isColored == true,
                 ExportQuality.BALANCED
             )

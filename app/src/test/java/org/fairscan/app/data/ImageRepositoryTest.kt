@@ -320,6 +320,52 @@ class ImageRepositoryTest {
         assertThat(metadata!!.normalizedQuad).isEqualTo(newQuad)
     }
 
+    @Test
+    fun update_page_quad_rotation_handling() = runTest {
+        val extractRotations = mutableListOf<Int>()
+        val transformations = object : ImageTransformations {
+            override fun rotate(inputFile: File, outputFile: File, rotationDegrees: Int, jpegQuality: Int) {
+                inputFile.copyTo(outputFile, true)
+            }
+
+            override fun resize(inputFile: File, outputFile: File, maxSize: Int) {
+                outputFile.writeBytes(byteArrayOf(inputFile.readBytes()[0]))
+            }
+
+            override fun extractDocument(
+                inputFile: File,
+                outputFile: File,
+                normalizedQuad: Quad,
+                rotationDegrees: Int,
+                isColored: Boolean,
+                quality: ExportQuality
+            ) {
+                extractRotations.add(rotationDegrees)
+                outputFile.writeBytes(byteArrayOf(1))
+            }
+        }
+
+        val repo = ImageRepository(getFilesDir(), transformations, 200)
+        repo.add(byteArrayOf(10, 11, 12), byteArrayOf(20), metadata1) // baseRotation = R90
+        val id = repo.imageIds().last()
+
+        repo.rotate(id, true) // manualRotation = R90
+
+        val newQuad = Quad(
+            Point(.05, .06),
+            Point(.15, .07),
+            Point(.16, .16),
+            Point(.06, .11)
+        )
+
+        repo.updatePageQuad(id, newQuad)
+
+        assertThat(extractRotations).containsExactly(
+            R180.degrees, // current work file uses base + manual
+            R90.degrees   // R0 variant uses base only
+        )
+    }
+
     private fun scanDir(): File = File(getFilesDir(), SCAN_DIR_NAME)
     private fun sourceDir(): File = File(getFilesDir(), SOURCE_DIR_NAME)
 

@@ -101,12 +101,14 @@ fun EditPageScreen(
         state.setInitialQuad(Quad(Point(.1, .1), Point(.9, .1), Point(.9, .9), Point(.1, .9)))
     }
 
-    val baseRotation = remember { mutableStateOf(Rotation.R0) }
+    val totalRotation = remember { mutableStateOf(Rotation.R0) }
 
     LaunchedEffect(pageId) {
         val metadata = imageRepository.getPageMetadata(pageId)
-        val rotation = metadata?.baseRotation ?: Rotation.R0
-        baseRotation.value = rotation
+        val baseRotation = metadata?.baseRotation ?: Rotation.R0
+        val manualRotation = imageRepository.getManualRotation(pageId)
+        val rotation = baseRotation.add(manualRotation)
+        totalRotation.value = rotation
 
         val bitmap = withContext(Dispatchers.IO) {
             val sourceJpegBytes = imageRepository.sourceJpegBytes(pageId)
@@ -193,21 +195,17 @@ fun EditPageScreen(
                 onUndo = { state.undo() },
                 onRedo = { state.redo() },
                 onConfirm = {
-                    state.editableQuad?.let { quad ->
-                        if (state.hasUnsavedChanges()) {
-                            // Reverse the rotation to get back to original source image coordinates
-                            val rotateIterations = (4 - baseRotation.value.degrees / 90) % 4
-                            val originalQuad = quad.rotate90(rotateIterations, ImageSize(1, 1))
-                            // Cycle the quad corners so that the perspective warp in
-                            // extractDocument produces output already rotated by
-                            // baseRotation, compensating for the fact that updatePageQuad
-                            // only applies manualRotationDegrees.
-                            val cycledQuad = cycleQuadCorners(
-                                originalQuad, baseRotation.value.degrees / 90
-                            )
-                            onUpdatePageQuad(pageId, cycledQuad)
-                            state.setInitialQuad(quad)
+                    val quad = state.editableQuad
+                    if (quad != null) {
+                        // Reverse the total rotation to get back to original source image coordinates
+                        val rotateIterations = (4 - totalRotation.value.degrees / 90) % 4
+                        val originalQuad = quad.rotate90(rotateIterations, ImageSize(1, 1))
+                        onUpdatePageQuad(pageId, originalQuad) {
+                            navigation.back()
                         }
+                        state.setInitialQuad(quad)
+                    } else {
+                        navigation.back()
                     }
                     navigation.back()
                 }
@@ -417,22 +415,5 @@ fun EditPageScreenPreview() {
             navigation = dummyNavigation(),
             onUpdatePageQuad = { _, _ -> }
         )
-    }
-}
-
-/**
- * Cycles the corner labels of a [Quad] so that a perspective warp using the
- * returned quad produces output that is already rotated by [iterations] × 90°
- * clockwise, without moving any source-image point.
- *
- * This compensates for [ImageRepository.updatePageQuad] passing only
- * `manualRotationDegrees` (not `baseRotationDegrees`) to `extractDocument`.
- */
-internal fun cycleQuadCorners(quad: Quad, iterations: Int): Quad {
-    return when ((iterations % 4 + 4) % 4) {
-        1 -> Quad(quad.bottomLeft, quad.topLeft, quad.topRight, quad.bottomRight)
-        2 -> Quad(quad.bottomRight, quad.bottomLeft, quad.topLeft, quad.topRight)
-        3 -> Quad(quad.topRight, quad.bottomRight, quad.bottomLeft, quad.topLeft)
-        else -> quad
     }
 }
