@@ -15,8 +15,12 @@
 package org.fairscan.imageprocessing
 
 import org.opencv.core.Mat
+import org.opencv.core.MatOfByte
+import org.opencv.core.MatOfInt
 import org.opencv.core.Size
+import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
+import java.io.IOException
 import kotlin.math.sqrt
 
 fun resizeForMaxPixels(img: Mat, maxPixels: Double): Mat {
@@ -29,4 +33,20 @@ fun resizeForMaxPixels(img: Mat, maxPixels: Double): Mat {
     val resizedImg = Mat()
     Imgproc.resize(img, resizedImg, size, 0.0, 0.0, Imgproc.INTER_AREA)
     return resizedImg
+}
+
+fun encodeJpeg(mat: Mat, jpegQuality: Int): ByteArray {
+    val params = MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, jpegQuality.coerceIn(0, 100))
+    val encoded = MatOfByte()
+    val ok = Imgcodecs.imencode(".jpg", mat, encoded, params)
+    params.release()
+
+    if (!ok) {
+        encoded.release()
+        throw IOException("Failed to encode JPEG")
+    }
+
+    val result = encoded.toArray()
+    encoded.release()
+    return result
 }

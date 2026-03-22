@@ -108,17 +108,7 @@ fun decodeJpeg(jpegBytes: ByteArray): Mat? {
 }
 
 fun encodeJpeg(mat: Mat, jpegQuality: Int): ByteArray? {
-    val params = MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, jpegQuality.coerceIn(0, 100))
-    val encoded = MatOfByte()
-    val ok = Imgcodecs.imencode(".jpg", mat, encoded, params)
-    params.release()
-
-    if (!ok) {
-        encoded.release()
-        return null
-    }
-
-    val result = encoded.toArray()
-    encoded.release()
-    return result
+    return runCatching {
+        org.fairscan.imageprocessing.encodeJpeg(mat, jpegQuality)
+    }.getOrNull()
 }

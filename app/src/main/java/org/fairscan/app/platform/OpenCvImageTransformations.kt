@@ -14,45 +14,55 @@
  */
 package org.fairscan.app.platform
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import androidx.core.graphics.scale
 import org.fairscan.app.data.ImageTransformations
-import org.opencv.core.MatOfInt
+import org.fairscan.imageprocessing.encodeJpeg
+import org.opencv.core.Mat
+import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
+import org.opencv.imgproc.Imgproc
 import java.io.File
 import kotlin.math.min
 
 class OpenCvTransformations : ImageTransformations {
+
     override fun rotate(
         inputFile: File,
         outputFile: File,
         rotationDegrees: Int,
         jpegQuality: Int
     ) {
-        val src = Imgcodecs.imread(inputFile.absolutePath)
-        require(!src.empty()) { "Could not load image from ${inputFile.absolutePath}" }
-
-        val dst = org.fairscan.imageprocessing.rotate(src, rotationDegrees)
-
-        val params = MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, jpegQuality)
-        if (!Imgcodecs.imwrite(outputFile.absolutePath, dst, params)) {
-            throw RuntimeException("Could not write image to ${outputFile.absolutePath}")
+        transform(inputFile, outputFile, jpegQuality) {
+            org.fairscan.imageprocessing.rotate(it, rotationDegrees)
         }
-
-        params.release()
-        src.release()
-        dst.release()
     }
 
     override fun resize(inputFile: File, outputFile: File, maxSize: Int) {
-        val bitmap = BitmapFactory.decodeFile(inputFile.absolutePath)
-        val ratio = min(maxSize.toFloat() / bitmap.width, maxSize.toFloat() / bitmap.height)
-        val newW = (bitmap.width * ratio).toInt()
-        val newH = (bitmap.height * ratio).toInt()
-        val scaled = bitmap.scale(newW, newH)
-        outputFile.outputStream().use {
-            scaled.compress(Bitmap.CompressFormat.JPEG, 85, it)
+        transform(inputFile, outputFile, 85) { src ->
+            val ratio = min(maxSize.toFloat() / src.width(), maxSize.toFloat() / src.height())
+            val newW = (src.width() * ratio).toDouble()
+            val newH = (src.height() * ratio).toDouble()
+            val scaled = Mat()
+            Imgproc.resize(src, scaled, Size(newW, newH))
+            scaled
+        }
+    }
+
+    private fun transform(
+        inputFile: File,
+        outputFile: File,
+        jpegQuality: Int,
+        transform: (Mat) -> Mat,
+    ) {
+        val input = Imgcodecs.imread(inputFile.absolutePath)
+        var output: Mat? = null
+        try {
+            require(!input.empty()) { "Could not load image from ${inputFile.absolutePath}" }
+            output = transform.invoke(input)
+            val outputBytes = encodeJpeg(output, jpegQuality)
+            outputFile.writeBytes(outputBytes)
+        } finally {
+            input.release()
+            output?.release()
         }
     }
 }
