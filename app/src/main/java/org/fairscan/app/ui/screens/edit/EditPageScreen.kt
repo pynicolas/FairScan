@@ -14,6 +14,7 @@
  */
 package org.fairscan.app.ui.screens.edit
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -22,6 +23,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +48,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
@@ -62,7 +65,9 @@ import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.components.AppOverflowMenu
 import org.fairscan.app.ui.components.BackButton
 import org.fairscan.app.ui.components.ConfirmationDialog
+import org.fairscan.app.ui.components.MainActionButton
 import org.fairscan.app.ui.components.SecondaryActionButton
+import org.fairscan.app.ui.components.isLandscape
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.fairscan.imageprocessing.ImageSize
@@ -70,6 +75,7 @@ import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import java.io.File
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPageScreen(
@@ -140,10 +146,11 @@ fun EditPageScreen(
         }
     }
 
-    Scaffold { innerPadding ->
+    val isLandscape = isLandscape(LocalConfiguration.current)
+
+    Scaffold { _ ->
         Box(modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
             .windowInsetsPadding(WindowInsets.statusBars)
         ) {
             state.bitmap?.let { bmp ->
@@ -187,9 +194,10 @@ fun EditPageScreen(
 
             ActionButtons(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
+                    .align(if (isLandscape) Alignment.CenterEnd else Alignment.BottomCenter)
                     .padding(16.dp)
                     .windowInsetsPadding(WindowInsets.safeDrawing),
+                isLandscape = isLandscape,
                 canUndo = state.history.canUndo,
                 canRedo = state.history.canRedo,
                 onUndo = { state.undo() },
@@ -228,35 +236,49 @@ fun EditPageScreen(
 @Composable
 private fun ActionButtons(
     modifier: Modifier,
+    isLandscape: Boolean,
     canUndo: Boolean,
     canRedo: Boolean,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        SecondaryActionButton(
-            icon = Icons.AutoMirrored.Filled.Undo,
-            contentDescription = "Undo",
-            onClick = onUndo,
-            enabled = canUndo
-        )
+    val undo: @Composable () -> Unit = {
+        SecondaryActionButton(Icons.AutoMirrored.Filled.Undo,
+            stringResource(R.string.undo),
+            onUndo,
+            enabled = canUndo)
+    }
+    val redo: @Composable () -> Unit = {
+        SecondaryActionButton(Icons.AutoMirrored.Filled.Redo,
+            stringResource(R.string.redo),
+            onRedo,
+            enabled = canRedo)
+    }
+    val confirm: @Composable () -> Unit = {
+        MainActionButton(onConfirm,
+            stringResource(R.string.confirm),
+            Icons.Filled.Check,
+            iconDescription = stringResource(R.string.confirm))
+    }
 
-        SecondaryActionButton(
-            icon = Icons.AutoMirrored.Filled.Redo,
-            contentDescription = "Redo",
-            onClick = onRedo,
-            enabled = canRedo
-        )
-
-        SecondaryActionButton(
-            icon = Icons.Filled.Check,
-            contentDescription = "Confirm",
-            onClick = onConfirm
-        )
+    if (isLandscape) {
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { undo(); redo() }
+            confirm()
+        }
+    } else {
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            undo(); redo(); confirm()
+        }
     }
 }
 
@@ -385,9 +407,10 @@ private fun DragMagnifyingGlass(state: EditPageScreenState) {
 }
 
 @Composable
-@Preview
-@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
+@Preview(showSystemUi = true)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, showSystemUi = true)
 @Preview(name = "Landscape", showBackground = true, widthDp = 640, heightDp = 320)
+@Preview(name = "RTL", locale = "ar", showSystemUi = true)
 fun EditPageScreenPreview() {
     FairScanTheme {
 

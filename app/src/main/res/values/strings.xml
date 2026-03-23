@@ -7,6 +7,7 @@
     <string name="camera_permission_denied">Camera permission was denied</string>
     <string name="camera_permission_rationale">The app requires camera access to scan documents. Captured images are stored only on this device and will be deleted when you close the current document.</string>
     <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
     <string name="change_directory">Change folder</string>
     <string name="clear_text">Clear text</string>
     <string name="contact">Contact</string>
@@ -56,6 +57,7 @@
     <string name="new_document_warning">The current scan will be lost. Do you want to continue?</string>
     <string name="open">Open</string>
     <string name="open_file">Open file</string>
+    <string name="redo">Redo</string>
     <string name="reset_to_default">Reset to default</string>
     <string name="resume">Resume</string>
     <string name="rotate_left">Rotate left</string>
@@ -71,6 +73,7 @@
     <string name="support_last_image">Report a problem with last captured image</string>
     <string name="turn_off_torch">Turn off torch</string>
     <string name="turn_on_torch">Turn on torch</string>
+    <string name="undo">Undo</string>
     <string name="unknown_size">Unknown size</string>
     <string name="version">Version</string>
     <string name="view_full_list">View full list</string>
