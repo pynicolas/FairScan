@@ -23,6 +23,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import org.fairscan.app.ui.screens.camera.extractDocumentFromBitmap
+import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.scaledTo
 import org.junit.Assert.assertEquals
@@ -48,26 +49,24 @@ class DocumentDetectionTest {
         listOf("img01.jpg", "img02.jpg", "img03.jpg").forEach { imageFileName ->
             val inputStream = context.assets.open("uncropped/$imageFileName")
             val bitmap = BitmapFactory.decodeStream(inputStream)
-            var outputBitmap: Bitmap? = null
+            var outputJpeg: ByteArray? = null
 
             val segmentationResult = runBlocking {
-                segmentationService.runSegmentationAndReturn(bitmap, 0)
+                segmentationService.runSegmentationAndReturn(bitmap)
             }
             if (segmentationResult != null) {
                 val mask = segmentationResult.segmentation
-                val quad = detectDocumentQuad(mask, false)
+                val quad = detectDocumentQuad(mask, ImageSize(bitmap.width, bitmap.height),false)
                 if (quad != null) {
                     val resizedQuad =
                         quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
-                    outputBitmap = extractDocumentFromBitmap(bitmap, resizedQuad, 0, mask).page
+                    outputJpeg = extractDocumentFromBitmap(bitmap, resizedQuad, 0, mask).pageJpeg
                     val file = File(context.getExternalFilesDir(null), imageFileName)
-                    FileOutputStream(file).use {
-                        outputBitmap.compress(Bitmap.CompressFormat.JPEG, 95, it)
-                    }
+                    file.writeBytes(outputJpeg)
                     Log.i("DocumentDetectionTest", "Image saved to ${file.absolutePath}")
                 }
             }
-            if (outputBitmap == null) {
+            if (outputJpeg == null) {
                 fail("Failed to extract document from image $imageFileName")
             }
         }

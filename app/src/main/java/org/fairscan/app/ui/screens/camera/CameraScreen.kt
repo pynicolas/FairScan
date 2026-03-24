@@ -285,7 +285,7 @@ private fun CameraScreenScaffold(
             )
         }
         if (cameraUiState.captureState is CaptureState.CapturePreview) {
-            val page = cameraUiState.captureState.capturedPage.page
+            val page = bitmap(cameraUiState.captureState.capturedPage.pageJpeg)
             CapturedImage(page.asImageBitmap(), thumbnailCoords)
         }
     }
@@ -533,10 +533,10 @@ fun CameraScreenPreviewWithProcessedImage() {
     val p = Point(0 , 0)
     val quad = Quad(p, p, p, p)
     ScreenPreview(CaptureState.CapturePreview(
-        debugImage("uncropped/img01.jpg"),
+        bitmap(debugImage("uncropped/img01.jpg")),
         CapturedPage(
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
-            debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
+            bitmap(debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg")),
             PageMetadata(quad, R0, false))))
 }
 
@@ -559,7 +559,7 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
                     contentAlignment = Alignment.TopCenter
                 ) {
                     Image(
-                        debugImage("uncropped/img01.jpg").asImageBitmap(),
+                        bitmap(debugImage("uncropped/img01.jpg")).asImageBitmap(),
                         modifier=Modifier.rotate(rotationDegrees),
                         contentDescription = null
                     )
@@ -591,9 +591,9 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
 }
 
 @Composable
-private fun debugImage(imgName: String): Bitmap {
+private fun debugImage(imgName: String): ByteArray {
     val context = LocalContext.current
-    return context.assets.open(imgName).use { input ->
-        BitmapFactory.decodeStream(input)
-    }
+    return context.assets.open(imgName).readBytes()
 }
+
+private fun bitmap(jpeg: ByteArray): Bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size)
