@@ -15,12 +15,14 @@
 package org.fairscan.app.domain
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 import org.fairscan.app.ui.screens.camera.extractDocumentFromBitmap
 import org.fairscan.imageprocessing.ImageSize
@@ -32,7 +34,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.opencv.android.OpenCVLoader
 import java.io.File
-import java.io.FileOutputStream
 
 @RunWith(AndroidJUnit4::class)
 class DocumentDetectionTest {
@@ -45,6 +46,7 @@ class DocumentDetectionTest {
         val segmentationService = ImageSegmentationService(context) { _, _, _ -> }
         segmentationService.initialize()
         OpenCVLoader.initLocal()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
 
         listOf("img01.jpg", "img02.jpg", "img03.jpg").forEach { imageFileName ->
             val inputStream = context.assets.open("uncropped/$imageFileName")
@@ -60,7 +62,7 @@ class DocumentDetectionTest {
                 if (quad != null) {
                     val resizedQuad =
                         quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
-                    outputJpeg = extractDocumentFromBitmap(bitmap, resizedQuad, 0, mask).pageJpeg
+                    outputJpeg = extractDocumentFromBitmap(bitmap, resizedQuad, 0, mask, scope).pageJpeg
                     val file = File(context.getExternalFilesDir(null), imageFileName)
                     file.writeBytes(outputJpeg)
                     Log.i("DocumentDetectionTest", "Image saved to ${file.absolutePath}")
