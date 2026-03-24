@@ -15,10 +15,10 @@
 
 package org.fairscan.app.domain
 
-import android.graphics.Bitmap
+import kotlinx.coroutines.Deferred
 
 data class CapturedPage(
     val pageJpeg: ByteArray,
-    val source: Bitmap,
+    val sourceJpeg: Deferred<ByteArray>,
     val metadata: PageMetadata,
 )

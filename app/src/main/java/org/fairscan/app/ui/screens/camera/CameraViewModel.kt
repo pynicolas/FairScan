@@ -17,10 +17,11 @@ package org.fairscan.app.ui.screens.camera
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import androidx.camera.core.ImageProxy
-import androidx.core.graphics.createBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,7 +43,6 @@ import org.fairscan.imageprocessing.extractDocument
 import org.fairscan.imageprocessing.isColoredDocument
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.android.Utils
-import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 
@@ -165,7 +165,8 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
             val quad = detectDocumentQuad(mask, originalSize, isLiveAnalysis = false)
             if (quad != null) {
                 val resizedQuad = quad.scaledTo(mask.width, mask.height, source.width, source.height)
-                result = extractDocumentFromBitmap(source, resizedQuad, rotationDegrees, mask)
+                result = extractDocumentFromBitmap(
+                    source, resizedQuad, rotationDegrees, mask, viewModelScope)
             }
         }
         return@withContext result
@@ -196,6 +197,19 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     }
 }
 
+private fun compressJpeg(bitmap: Bitmap, quality: Int): ByteArray {
+    val rgba = Mat()
+    Utils.bitmapToMat(bitmap, rgba)
+    val bgr = Mat()
+    Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR)
+    rgba.release()
+    return try {
+        encodeJpeg(bgr, quality)
+    } finally {
+        bgr.release()
+    }
+}
+
 sealed class CaptureState {
     open val frozenImage: Bitmap? = null
 
@@ -209,7 +223,7 @@ sealed class CaptureState {
 }
 
 fun extractDocumentFromBitmap(
-    source: Bitmap, quad: Quad, rotationDegrees: Int, mask: Mask
+    source: Bitmap, quad: Quad, rotationDegrees: Int, mask: Mask, viewModelScope: CoroutineScope
 ): CapturedPage {
     val rgba = Mat()
     Utils.bitmapToMat(source, rgba)
@@ -226,7 +240,10 @@ fun extractDocumentFromBitmap(
     val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
     val baseRotation = Rotation.fromDegrees(rotationDegrees)
     val metadata = PageMetadata(normalizedQuad, baseRotation, isColored)
-    return CapturedPage(pageJpeg, source, metadata)
+    val sourceJpegDeferred = viewModelScope.async(Dispatchers.IO) {
+        compressJpeg(source, 90)
+    }
+    return CapturedPage(pageJpeg, sourceJpegDeferred, metadata)
 }
 
 fun rotateBitmap(source: Bitmap, angle: Float): Bitmap {

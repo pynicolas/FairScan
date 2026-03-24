@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import org.fairscan.app.MainViewModel
 import org.fairscan.app.R
@@ -536,7 +537,7 @@ fun CameraScreenPreviewWithProcessedImage() {
         bitmap(debugImage("uncropped/img01.jpg")),
         CapturedPage(
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
-            bitmap(debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg")),
+            CompletableDeferred(ByteArray(0)),
             PageMetadata(quad, R0, false))))
 }
 

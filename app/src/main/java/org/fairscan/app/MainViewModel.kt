@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,10 +36,6 @@ import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
-import org.fairscan.imageprocessing.encodeJpeg
-import org.opencv.android.Utils
-import org.opencv.core.Mat
-import org.opencv.imgproc.Imgproc
 import java.util.concurrent.Executors
 
 class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
@@ -125,28 +122,18 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     fun handleImageCaptured(capturedPage: CapturedPage) {
         viewModelScope.launch {
+            val sourceJpeg = withContext(Dispatchers.IO) {
+                capturedPage.sourceJpeg.await()
+            }
             val pages = withContext(repositoryDispatcher) {
                 imageRepository.add(
                     capturedPage.pageJpeg,
-                    compressJpeg(capturedPage.source, 90),
+                    sourceJpeg,
                     capturedPage.metadata,
                 )
                 imageRepository.pages()
             }
             _pages.value = pages
-        }
-    }
-
-    private fun compressJpeg(bitmap: Bitmap, quality: Int): ByteArray {
-        val rgba = Mat()
-        Utils.bitmapToMat(bitmap, rgba)
-        val bgr = Mat()
-        Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR)
-        rgba.release()
-        return try {
-            encodeJpeg(bgr, quality)
-        } finally {
-            bgr.release()
         }
     }
 }
