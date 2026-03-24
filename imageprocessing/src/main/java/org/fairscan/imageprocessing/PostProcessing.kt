@@ -316,14 +316,11 @@ fun enhanceGrayscaleImage(img: Mat): Mat {
     val denoised = Mat()
     Imgproc.bilateralFilter(stretched8u, denoised, 9, 20.0, 10.0)
 
-    val finalBgr = Mat()
-    Imgproc.cvtColor(denoised, finalBgr, Imgproc.COLOR_GRAY2BGR)
-
     // -- Cleanup -----------
     gray.release(); imgFloat.release(); logImg.release()
     blur.release(); logBlur.release(); diff.release()
     retinex.release(); result8u.release()
-    stretched8u.release(); denoised.release()
+    stretched8u.release();
 
-    return finalBgr
+    return denoised
 }

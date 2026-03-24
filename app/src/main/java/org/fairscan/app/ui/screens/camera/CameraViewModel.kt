@@ -37,6 +37,7 @@ import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
+import org.fairscan.imageprocessing.encodeJpeg
 import org.fairscan.imageprocessing.extractDocument
 import org.fairscan.imageprocessing.isColoredDocument
 import org.fairscan.imageprocessing.scaledTo
@@ -218,27 +219,14 @@ fun extractDocumentFromBitmap(
     val isColored = isColoredDocument(bgr, mask, quad)
     val maxPixels = ExportQuality.BALANCED.maxPixels
     val page = extractDocument(bgr, quad, rotationDegrees, isColored, maxPixels)
-    val outBgr = page
+    val pageJpeg = encodeJpeg(page, ExportQuality.BALANCED.jpegQuality)
     bgr.release()
-    val outBitmap = toBitmap(outBgr)
-    outBgr.release()
+    page.release()
+
     val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
     val baseRotation = Rotation.fromDegrees(rotationDegrees)
     val metadata = PageMetadata(normalizedQuad, baseRotation, isColored)
-    return CapturedPage(outBitmap, source, metadata)
-}
-
-fun toBitmap(bgr: Mat): Bitmap {
-    require(bgr.type() == CvType.CV_8UC3)
-
-    val rgba = Mat()
-    Imgproc.cvtColor(bgr, rgba, Imgproc.COLOR_BGR2RGBA)
-
-    val bmp = createBitmap(bgr.cols(), bgr.rows(), Bitmap.Config.ARGB_8888)
-    Utils.matToBitmap(rgba, bmp)
-
-    rgba.release()
-    return bmp
+    return CapturedPage(pageJpeg, source, metadata)
 }
 
 fun rotateBitmap(source: Bitmap, angle: Float): Bitmap {

@@ -18,7 +18,7 @@ package org.fairscan.app.domain
 import android.graphics.Bitmap
 
 data class CapturedPage(
-    val page: Bitmap,
+    val pageJpeg: ByteArray,
     val source: Bitmap,
     val metadata: PageMetadata,
 )
