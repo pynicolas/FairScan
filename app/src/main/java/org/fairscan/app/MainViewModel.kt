@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.PageViewKey
@@ -37,8 +39,12 @@ import org.fairscan.imageprocessing.encodeJpeg
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
+import java.util.concurrent.Executors
 
 class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
+
+    // TODO ImageRepository should be made thread-safe
+    private val repositoryDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
     private val _navigationState = MutableStateFlow(NavigationState.initial(launchMode))
     val currentScreen: StateFlow<Screen> = _navigationState.map { it.current }
@@ -70,29 +76,40 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     fun rotateImage(id: String, clockwise: Boolean) {
         viewModelScope.launch {
-            imageRepository.rotate(id, clockwise)
-            _pages.value = imageRepository.pages()
+            val pages = withContext(repositoryDispatcher) {
+                imageRepository.rotate(id, clockwise)
+                imageRepository.pages()
+            }
+            _pages.value = pages
         }
     }
 
     fun movePage(id: String, newIndex: Int) {
         viewModelScope.launch {
-            imageRepository.movePage(id, newIndex)
-            _pages.value = imageRepository.pages()
+            val pages = withContext(repositoryDispatcher) {
+                imageRepository.movePage(id, newIndex)
+                imageRepository.pages()
+            }
+            _pages.value = pages
         }
     }
 
     fun deletePage(id: String) {
         viewModelScope.launch {
-            imageRepository.delete(id)
-            _pages.value = imageRepository.pages()
+            val pages = withContext(repositoryDispatcher) {
+                imageRepository.delete(id)
+                imageRepository.pages()
+            }
+            _pages.value = pages
         }
     }
 
     fun startNewDocument() {
         _pages.value = persistentListOf()
         viewModelScope.launch {
-            imageRepository.clear()
+            withContext(repositoryDispatcher) {
+                imageRepository.clear()
+            }
         }
     }
 
@@ -108,12 +125,15 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     fun handleImageCaptured(capturedPage: CapturedPage) {
         viewModelScope.launch {
-            imageRepository.add(
-                capturedPage.pageJpeg,
-                compressJpeg(capturedPage.source, 90),
-                capturedPage.metadata,
-            )
-            _pages.value = imageRepository.pages()
+            val pages = withContext(repositoryDispatcher) {
+                imageRepository.add(
+                    capturedPage.pageJpeg,
+                    compressJpeg(capturedPage.source, 90),
+                    capturedPage.metadata,
+                )
+                imageRepository.pages()
+            }
+            _pages.value = pages
         }
     }
 
