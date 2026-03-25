@@ -15,6 +15,7 @@
 package org.fairscan.app.domain
 
 import org.fairscan.app.data.ImageRepository
+import org.fairscan.imageprocessing.encodeJpeg
 import org.fairscan.imageprocessing.extractDocument
 import org.fairscan.imageprocessing.resizeForMaxPixels
 import org.fairscan.imageprocessing.scaledTo
@@ -29,85 +30,84 @@ suspend fun jpegsForExport(
 
     val pages = imageRepository.pages().asSequence()
     return when (exportQuality) {
-        ExportQuality.BALANCED -> pages.mapNotNull { imageRepository.jpegBytes(it.key()) }
+        ExportQuality.BALANCED -> pages.map { jpegBytes(it, imageRepository) }
 
-        ExportQuality.LOW -> pages.mapNotNull { page ->
-            imageRepository.jpegBytes(page.key())?.let { jpeg ->
-                resizeJpegBytesForMaxPixels(
-                    jpegBytes = jpeg,
-                    maxPixels = exportQuality.maxPixels.toDouble(),
-                    jpegQuality = exportQuality.jpegQuality
-                )
-            }
+        ExportQuality.LOW -> pages.map { page ->
+            resizeJpegBytesForMaxPixels(
+                jpegBytes = jpegBytes(page, imageRepository),
+                maxPixels = exportQuality.maxPixels.toDouble(),
+                jpegQuality = exportQuality.jpegQuality
+            )
         }
 
-        ExportQuality.HIGH -> pages.mapNotNull { page ->
+        ExportQuality.HIGH -> pages.map { page ->
             val sourceJpegBytes = imageRepository.sourceJpegBytes(page.id)
             val pageMetadata = page.metadata
             val manualRotation = page.manualRotation
             if (sourceJpegBytes != null && pageMetadata != null)
                 prepareJpegForHigh(sourceJpegBytes, pageMetadata, manualRotation, exportQuality)
             else
-                imageRepository.jpegBytes(page.key())
+                jpegBytes(page, imageRepository)
         }
     }
 }
 
-fun resizeJpegBytesForMaxPixels(
+private fun jpegBytes(page: ScanPage, imageRepository: ImageRepository): ByteArray {
+    val key = page.key()
+    return imageRepository.jpegBytes(key)
+        ?: throw IllegalArgumentException("JPEG not found for $key")
+}
+
+private fun resizeJpegBytesForMaxPixels(
     jpegBytes: ByteArray,
     maxPixels: Double,
     jpegQuality: Int
-): ByteArray? {
-    val decoded = decodeJpeg(jpegBytes)
-    if (decoded == null)
-        return null
-
-    val resized = resizeForMaxPixels(decoded, maxPixels)
-    val outJpegBytes = encodeJpeg(resized, jpegQuality)
-
-    decoded.release()
-    resized.release()
-    return outJpegBytes
+): ByteArray {
+    var decoded: Mat? = null
+    var resized: Mat? = null
+    try {
+        decoded = decodeJpeg(jpegBytes)
+        resized = resizeForMaxPixels(decoded, maxPixels)
+        return encodeJpeg(resized, jpegQuality)
+    } finally {
+        decoded?.release()
+        resized?.release()
+    }
 }
 
-fun prepareJpegForHigh(
+private fun prepareJpegForHigh(
     sourceJpegBytes: ByteArray,
     pageMetadata: PageMetadata,
     manualRotation: Rotation,
     exportQuality: ExportQuality,
-): ByteArray? {
+): ByteArray {
 
-    val decoded = decodeJpeg(sourceJpegBytes)
-    if (decoded == null)
-        return null
-
-    val quad = pageMetadata.normalizedQuad.scaledTo(1,1,decoded.width(), decoded.height())
-    val page = extractDocument(
-        decoded,
-        quad,
-        pageMetadata.baseRotation.add(manualRotation).degrees,
-        pageMetadata.isColored,
-        exportQuality.maxPixels)
-    val outJpegBytes = encodeJpeg(page, exportQuality.jpegQuality)
-
-    decoded.release()
-    page.release()
-    return outJpegBytes
+    var decoded: Mat? = null
+    var page: Mat? = null
+    try {
+        decoded = decodeJpeg(sourceJpegBytes)
+        val quad = pageMetadata.normalizedQuad.scaledTo(1, 1, decoded.width(), decoded.height())
+        page = extractDocument(
+            decoded,
+            quad,
+            pageMetadata.baseRotation.add(manualRotation).degrees,
+            pageMetadata.isColored,
+            exportQuality.maxPixels
+        )
+        return encodeJpeg(page, exportQuality.jpegQuality)
+    } finally {
+        decoded?.release()
+        page?.release()
+    }
 }
 
-fun decodeJpeg(jpegBytes: ByteArray): Mat? {
+private fun decodeJpeg(jpegBytes: ByteArray): Mat {
     val src = MatOfByte(*jpegBytes)
     val decoded = Imgcodecs.imdecode(src, Imgcodecs.IMREAD_COLOR)
     src.release()
     if (decoded.empty()) {
         decoded.release()
-        return null
+        throw IllegalStateException("Failed to decode JPEG")
     }
     return decoded
-}
-
-fun encodeJpeg(mat: Mat, jpegQuality: Int): ByteArray? {
-    return runCatching {
-        org.fairscan.imageprocessing.encodeJpeg(mat, jpegQuality)
-    }.getOrNull()
 }

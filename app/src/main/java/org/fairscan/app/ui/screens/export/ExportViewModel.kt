@@ -276,7 +276,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     }
 
     private suspend fun save(context: Context, saveDir: SaveDir?, exportFormat: ExportFormat) {
-        val result = applyRenaming() ?: return
+        val result = applyRenaming()
         val savedItems = mutableListOf<SavedItem>()
         val filesForMediaScan = mutableListOf<File>()
 

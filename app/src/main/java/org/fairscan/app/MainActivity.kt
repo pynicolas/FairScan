@@ -134,8 +134,15 @@ class MainActivity : ComponentActivity() {
                 val onExportClick = if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
                     {
                         lifecycleScope.launch {
-                            val result = exportViewModel.generatePdfForExternalCall()
-                            sendActivityResult(result)
+                            try {
+                                val result = exportViewModel.generatePdfForExternalCall()
+                                sendActivityResult(result)
+                            } catch (e: Exception) {
+                                val message = "Export failed"
+                                showToast(message)
+                                appContainer.logger.e("MainActivity", message, e)
+                                return@launch
+                            }
                             viewModel.startNewDocument()
                             finish()
                         }
@@ -229,6 +236,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun showToast(text: String) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+    }
+
     @Composable
     private fun SettingsScreenWrapper(
         settingsViewModel: SettingsViewModel,
@@ -246,8 +257,7 @@ class MainActivity : ComponentActivity() {
                     settingsViewModel.setExportDirUri(uri.toString())
                 } catch (e: Exception) {
                     logger.e("Settings", "Failed to set export dir to $uri", e)
-                    val text = getString(R.string.error_file_picker_result)
-                    Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+                    showToast(this.getString(R.string.error_file_picker_result))
                 }
             }
         }
@@ -263,7 +273,7 @@ class MainActivity : ComponentActivity() {
                 } catch (e: Exception) {
                     val message = getString(R.string.error_file_picker_launch)
                     logger.e("Settings", message, e)
-                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                    showToast(message)
                 }
             },
             onResetExportDirClick = { settingsViewModel.setExportDirUri(null) },
@@ -288,7 +298,7 @@ class MainActivity : ComponentActivity() {
                         clipboard.setClipEntry(
                             ClipData.newPlainText("FairScan logs", event.logs).toClipEntry()
                         )
-                        Toast.makeText(context, msgCopiedLogs, Toast.LENGTH_SHORT).show()
+                        showToast(msgCopiedLogs)
                     }
                     is AboutEvent.PrepareEmailWithLastImage -> {
                         val file = imageRepository.lastAddedSourceFile()
@@ -312,8 +322,7 @@ class MainActivity : ComponentActivity() {
             if (isGranted) {
                 exportViewModel.onSaveClicked()
             } else {
-                val message = getString(R.string.storage_permission_denied)
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                showToast(this.getString(R.string.storage_permission_denied))
             }
         }
         LaunchedEffect(Unit) {
@@ -423,7 +432,7 @@ class MainActivity : ComponentActivity() {
         try {
             startActivity(chooser)
         } catch (_: ActivityNotFoundException) {
-            Toast.makeText(this, getString(R.string.error_no_app), Toast.LENGTH_SHORT).show()
+            showToast(getString(R.string.error_no_app))
         }
     }
 
