@@ -14,6 +14,8 @@
  */
 package org.fairscan.app.data
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.int
@@ -55,6 +57,8 @@ class ImageRepository(
     private val thumbnailDir: File = File(scanRootDir, THUMBNAIL_DIR_NAME).apply {
         if (!exists()) mkdirs()
     }
+
+    private val mutex = Mutex()
 
     private val metadataFile = File(scanDir, "document.json")
 
@@ -121,17 +125,17 @@ class ImageRepository(
         metadataFile.writeText(json.encodeToString(metadata))
     }
 
-    fun pages(): List<ScanPage> =
+    suspend fun pages(): List<ScanPage> = mutex.withLock {
         pages.pages().mapNotNull {
             runCatching {
                 val manualRotation = Rotation.fromDegrees(it.manualRotationDegrees)
                 ScanPage(it.id, manualRotation, it.toMetadata())
             }.getOrNull()
         }
+    }
 
-    private fun page(id: String): PageV2? = pages.get(id)
-
-    fun add(pageBytes: ByteArray, sourceBytes: ByteArray, metadata: PageMetadata) {
+    suspend fun add(pageBytes: ByteArray, sourceBytes: ByteArray, metadata: PageMetadata)
+    = mutex.withLock {
         val id = "${System.currentTimeMillis()}"
         val fileName = "$id.jpg"
         val file = File(scanDir, fileName)
@@ -164,8 +168,8 @@ class ImageRepository(
 
     fun PageV2.workFileName() = workFileName(id, manualRotationDegrees)
 
-    fun rotate(id: String, clockwise: Boolean) {
-        val page = pages.get(id) ?: return
+    suspend fun rotate(id: String, clockwise: Boolean) = mutex.withLock {
+        val page = pages.get(id) ?: return@withLock
 
         val delta = if (clockwise) Rotation.R90 else Rotation.R270
         val newRotation = Rotation.fromDegrees(page.manualRotationDegrees).add(delta)
@@ -194,13 +198,6 @@ class ImageRepository(
         return (if (file.exists()) file else null)?.readBytes()
     }
 
-    fun jpegBytes(id: String): ByteArray? {
-        val page = page(id)
-        if (page == null) return null
-        val file =  File(scanDir, page.workFileName())
-        return (if (file.exists()) file else null)?.readBytes()
-    }
-
     fun sourceJpegBytes(id: String): ByteArray? {
         val file = getSourceFile(id)
         return if (file.exists()) file.readBytes() else null
@@ -211,10 +208,7 @@ class ImageRepository(
     }
 
     fun getThumbnail(key: PageViewKey): ByteArray? {
-        val thumbFile = getThumbnailFile(key)
-        if (thumbFile == null) {
-            return null
-        }
+        val thumbFile = File(thumbnailDir, workFileName(key))
         if (!thumbFile.exists()) {
             val workFile = File(scanDir, workFileName(key))
             if (!workFile.exists()) return null
@@ -228,16 +222,12 @@ class ImageRepository(
         transformations.resize(originalFile, thumbFile, thumbnailSizePx)
     }
 
-    private fun getThumbnailFile(key: PageViewKey): File? {
-        return File(thumbnailDir, workFileName(key))
-    }
-
-    fun movePage(id: String, newIndex: Int) {
+    suspend fun movePage(id: String, newIndex: Int) = mutex.withLock {
         pages.move(id, newIndex)
         saveMetadata()
     }
 
-    fun delete(id: String) {
+    suspend fun delete(id: String) = mutex.withLock {
         pages.delete(id)
         saveMetadata()
 
@@ -250,7 +240,7 @@ class ImageRepository(
             ?.forEach { it.delete() }
     }
 
-    fun clear() {
+    suspend fun clear() = mutex.withLock {
         pages.clear()
         saveMetadata() // "empty" json file
 
