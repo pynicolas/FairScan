@@ -119,10 +119,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         }
     }
 
-    private fun currentPageKeys(): ImmutableList<PageViewKey> =
-        imageRepository.pages().map {
-            PageViewKey(it.id, it.manualRotation)
-        }.toImmutableList()
+    private suspend fun currentPageKeys(): ImmutableList<PageViewKey> =
+        imageRepository.pages().map { it.key() }.toImmutableList()
 
     fun prepareExportIfNeeded() {
         ensureValidFilename()

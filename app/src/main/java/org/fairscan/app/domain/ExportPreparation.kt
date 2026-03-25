@@ -20,20 +20,19 @@ import org.fairscan.imageprocessing.resizeForMaxPixels
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.core.Mat
 import org.opencv.core.MatOfByte
-import org.opencv.core.MatOfInt
 import org.opencv.imgcodecs.Imgcodecs
 
-fun jpegsForExport(
+suspend fun jpegsForExport(
     imageRepository: ImageRepository,
     exportQuality: ExportQuality
 ): Sequence<ByteArray> {
 
     val pages = imageRepository.pages().asSequence()
     return when (exportQuality) {
-        ExportQuality.BALANCED -> pages.mapNotNull { imageRepository.jpegBytes(it.id) }
+        ExportQuality.BALANCED -> pages.mapNotNull { imageRepository.jpegBytes(it.key()) }
 
         ExportQuality.LOW -> pages.mapNotNull { page ->
-            imageRepository.jpegBytes(page.id)?.let { jpeg ->
+            imageRepository.jpegBytes(page.key())?.let { jpeg ->
                 resizeJpegBytesForMaxPixels(
                     jpegBytes = jpeg,
                     maxPixels = exportQuality.maxPixels.toDouble(),
@@ -49,7 +48,7 @@ fun jpegsForExport(
             if (sourceJpegBytes != null && pageMetadata != null)
                 prepareJpegForHigh(sourceJpegBytes, pageMetadata, manualRotation, exportQuality)
             else
-                imageRepository.jpegBytes(page.id)
+                imageRepository.jpegBytes(page.key())
         }
     }
 }

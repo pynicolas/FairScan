@@ -26,7 +26,9 @@ data class ScanPage(
     val id: String,
     val manualRotation: Rotation,
     val metadata: PageMetadata?,
-)
+) {
+    fun key(): PageViewKey = PageViewKey(id, manualRotation)
+}
 
 data class PageViewKey(
     val pageId: String,

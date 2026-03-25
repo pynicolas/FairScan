@@ -21,7 +21,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,27 +32,29 @@ import kotlinx.coroutines.withContext
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.domain.ScanPage
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
-import java.util.concurrent.Executors
 
 class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
-
-    // TODO ImageRepository should be made thread-safe
-    private val repositoryDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
     private val _navigationState = MutableStateFlow(NavigationState.initial(launchMode))
     val currentScreen: StateFlow<Screen> = _navigationState.map { it.current }
         .stateIn(viewModelScope, SharingStarted.Eagerly, _navigationState.value.current)
 
-    private val _pages = MutableStateFlow(imageRepository.pages())
+    private val _pages = MutableStateFlow<List<ScanPage>>(emptyList())
+
+    init {
+        viewModelScope.launch {
+            _pages.value = imageRepository.pages()
+        }
+    }
+
     val documentUiModel: StateFlow<DocumentUiModel> =
         _pages.map { pages ->
             DocumentUiModel(
-                pageKeys = pages.map { p ->
-                    PageViewKey(p.id, p.manualRotation)
-                }.toImmutableList(),
+                pageKeys = pages.map { it.key() }.toImmutableList(),
                 imageLoader = ::getBitmap,
                 thumbnailLoader = ::getThumbnail,
             )
@@ -73,7 +74,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     fun rotateImage(id: String, clockwise: Boolean) {
         viewModelScope.launch {
-            val pages = withContext(repositoryDispatcher) {
+            val pages = withContext(Dispatchers.IO) {
                 imageRepository.rotate(id, clockwise)
                 imageRepository.pages()
             }
@@ -83,7 +84,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     fun movePage(id: String, newIndex: Int) {
         viewModelScope.launch {
-            val pages = withContext(repositoryDispatcher) {
+            val pages = withContext(Dispatchers.IO) {
                 imageRepository.movePage(id, newIndex)
                 imageRepository.pages()
             }
@@ -93,7 +94,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     fun deletePage(id: String) {
         viewModelScope.launch {
-            val pages = withContext(repositoryDispatcher) {
+            val pages = withContext(Dispatchers.IO) {
                 imageRepository.delete(id)
                 imageRepository.pages()
             }
@@ -104,7 +105,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
     fun startNewDocument() {
         _pages.value = persistentListOf()
         viewModelScope.launch {
-            withContext(repositoryDispatcher) {
+            withContext(Dispatchers.IO) {
                 imageRepository.clear()
             }
         }
@@ -122,10 +123,8 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     fun handleImageCaptured(capturedPage: CapturedPage) {
         viewModelScope.launch {
-            val sourceJpeg = withContext(Dispatchers.IO) {
-                capturedPage.sourceJpeg.await()
-            }
-            val pages = withContext(repositoryDispatcher) {
+            val pages = withContext(Dispatchers.IO) {
+                val sourceJpeg = capturedPage.sourceJpeg.await()
                 imageRepository.add(
                     capturedPage.pageJpeg,
                     sourceJpeg,
