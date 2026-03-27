@@ -50,3 +50,14 @@ fun encodeJpeg(mat: Mat, jpegQuality: Int): ByteArray {
     encoded.release()
     return result
 }
+
+fun decodeJpeg(jpegBytes: ByteArray): Mat {
+    val src = MatOfByte(*jpegBytes)
+    val decoded = Imgcodecs.imdecode(src, Imgcodecs.IMREAD_COLOR)
+    src.release()
+    if (decoded.empty()) {
+        decoded.release()
+        throw IllegalStateException("Failed to decode JPEG")
+    }
+    return decoded
+}

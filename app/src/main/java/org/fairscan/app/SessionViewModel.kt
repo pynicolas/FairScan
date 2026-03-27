@@ -17,6 +17,8 @@ package org.fairscan.app
 import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.platform.OpenCvTransformations
 import java.io.File
@@ -39,7 +41,8 @@ class SessionViewModel(
 
     private val sessionContainer = ScanSessionContainer(
         context = app,
-        scanRootDir = sessionDir
+        scanRootDir = sessionDir,
+        scope = viewModelScope,
     )
 
     val imageRepository: ImageRepository = sessionContainer.imageRepository
@@ -55,7 +58,8 @@ class SessionViewModel(
 
 class ScanSessionContainer(
     context: Context,
-    scanRootDir: File
+    scanRootDir: File,
+    scope: CoroutineScope,
 ) {
     private val density = context.resources.displayMetrics.density
     private val thumbnailSizePx = (THUMBNAIL_SIZE_DP * density).toInt()
@@ -63,6 +67,7 @@ class ScanSessionContainer(
     val imageRepository = ImageRepository(
         scanRootDir,
         OpenCvTransformations(),
-        thumbnailSizePx
+        thumbnailSizePx,
+        scope,
     )
 }

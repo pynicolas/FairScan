@@ -15,29 +15,27 @@
 package org.fairscan.app.platform
 
 import org.fairscan.app.data.ImageTransformations
+import org.fairscan.imageprocessing.decodeJpeg
 import org.fairscan.imageprocessing.encodeJpeg
 import org.opencv.core.Mat
 import org.opencv.core.Size
-import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
-import java.io.File
 import kotlin.math.min
 
 class OpenCvTransformations : ImageTransformations {
 
     override fun rotate(
-        inputFile: File,
-        outputFile: File,
+        input: ByteArray,
         rotationDegrees: Int,
         jpegQuality: Int
-    ) {
-        transform(inputFile, outputFile, jpegQuality) {
+    ): ByteArray {
+        return transform(input, jpegQuality) {
             org.fairscan.imageprocessing.rotate(it, rotationDegrees)
         }
     }
 
-    override fun resize(inputFile: File, outputFile: File, maxSize: Int) {
-        transform(inputFile, outputFile, 85) { src ->
+    override fun resize(input: ByteArray, maxSize: Int): ByteArray {
+        return transform(input, 85) { src ->
             val ratio = min(maxSize.toFloat() / src.width(), maxSize.toFloat() / src.height())
             val newW = (src.width() * ratio).toDouble()
             val newH = (src.height() * ratio).toDouble()
@@ -48,18 +46,15 @@ class OpenCvTransformations : ImageTransformations {
     }
 
     private fun transform(
-        inputFile: File,
-        outputFile: File,
+        inBytes: ByteArray,
         jpegQuality: Int,
         transform: (Mat) -> Mat,
-    ) {
-        val input = Imgcodecs.imread(inputFile.absolutePath)
+    ): ByteArray {
+        val input = decodeJpeg(inBytes)
         var output: Mat? = null
         try {
-            require(!input.empty()) { "Could not load image from ${inputFile.absolutePath}" }
             output = transform.invoke(input)
-            val outputBytes = encodeJpeg(output, jpegQuality)
-            outputFile.writeBytes(outputBytes)
+            return encodeJpeg(output, jpegQuality)
         } finally {
             input.release()
             output?.release()
