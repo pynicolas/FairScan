@@ -16,6 +16,7 @@ package org.fairscan.app.data
 
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.fairscan.app.domain.PageMetadata
@@ -38,6 +39,8 @@ class ImageRepositoryTest {
 
     private var _filesDir: File? = null
 
+    private val testScope = TestScope()
+
     val quad1 = Quad(Point(.01, .02), Point(.1, .03), Point(.11, .12), Point(.03, .09))
     val metadata1 = PageMetadata(quad1, R90, true)
 
@@ -50,14 +53,14 @@ class ImageRepositoryTest {
 
     fun repo(): ImageRepository {
         val transformations = object : ImageTransformations {
-            override fun rotate(inputFile: File, outputFile: File, rotationDegrees: Int, jpegQuality: Int) {
-                inputFile.copyTo(outputFile)
+            override fun rotate(input: ByteArray, rotationDegrees: Int, jpegQuality: Int): ByteArray {
+                return input
             }
-            override fun resize(inputFile: File, outputFile: File, maxSize: Int) {
-                outputFile.writeBytes(byteArrayOf(inputFile.readBytes()[0]))
+            override fun resize(input: ByteArray, maxSize: Int): ByteArray {
+                return byteArrayOf(input[0])
             }
         }
-        return ImageRepository(getFilesDir(), transformations, 200)
+        return ImageRepository(getFilesDir(), transformations, 200, testScope)
     }
 
     @Test
@@ -87,12 +90,12 @@ class ImageRepositoryTest {
         val repo = repo()
         val bytes = byteArrayOf(101, 102, 103)
         repo.add(bytes, byteArrayOf(51), metadata1)
-        assertThat(jpegFiles(scanDir())).hasSize(1)
+        assertThat(jpegFiles(processedDir())).hasSize(1)
         assertThat(jpegFiles(sourceDir())).hasSize(1)
         assertThat(repo.imageIds()).hasSize(1)
         repo.delete(repo.imageIds()[0])
         assertThat(repo.imageIds()).isEmpty()
-        assertThat(jpegFiles(scanDir())).hasSize(0)
+        assertThat(jpegFiles(processedDir())).hasSize(0)
         assertThat(jpegFiles(sourceDir())).hasSize(0)
         val repo2 = repo()
         assertThat(repo2.imageIds()).isEmpty()
@@ -107,32 +110,32 @@ class ImageRepositoryTest {
 
     @Test
     fun `should find existing files at initialization with no json`() = runTest {
-        scanDir().mkdirs()
-        File(scanDir(), "1.jpg").writeBytes(byteArrayOf(101, 102, 103))
+        processedDir().mkdirs()
+        File(processedDir(), "1.jpg").writeBytes(byteArrayOf(101, 102, 103))
         assertThat(repo().imageIds()).containsExactly("1")
     }
 
     @Test
     fun `should find existing files at initialization if json is invalid`() = runTest {
         writeDocumentDotJson("xxx")
-        File(scanDir(), "1.jpg").writeBytes(byteArrayOf(101, 102, 103))
+        File(processedDir(), "1.jpg").writeBytes(byteArrayOf(101, 102, 103))
         assertThat(repo().imageIds()).containsExactly("1")
     }
 
     @Test
     fun `no json and two files with same id`() = runTest {
-        scanDir().mkdirs()
-        File(scanDir(), "1768153479486.jpg").writeBytes(byteArrayOf(101, 102, 103))
-        File(scanDir(), "1768153479486-270.jpg").writeBytes(byteArrayOf(105, 106, 107))
+        processedDir().mkdirs()
+        File(processedDir(), "1768153479486.jpg").writeBytes(byteArrayOf(101, 102, 103))
+        File(processedDir(), "1768153479486-270.jpg").writeBytes(byteArrayOf(105, 106, 107))
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("1768153479486")
     }
 
     @Test
     fun `should find existing files at initialization with no json and with rotation`() = runTest {
-        scanDir().mkdirs()
+        processedDir().mkdirs()
         val bytes = byteArrayOf(101, 102, 103)
-        File(scanDir(), "1-90.jpg").writeBytes(bytes)
+        File(processedDir(), "1-90.jpg").writeBytes(bytes)
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("1")
         assertThat(repo.jpegBytes(PageViewKey("1", R0))).isEqualTo(bytes)
@@ -141,19 +144,19 @@ class ImageRepositoryTest {
     @Test
     fun `should filter pages in json at initialization`() = runTest {
         writeDocumentDotJson("""{"pages":[{"file":"1.jpg"}, {"file":"2.jpg"}]}""")
-        File(scanDir(), "2.jpg").writeBytes(byteArrayOf(101, 102, 103))
+        File(processedDir(), "2.jpg").writeBytes(byteArrayOf(101, 102, 103))
         assertThat(repo().imageIds()).containsExactly("2")
     }
 
     @Test
     fun `should rename rotated files with no base file`() = runTest {
-        scanDir().mkdirs()
+        processedDir().mkdirs()
         val bytes = byteArrayOf(105, 106, 107)
-        File(scanDir(), "123-90.jpg").writeBytes(bytes)
-        File(scanDir(), "123-270.jpg").writeBytes(bytes)
+        File(processedDir(), "123-90.jpg").writeBytes(bytes)
+        File(processedDir(), "123-270.jpg").writeBytes(bytes)
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("123")
-        val jpegFiles = jpegFiles(scanDir())
+        val jpegFiles = jpegFiles(processedDir())
         assertThat(jpegFiles).hasSize(1).allMatch { it?.name == "123.jpg" }
     }
 
@@ -161,7 +164,7 @@ class ImageRepositoryTest {
     fun `should rename rotated files with no base file but listed in json`() = runTest {
         writeDocumentDotJson("""{"pages":[{"file":"1-90.jpg"}]}""")
         val bytes = byteArrayOf(105, 106, 107)
-        File(scanDir(), "1-90.jpg").writeBytes(bytes)
+        File(processedDir(), "1-90.jpg").writeBytes(bytes)
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("1")
         assertThat(repo.jpegBytes(PageViewKey("1", R0))).isEqualTo(bytes)
@@ -182,9 +185,8 @@ class ImageRepositoryTest {
         assertThat(repo1.imageIds()).isNotEmpty()
         repo1.clear()
         assertThat(repo1.imageIds()).isEmpty()
-        assertThat(jpegFiles(scanDir())).isEmpty()
+        assertThat(jpegFiles(processedDir())).isEmpty()
         assertThat(jpegFiles(sourceDir())).isEmpty()
-        assertThat(jpegFiles(File(getFilesDir(), THUMBNAIL_DIR_NAME))).isEmpty()
         val repo2 = repo()
         assertThat(repo2.imageIds()).isEmpty()
     }
@@ -205,6 +207,10 @@ class ImageRepositoryTest {
         assertThat(repo.pages().last().manualRotation).isEqualTo(R0)
         repo.rotate(id, false)
         assertThat(repo.pages().last().manualRotation).isEqualTo(R270)
+
+        val repo2 = repo()
+        assertThat(repo2.imageIds()).containsExactly(id)
+        assertThat(repo2.pages().last().manualRotation).isEqualTo(R270)
     }
 
     @Test
@@ -255,13 +261,13 @@ class ImageRepositoryTest {
         val bytes = byteArrayOf(105, 106, 107)
 
         writeDocumentDotJson("""{"version":2, "pages":[{"id":"1", "manualRotationDegrees":90}]}""")
-        File(scanDir(), "1.jpg").writeBytes(byteArrayOf(101))
-        File(scanDir(), "1-90.jpg").writeBytes(bytes)
+        File(processedDir(), "1.jpg").writeBytes(byteArrayOf(101))
+        File(processedDir(), "1-90.jpg").writeBytes(bytes)
         assertThat(repo().imageIds()).containsExactly("1")
 
         writeDocumentDotJson("""{"version":2, "pages":[{"id":"1", "manualRotationDegrees":42}]}""")
-        File(scanDir(), "1.jpg").writeBytes(byteArrayOf(101))
-        File(scanDir(), "1-42.jpg").writeBytes(bytes)
+        File(processedDir(), "1.jpg").writeBytes(byteArrayOf(101))
+        File(processedDir(), "1-42.jpg").writeBytes(bytes)
         assertThat(repo().imageIds()).isEmpty()
     }
 
@@ -288,15 +294,15 @@ class ImageRepositoryTest {
         assertThat(repo2.lastAddedSourceFile()).isNull()
     }
 
-    private fun scanDir(): File = File(getFilesDir(), SCAN_DIR_NAME)
+    private fun processedDir(): File = File(getFilesDir(), PROCESSED_DIR_NAME)
     private fun sourceDir(): File = File(getFilesDir(), SOURCE_DIR_NAME)
 
     private fun jpegFiles(dir: File): Array<out File?>?
         = dir.listFiles { f -> f.name.endsWith(".jpg") }
 
     private fun writeDocumentDotJson(json: String) {
-        scanDir().mkdirs()
-        File(scanDir(), "document.json").writeText(json)
+        processedDir().mkdirs()
+        File(processedDir(), "document.json").writeText(json)
     }
 
     suspend fun ImageRepository.imageIds(): PersistentList<String> =

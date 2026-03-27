@@ -15,13 +15,12 @@
 package org.fairscan.app.domain
 
 import org.fairscan.app.data.ImageRepository
+import org.fairscan.imageprocessing.decodeJpeg
 import org.fairscan.imageprocessing.encodeJpeg
 import org.fairscan.imageprocessing.extractDocument
 import org.fairscan.imageprocessing.resizeForMaxPixels
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.core.Mat
-import org.opencv.core.MatOfByte
-import org.opencv.imgcodecs.Imgcodecs
 
 suspend fun jpegsForExport(
     imageRepository: ImageRepository,
@@ -99,15 +98,4 @@ private fun prepareJpegForHigh(
         decoded?.release()
         page?.release()
     }
-}
-
-private fun decodeJpeg(jpegBytes: ByteArray): Mat {
-    val src = MatOfByte(*jpegBytes)
-    val decoded = Imgcodecs.imdecode(src, Imgcodecs.IMREAD_COLOR)
-    src.release()
-    if (decoded.empty()) {
-        decoded.release()
-        throw IllegalStateException("Failed to decode JPEG")
-    }
-    return decoded
 }

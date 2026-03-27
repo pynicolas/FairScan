@@ -14,12 +14,10 @@
  */
 package org.fairscan.app.data
 
-import java.io.File
-
 interface ImageTransformations {
 
-    fun rotate(inputFile: File, outputFile: File, rotationDegrees: Int, jpegQuality: Int)
+    fun rotate(input: ByteArray, rotationDegrees: Int, jpegQuality: Int): ByteArray
 
-    fun resize(inputFile: File, outputFile: File, maxSize: Int)
+    fun resize(input: ByteArray, maxSize: Int): ByteArray
 
 }
