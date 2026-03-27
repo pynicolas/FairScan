@@ -21,21 +21,26 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.CapturedPage
-import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.ScanPage
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.state.DocumentUiModel
+import org.fairscan.app.ui.state.PageThumbnail
+import kotlin.math.min
 
 class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
 
@@ -53,18 +58,40 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     val documentUiModel: StateFlow<DocumentUiModel> =
         _pages.map { pages ->
-            DocumentUiModel(
-                pageKeys = pages.map { it.key() }.toImmutableList(),
-                imageLoader = ::getBitmap,
-                thumbnailLoader = ::getThumbnail,
-            )
-        }.stateIn(
+            pages.map {
+                val jpeg = imageRepository.getThumbnail(it.key())
+                PageThumbnail(it.key(), jpeg?.toBitmap())
+            }.toImmutableList()
+        }
+        .flowOn(Dispatchers.IO)
+        .map { DocumentUiModel(it) }
+        .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = DocumentUiModel(persistentListOf(), ::getBitmap, ::getThumbnail)
+            initialValue = DocumentUiModel(persistentListOf())
         )
 
+    private val _currentPageIndex = MutableStateFlow(0)
+    val currentPageIndex: StateFlow<Int> =
+        _currentPageIndex.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentPageBitmap: StateFlow<Bitmap?> =
+        _currentPageIndex
+            .combine(_pages) { index, pages -> pages.getOrNull(index) }
+            .mapLatest { page ->
+                page?.let { imageRepository.jpegBytes(it.key())?.toBitmap() }
+            }
+            .flowOn(Dispatchers.IO)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun onPageSelected(index: Int) {
+        _currentPageIndex.value = index
+    }
+
     fun navigateTo(destination: Screen) {
+        if (destination is Screen.Main.Document) {
+            _currentPageIndex.value = min(_pages.value.size - 1, destination.initialPage)
+        }
         _navigationState.update { it.navigateTo(destination) }
     }
 
@@ -99,6 +126,13 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
                 imageRepository.pages()
             }
             _pages.value = pages
+
+            if (pages.isEmpty()) {
+                navigateTo(Screen.Main.Camera)
+                _currentPageIndex.value = 0
+            } else if (_currentPageIndex.value >= pages.size) {
+                _currentPageIndex.value = pages.size - 1
+            }
         }
     }
 
@@ -111,15 +145,8 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         }
     }
 
-    fun getBitmap(key: PageViewKey): Bitmap? {
-        val bytes = imageRepository.jpegBytes(key)
-        return bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
-    }
-
-    fun getThumbnail(key: PageViewKey): Bitmap? {
-        val bytes = imageRepository.getThumbnail(key)
-        return bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }
-    }
+    private fun ByteArray.toBitmap() : Bitmap =
+        BitmapFactory.decodeByteArray(this, 0, this.size)
 
     fun handleImageCaptured(capturedPage: CapturedPage) {
         viewModelScope.launch {

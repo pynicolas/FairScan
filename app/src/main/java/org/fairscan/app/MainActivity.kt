@@ -53,7 +53,7 @@ import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
-import org.fairscan.app.ui.screens.DocumentScreen
+import org.fairscan.app.ui.screens.document.DocumentScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.about.AboutEvent
 import org.fairscan.app.ui.screens.about.AboutScreen
@@ -62,6 +62,7 @@ import org.fairscan.app.ui.screens.about.createEmailWithImageIntent
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
+import org.fairscan.app.ui.screens.document.DocumentUiState
 import org.fairscan.app.ui.screens.export.ExportActions
 import org.fairscan.app.ui.screens.export.ExportEvent
 import org.fairscan.app.ui.screens.export.ExportResult
@@ -123,6 +124,8 @@ class MainActivity : ComponentActivity() {
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
+            val currentPageIndex by viewModel.currentPageIndex.collectAsStateWithLifecycle()
+            val currentPageBitmap by viewModel.currentPageBitmap.collectAsStateWithLifecycle()
             val exportUiState by exportViewModel.uiState.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
@@ -152,7 +155,7 @@ class MainActivity : ComponentActivity() {
                     navigation.toExportScreen
                 }
 
-                when (val screen = currentScreen) {
+                when (currentScreen) {
                     is Screen.Main.Home -> {
                         val recentDocs by homeViewModel.recentDocuments.collectAsStateWithLifecycle()
                         HomeScreen(
@@ -177,13 +180,13 @@ class MainActivity : ComponentActivity() {
                     }
                     is Screen.Main.Document -> {
                         DocumentScreen (
-                            document = document,
-                            initialPage = screen.initialPage,
+                            uiState = DocumentUiState(currentPageIndex, currentPageBitmap, document),
                             navigation = navigation,
                             onExportClick = onExportClick,
                             onDeleteImage =  { id -> viewModel.deletePage(id) },
                             onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
+                            onPageSelected = viewModel::onPageSelected
                         )
                     }
                     is Screen.Main.Export -> {

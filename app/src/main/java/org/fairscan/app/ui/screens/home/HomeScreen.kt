@@ -182,7 +182,7 @@ fun OngoingScanBanner(
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            currentDocument.load(0)?.let {
+            currentDocument.thumbnail(0)?.let {
                 Image(
                     bitmap = it.asImageBitmap(),
                     contentDescription = null,

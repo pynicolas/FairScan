@@ -79,11 +79,11 @@ fun CommonPageList(
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val reorderableLazyListState = rememberReorderableLazyListState(state.listState) { from, to ->
-        val pageId = state.document.pageKeys[from.index].pageId
+        val pageId = state.document.pages[from.index].key.pageId
         state.onPageReorder(pageId, to.index)
     }
     val content: LazyListScope.() -> Unit = {
-        itemsIndexed(state.document.pageKeys, key = { _, item -> item.saveKey}) { index, item ->
+        itemsIndexed(state.document.pages.map { it.key }, key = { _, item -> item.saveKey}) { index, item ->
             ReorderableItem(reorderableLazyListState, key = item.saveKey) { isDragging ->
                 val borderColor =
                     if (isDragging) MaterialTheme.colorScheme.primary else Color.Transparent
@@ -94,7 +94,7 @@ fun CommonPageList(
                         color = borderColor,
                         shape = RoundedCornerShape(6.dp)
                     )
-                val image = state.document.loadThumbnail(index)
+                val image = state.document.thumbnail(index)
                 if (image != null) {
                     PageThumbnail(image, index, state, modifier)
                 }

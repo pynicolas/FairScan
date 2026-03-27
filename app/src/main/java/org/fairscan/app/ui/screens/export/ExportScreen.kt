@@ -259,7 +259,7 @@ private fun PdfInfos(
     val result = uiState.result
 
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        val thumbnail = currentDocument.loadThumbnail(0)
+        val thumbnail = currentDocument.thumbnail(0)
         thumbnail?.let {
             Card(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
