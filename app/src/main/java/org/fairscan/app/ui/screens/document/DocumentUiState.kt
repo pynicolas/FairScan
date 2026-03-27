@@ -12,33 +12,13 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui.state
+package org.fairscan.app.ui.screens.document
 
 import android.graphics.Bitmap
-import kotlinx.collections.immutable.ImmutableList
-import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.ui.state.DocumentUiModel
 
-data class DocumentUiModel(
-    val pages: ImmutableList<PageThumbnail>,
-) {
-    fun pageCount(): Int {
-        return pages.size
-    }
-    fun pageId(index: Int): String {
-        return pages[index].key.pageId
-    }
-    fun isEmpty(): Boolean {
-        return pages.isEmpty()
-    }
-    fun lastIndex(): Int {
-        return pages.lastIndex
-    }
-    fun thumbnail(index: Int): Bitmap? {
-        return pages[index].thumbnail
-    }
-}
-
-data class PageThumbnail(
-    val key: PageViewKey,
-    val thumbnail: Bitmap?,
+data class DocumentUiState(
+    val currentPageIndex: Int,
+    val currentPageBitmap: Bitmap?,
+    val document: DocumentUiModel,
 )

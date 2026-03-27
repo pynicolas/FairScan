@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui.screens
+package org.fairscan.app.ui.screens.document
 
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
@@ -45,8 +45,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableIntState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -74,44 +72,38 @@ import org.fairscan.app.ui.components.MyScaffold
 import org.fairscan.app.ui.components.SecondaryActionButton
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.fakeDocument
-import org.fairscan.app.ui.state.DocumentUiModel
+import org.fairscan.app.ui.fakeImage
 import org.fairscan.app.ui.theme.FairScanTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentScreen(
-    document: DocumentUiModel,
-    initialPage: Int,
+    uiState: DocumentUiState,
     navigation: Navigation,
     onExportClick: () -> Unit,
     onDeleteImage: (String) -> Unit,
     onRotateImage: (String, Boolean) -> Unit,
     onPageReorder: (String, Int) -> Unit,
+    onPageSelected: (Int) -> Unit,
 ) {
-    // TODO Check how often images are loaded
     val showDeletePageDialog = rememberSaveable { mutableStateOf(false) }
-    val currentPageIndex = rememberSaveable { mutableIntStateOf(initialPage) }
-    if (currentPageIndex.intValue >= document.pageCount()) {
-        currentPageIndex.intValue = document.pageCount() - 1
-    }
-    if (currentPageIndex.intValue < 0) {
-        navigation.toCameraScreen()
-        return
-    }
+
+    val document = uiState.document
+    val currentPageIndex = uiState.currentPageIndex
     BackHandler { navigation.back() }
 
     val listState = rememberLazyListState()
-    LaunchedEffect(initialPage) {
-        listState.scrollToItem(initialPage)
+    LaunchedEffect(currentPageIndex) {
+        listState.scrollToItem(currentPageIndex)
     }
 
     MyScaffold(
         navigation = navigation,
         pageListState = CommonPageListState(
             document,
-            onPageClick = { index -> currentPageIndex.intValue = index },
+            onPageClick = { index -> onPageSelected(index) },
             onPageReorder = onPageReorder,
-            currentPageIndex = currentPageIndex.intValue,
+            currentPageIndex = currentPageIndex,
             listState = listState,
             showPageNumbers = true,
         ),
@@ -121,8 +113,7 @@ fun DocumentScreen(
         },
     ) { modifier ->
         DocumentPreview(
-            document,
-            currentPageIndex,
+            uiState,
             { showDeletePageDialog.value = true },
             onRotateImage,
             modifier
@@ -132,20 +123,21 @@ fun DocumentScreen(
                 title = stringResource(R.string.delete_page),
                 message = stringResource(R.string.delete_page_warning),
                 showDialog = showDeletePageDialog
-            ) { onDeleteImage(document.pageId(currentPageIndex.intValue)) }
+            ) { onDeleteImage(document.pageId(currentPageIndex)) }
         }
     }
 }
 
 @Composable
 private fun DocumentPreview(
-    document: DocumentUiModel,
-    currentPageIndex: MutableIntState,
+    uiState: DocumentUiState,
     onDeleteImage: (String) -> Unit,
     onRotateImage: (String, Boolean) -> Unit,
     modifier: Modifier,
 ) {
-    val imageId = document.pageId(currentPageIndex.intValue)
+    val currentPageIndex = uiState.currentPageIndex
+    val document = uiState.document
+    val imageId = document.pageId(currentPageIndex)
     Column (
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
@@ -153,7 +145,7 @@ private fun DocumentPreview(
         Box (
             modifier = Modifier.fillMaxSize()
         ) {
-            val bitmap = document.load(currentPageIndex.intValue)
+            val bitmap = uiState.currentPageBitmap
             if (bitmap != null) {
                 val imageBitmap = bitmap.asImageBitmap()
                 val zoomState = remember(imageId) {
@@ -184,7 +176,7 @@ private fun DocumentPreview(
                     .align(Alignment.BottomEnd)
                     .padding(8.dp)
             )
-            Text("${currentPageIndex.intValue + 1} / ${document.pageCount()}",
+            Text("${currentPageIndex + 1} / ${document.pageCount()}",
                 color = MaterialTheme.colorScheme.inverseOnSurface,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -266,17 +258,19 @@ private fun BottomBar(
 @Preview(name = "Landscape", showBackground = true, widthDp = 640, heightDp = 320)
 fun DocumentScreenPreview() {
     FairScanTheme {
+        val image = fakeImage("gallica.bnf.fr-bpt6k5530456s-1", LocalContext.current)
+        val document = fakeDocument(
+            listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it" }.toImmutableList(),
+            LocalContext.current
+        )
         DocumentScreen(
-            fakeDocument(
-                listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it" }.toImmutableList(),
-                LocalContext.current
-            ),
-            initialPage = 1,
+            uiState = DocumentUiState(1, image, document),
             navigation = dummyNavigation(),
             onExportClick = {},
             onDeleteImage = { _ -> },
             onRotateImage = { _,_ -> },
             onPageReorder = { _,_ -> },
+            onPageSelected = { _ -> },
         )
     }
 }
