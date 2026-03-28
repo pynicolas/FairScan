@@ -20,7 +20,10 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -55,6 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.fairscan.app.R
 import org.fairscan.app.data.ImageRepository
@@ -298,61 +303,108 @@ private fun DragQuadOverlay(
         containerSize = containerSize,
         displaySize = displaySize,
         modifier = Modifier.pointerInput(Unit) {
-            detectDragGestures(
-                onDragStart = { startPos ->
-                    val quad = state.editableQuad ?: return@detectDragGestures
-                    state.dragPosition = startPos
+                detectDragGestures(
+                    onDragStart = { startPos ->
+                        val quad = state.editableQuad ?: return@detectDragGestures
+                        state.dragPosition = startPos
 
-                    val cornerIndex = quadHandler.findTouchedCorner(
-                        startPos, quad, containerSize, displaySize
-                    )
+                        // Prefer the index stored at raw touch-down (exact touch position,
+                        // before slop). Fall back to re-detecting at the slop position only
+                        // when the raw-touch handler missed the down event.
+                        val cornerIndex = if (state.touchDownCornerIndex >= 0) {
+                            state.touchDownCornerIndex
+                        } else {
+                            quadHandler.findTouchedCorner(startPos, quad, containerSize, displaySize)
+                        }
 
-                    if (cornerIndex >= 0) {
-                        state.startCornerDrag(cornerIndex)
-                    } else {
-                        val edgeIndex = quadHandler.findTouchedEdge(
-                            startPos, quad, containerSize, displaySize
+                        if (cornerIndex >= 0) {
+                            state.startCornerDrag(cornerIndex)
+                        } else {
+                            val edgeIndex = if (state.touchDownEdgeIndex >= 0) {
+                                state.touchDownEdgeIndex
+                            } else {
+                                quadHandler.findTouchedEdge(startPos, quad, containerSize, displaySize)
+                            }
+                            if (edgeIndex >= 0) {
+                                state.startEdgeDrag(edgeIndex)
+                            }
+                        }
+                    },
+                    onDragEnd = { state.endDrag(); state.onTouchUp() },
+                    onDragCancel = { state.endDrag(); state.onTouchUp() },
+                    onDrag = { change, dragAmount ->
+                        // change.consume() is intentionally omitted: detectDragGestures
+                        // already calls it.consume() internally after this callback returns.
+                        state.dragPosition = change.position
+                        val quad = state.editableQuad ?: return@detectDragGestures
+                        val normalizedDelta = QuadCoordinateUtils.screenDeltaToNormalized(
+                            dragAmount, displaySize
                         )
-                        if (edgeIndex >= 0) {
-                            state.startEdgeDrag(edgeIndex)
+
+                        when {
+                            state.draggedCornerIndex >= 0 -> {
+                                state.updateQuad(
+                                    quadHandler.updateQuadCorner(
+                                        quad, state.draggedCornerIndex, normalizedDelta
+                                    )
+                                )
+                            }
+                            state.draggedEdgeIndex >= 0 -> {
+                                state.updateQuad(
+                                    quadHandler.updateQuadEdge(
+                                        quad, state.draggedEdgeIndex, normalizedDelta
+                                    )
+                                )
+                            }
                         }
                     }
-                },
-                onDragEnd = { state.endDrag() },
-                onDragCancel = { state.endDrag() },
-                onDrag = { change, dragAmount ->
-                    change.consume()
-                    state.dragPosition = change.position
-                    val quad = state.editableQuad ?: return@detectDragGestures
-                    val normalizedDelta = QuadCoordinateUtils.screenDeltaToNormalized(
-                        dragAmount, displaySize
-                    )
-
-                    when {
-                        state.draggedCornerIndex >= 0 -> {
-                            state.updateQuad(
-                                quadHandler.updateQuadCorner(
-                                    quad, state.draggedCornerIndex, normalizedDelta
-                                )
-                            )
+                )
+            }
+            // Second pointer-input: fires immediately on press (before touch slop)
+            // so the loupe appears as soon as the finger touches a handle.
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    val quad = state.editableQuad
+                    if (quad != null) {
+                        val cIdx = quadHandler.findTouchedCorner(down.position, quad, containerSize, displaySize)
+                        val eIdx = if (cIdx < 0) quadHandler.findTouchedEdge(down.position, quad, containerSize, displaySize) else -1
+                        if (cIdx >= 0 || eIdx >= 0) {
+                            state.onTouchDown(down.position, cIdx, eIdx)
                         }
-                        state.draggedEdgeIndex >= 0 -> {
-                            state.updateQuad(
-                                quadHandler.updateQuadEdge(
-                                    quad, state.draggedEdgeIndex, normalizedDelta
-                                )
-                            )
-                        }
+                    }
+                    // For a tap (no drag): waitForUpOrCancellation() sees the UP event and
+                    // returns it, so we call onTouchUp() here.
+                    // For a drag: detectDragGestures consumes move events, causing
+                    // waitForUpOrCancellation() to return null. We do NOT call onTouchUp()
+                    // here; onDragEnd / onDragCancel above handle that instead.
+                    if (waitForUpOrCancellation() != null) {
+                        state.onTouchUp()
                     }
                 }
-            )
-        }
+            }
     )
 }
 
 @Composable
 private fun DragMagnifyingGlass(state: EditPageScreenState) {
-    if (!state.isDragging() || state.dragPosition == null || state.containerSize == null) return
+    // showLoupe becomes true immediately on touch-down and stays true for
+    // one additional second after the finger is lifted.
+    val showLoupe = remember { mutableStateOf(false) }
+    // Remember the last valid focus position so the loupe keeps rendering
+    // correctly during the 1-second fade-out (when dragged indices are reset).
+    val lastKnownFocusPosition = remember { mutableStateOf<Offset?>(null) }
+
+    LaunchedEffect(state.isTouching) {
+        if (state.isTouching) {
+            showLoupe.value = true
+        } else {
+            delay(1_000)
+            showLoupe.value = false
+        }
+    }
+
+    if (!showLoupe.value || state.dragPosition == null || state.containerSize == null) return
 
     val bmp = state.bitmap ?: return
     val containerSize = state.containerSize!!
@@ -361,10 +413,19 @@ private fun DragMagnifyingGlass(state: EditPageScreenState) {
     )
     val quad = state.editableQuad
 
+    // Resolve which corner/edge index to focus on.
+    // Priority: active drag > pre-drag touch-down > nothing (fade-out phase).
+    val activeCornerIndex = state.draggedCornerIndex.takeIf { it >= 0 }
+        ?: state.touchDownCornerIndex.takeIf { it >= 0 }
+    val activeEdgeIndex = if (activeCornerIndex == null) {
+        state.draggedEdgeIndex.takeIf { it >= 0 }
+            ?: state.touchDownEdgeIndex.takeIf { it >= 0 }
+    } else null
+
     val focusPosition = if (quad != null) {
         when {
-            state.draggedCornerIndex >= 0 -> {
-                val corner = when (state.draggedCornerIndex) {
+            activeCornerIndex != null -> {
+                val corner = when (activeCornerIndex) {
                     0 -> quad.topLeft
                     1 -> quad.topRight
                     2 -> quad.bottomRight
@@ -375,8 +436,8 @@ private fun DragMagnifyingGlass(state: EditPageScreenState) {
                     QuadCoordinateUtils.normalizedToScreen(it, containerSize, displaySize)
                 }
             }
-            state.draggedEdgeIndex >= 0 -> {
-                val (p1, p2) = when (state.draggedEdgeIndex) {
+            activeEdgeIndex != null -> {
+                val (p1, p2) = when (activeEdgeIndex) {
                     0 -> quad.topLeft to quad.topRight
                     1 -> quad.topRight to quad.bottomRight
                     2 -> quad.bottomRight to quad.bottomLeft
@@ -395,15 +456,19 @@ private fun DragMagnifyingGlass(state: EditPageScreenState) {
         }
     } else null
 
-    if (focusPosition != null) {
-        MagnifyingGlass(
-            bitmap = bmp,
-            fingerPosition = state.dragPosition!!,
-            focusPosition = focusPosition,
-            containerSize = containerSize,
-            displaySize = displaySize,
-        )
-    }
+    // Keep the last known focus position so it's still valid after endDrag() resets the indices.
+    if (focusPosition != null) lastKnownFocusPosition.value = focusPosition
+    // On the very first touch the drag indices are not set yet and lastKnownFocusPosition
+    // has never been populated, so fall back to dragPosition (the finger is on the handle).
+    val effectiveFocusPosition = focusPosition ?: lastKnownFocusPosition.value ?: state.dragPosition ?: return
+
+    MagnifyingGlass(
+        bitmap = bmp,
+        fingerPosition = state.dragPosition!!,
+        focusPosition = effectiveFocusPosition,
+        containerSize = containerSize,
+        displaySize = displaySize,
+    )
 }
 
 @Composable

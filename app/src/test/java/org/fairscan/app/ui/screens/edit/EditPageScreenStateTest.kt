@@ -14,6 +14,7 @@
  */
 package org.fairscan.app.ui.screens.edit
 
+import androidx.compose.ui.geometry.Offset
 import org.assertj.core.api.Assertions.assertThat
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
@@ -45,6 +46,11 @@ class EditPageScreenStateTest {
         assertThat(state.draggedCornerIndex).isEqualTo(-1)
         assertThat(state.draggedEdgeIndex).isEqualTo(-1)
         assertThat(state.isDragging()).isFalse()
+        // Touch / loupe state
+        assertThat(state.isTouching).isFalse()
+        assertThat(state.touchDownCornerIndex).isEqualTo(-1)
+        assertThat(state.touchDownEdgeIndex).isEqualTo(-1)
+        assertThat(state.dragPosition).isNull()
     }
 
     @Test
@@ -132,5 +138,208 @@ class EditPageScreenStateTest {
         state.endDrag()
         assertThat(state.isDragging()).isFalse()
         assertThat(state.editableQuad).isEqualTo(testQuad)
+    }
+
+    // ── onTouchDown ──────────────────────────────────────────────────────────
+
+    @Test
+    fun onTouchDown_setsIsTouchingAndDragPosition() {
+        val state = EditPageScreenState()
+        val pos = Offset(100f, 200f)
+
+        state.onTouchDown(pos)
+
+        assertThat(state.isTouching).isTrue()
+        assertThat(state.dragPosition).isEqualTo(pos)
+        assertThat(state.touchDownCornerIndex).isEqualTo(-1)
+        assertThat(state.touchDownEdgeIndex).isEqualTo(-1)
+    }
+
+    @Test
+    fun onTouchDown_withCornerIndex_storesCornerIndex() {
+        val state = EditPageScreenState()
+
+        state.onTouchDown(Offset(50f, 50f), cornerIndex = 2)
+
+        assertThat(state.isTouching).isTrue()
+        assertThat(state.touchDownCornerIndex).isEqualTo(2)
+        assertThat(state.touchDownEdgeIndex).isEqualTo(-1)
+    }
+
+    @Test
+    fun onTouchDown_withEdgeIndex_storesEdgeIndex() {
+        val state = EditPageScreenState()
+
+        state.onTouchDown(Offset(50f, 50f), edgeIndex = 3)
+
+        assertThat(state.isTouching).isTrue()
+        assertThat(state.touchDownCornerIndex).isEqualTo(-1)
+        assertThat(state.touchDownEdgeIndex).isEqualTo(3)
+    }
+
+    @Test
+    fun onTouchDown_overwritesPreviousTouchDown() {
+        val state = EditPageScreenState()
+        state.onTouchDown(Offset(10f, 10f), cornerIndex = 0)
+
+        state.onTouchDown(Offset(50f, 50f), cornerIndex = 3)
+
+        assertThat(state.dragPosition).isEqualTo(Offset(50f, 50f))
+        assertThat(state.touchDownCornerIndex).isEqualTo(3)
+    }
+
+    // ── onTouchUp ────────────────────────────────────────────────────────────
+
+    @Test
+    fun onTouchUp_clearsIsTouchingAndTouchDownIndices() {
+        val state = EditPageScreenState()
+        state.onTouchDown(Offset(100f, 200f), cornerIndex = 1)
+
+        state.onTouchUp()
+
+        assertThat(state.isTouching).isFalse()
+        assertThat(state.touchDownCornerIndex).isEqualTo(-1)
+        assertThat(state.touchDownEdgeIndex).isEqualTo(-1)
+    }
+
+    @Test
+    fun onTouchUp_preservesDragPosition() {
+        val state = EditPageScreenState()
+        val pos = Offset(100f, 200f)
+        state.onTouchDown(pos, cornerIndex = 1)
+
+        state.onTouchUp()
+
+        // dragPosition must survive so the loupe can still render during its fade-out delay.
+        assertThat(state.dragPosition).isEqualTo(pos)
+    }
+
+    @Test
+    fun onTouchUp_whenNotTouching_isIdempotent() {
+        val state = EditPageScreenState()
+
+        state.onTouchUp()
+
+        assertThat(state.isTouching).isFalse()
+        assertThat(state.touchDownCornerIndex).isEqualTo(-1)
+        assertThat(state.touchDownEdgeIndex).isEqualTo(-1)
+    }
+
+    // ── endDrag ──────────────────────────────────────────────────────────────
+
+    @Test
+    fun endDrag_preservesDragPosition() {
+        val state = EditPageScreenState()
+        state.setInitialQuad(testQuad)
+        val pos = Offset(100f, 200f)
+        state.onTouchDown(pos, cornerIndex = 0)
+        state.startCornerDrag(0)
+        state.updateQuad(updatedQuad)
+
+        state.endDrag()
+
+        // dragPosition must NOT be nulled so the loupe stays visible during the 1 s fade-out.
+        assertThat(state.dragPosition).isEqualTo(pos)
+        assertThat(state.draggedCornerIndex).isEqualTo(-1)
+        assertThat(state.draggedEdgeIndex).isEqualTo(-1)
+    }
+
+    @Test
+    fun endDrag_doesNotResetTouchDownIndices() {
+        val state = EditPageScreenState()
+        state.setInitialQuad(testQuad)
+        state.onTouchDown(Offset(100f, 200f), cornerIndex = 2)
+        state.startCornerDrag(2)
+
+        state.endDrag()
+
+        // touchDownCornerIndex is owned by onTouchUp(), not endDrag().
+        assertThat(state.touchDownCornerIndex).isEqualTo(2)
+        assertThat(state.touchDownEdgeIndex).isEqualTo(-1)
+    }
+
+    // ── full interaction cycles ───────────────────────────────────────────────
+
+    @Test
+    fun tapCycle_leavesStateConsistent() {
+        val state = EditPageScreenState()
+        val pos = Offset(100f, 200f)
+
+        state.onTouchDown(pos, cornerIndex = 3)
+        assertThat(state.isTouching).isTrue()
+        assertThat(state.touchDownCornerIndex).isEqualTo(3)
+
+        state.onTouchUp()
+
+        assertThat(state.isTouching).isFalse()
+        assertThat(state.touchDownCornerIndex).isEqualTo(-1)
+        assertThat(state.touchDownEdgeIndex).isEqualTo(-1)
+        assertThat(state.dragPosition).isEqualTo(pos)   // preserved for loupe fade-out
+        assertThat(state.isDragging()).isFalse()
+    }
+
+    @Test
+    fun dragCycle_corner_leavesStateConsistent() {
+        val state = EditPageScreenState()
+        state.setInitialQuad(testQuad)
+        val pos = Offset(100f, 200f)
+
+        state.onTouchDown(pos, cornerIndex = 1)
+        state.startCornerDrag(1)
+        assertThat(state.isDragging()).isTrue()
+        assertThat(state.isTouching).isTrue()
+        assertThat(state.draggedCornerIndex).isEqualTo(1)
+        assertThat(state.touchDownCornerIndex).isEqualTo(1)
+
+        state.updateQuad(updatedQuad)
+        state.endDrag()
+        state.onTouchUp()
+
+        assertThat(state.isDragging()).isFalse()
+        assertThat(state.isTouching).isFalse()
+        assertThat(state.draggedCornerIndex).isEqualTo(-1)
+        assertThat(state.touchDownCornerIndex).isEqualTo(-1)
+        assertThat(state.touchDownEdgeIndex).isEqualTo(-1)
+        assertThat(state.dragPosition).isEqualTo(pos)   // preserved for loupe fade-out
+        assertThat(state.editableQuad).isEqualTo(updatedQuad)
+        assertThat(state.history.canUndo).isTrue()
+    }
+
+    @Test
+    fun dragCycle_edge_leavesStateConsistent() {
+        val state = EditPageScreenState()
+        state.setInitialQuad(testQuad)
+        val pos = Offset(150f, 80f)
+
+        state.onTouchDown(pos, edgeIndex = 0)
+        state.startEdgeDrag(0)
+        assertThat(state.isDragging()).isTrue()
+        assertThat(state.touchDownEdgeIndex).isEqualTo(0)
+
+        state.updateQuad(updatedQuad)
+        state.endDrag()
+        state.onTouchUp()
+
+        assertThat(state.isDragging()).isFalse()
+        assertThat(state.isTouching).isFalse()
+        assertThat(state.touchDownEdgeIndex).isEqualTo(-1)
+        assertThat(state.dragPosition).isEqualTo(pos)
+    }
+
+    @Test
+    fun consecutiveTaps_eachSetsCorrectTouchDownIndex() {
+        val state = EditPageScreenState()
+
+        state.onTouchDown(Offset(10f, 10f), cornerIndex = 0)
+        assertThat(state.touchDownCornerIndex).isEqualTo(0)
+        state.onTouchUp()
+
+        state.onTouchDown(Offset(90f, 10f), cornerIndex = 1)
+        assertThat(state.touchDownCornerIndex).isEqualTo(1)
+        state.onTouchUp()
+
+        state.onTouchDown(Offset(90f, 90f), cornerIndex = 2)
+        assertThat(state.touchDownCornerIndex).isEqualTo(2)
+        state.onTouchUp()
     }
 }

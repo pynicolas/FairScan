@@ -29,6 +29,15 @@ class EditPageScreenState {
     var draggedCornerIndex by mutableIntStateOf(-1)
     var draggedEdgeIndex by mutableIntStateOf(-1)
     var dragPosition by mutableStateOf<Offset?>(null)
+    /** True from the moment the finger touches a drag handle until it is lifted. */
+    var isTouching by mutableStateOf(false)
+    /**
+     * Corner / edge index detected at the raw touch-down (before touch-slop).
+     * Carried into [startCornerDrag] / [startEdgeDrag] so that the slop-adjusted
+     * position in onDragStart cannot miss the handle.
+     */
+    var touchDownCornerIndex by mutableIntStateOf(-1)
+    var touchDownEdgeIndex by mutableIntStateOf(-1)
 
     val history = QuadEditingHistory()
     private var quadBeforeDrag: Quad? = null
@@ -62,7 +71,29 @@ class EditPageScreenState {
         quadBeforeDrag = null
         draggedCornerIndex = -1
         draggedEdgeIndex = -1
-        dragPosition = null
+        // dragPosition is intentionally kept so the loupe can still render
+        // during its 1-second fade-out after the finger is lifted.
+    }
+
+    /**
+     * Called as soon as the finger touches a drag handle (before touch-slop),
+     * so the loupe is shown immediately.
+     * [cornerIndex] / [edgeIndex] are the handle indices found at the exact
+     * touch position; they are stored so that [onDragStart] can use them even
+     * if the slop-adjusted position drifts outside the hit-test radius.
+     */
+    fun onTouchDown(position: Offset, cornerIndex: Int = -1, edgeIndex: Int = -1) {
+        isTouching = true
+        dragPosition = position
+        touchDownCornerIndex = cornerIndex
+        touchDownEdgeIndex = edgeIndex
+    }
+
+    /** Called when the finger is lifted; triggers the loupe fade-out delay. */
+    fun onTouchUp() {
+        isTouching = false
+        touchDownCornerIndex = -1
+        touchDownEdgeIndex = -1
     }
 
     fun undo() {
