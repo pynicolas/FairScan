@@ -170,13 +170,12 @@ class ImageRepository(
         saveMetadata()
     }
 
-    fun jpegBytes(key: PageViewKey): ByteArray? = runBlocking(Dispatchers.IO) {
+    suspend fun jpegBytes(key: PageViewKey): ByteArray? =
         getOrCompute(imageCache, key, ::computeProcessedImage)
-    }
 
-    fun getThumbnail(key: PageViewKey): ByteArray? = runBlocking(Dispatchers.IO) {
+
+    suspend fun getThumbnail(key: PageViewKey): ByteArray? =
         getOrCompute(thumbnailCache, key, ::computeThumbnail)
-    }
 
     // --- Cache compute functions ---
 
