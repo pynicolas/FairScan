@@ -18,7 +18,7 @@ package org.fairscan.app.domain
 import kotlinx.coroutines.Deferred
 
 data class CapturedPage(
-    val pageJpeg: ByteArray,
-    val sourceJpeg: Deferred<ByteArray>,
+    val pageJpeg: Jpeg,
+    val sourceJpeg: Deferred<Jpeg>,
     val metadata: PageMetadata,
 )

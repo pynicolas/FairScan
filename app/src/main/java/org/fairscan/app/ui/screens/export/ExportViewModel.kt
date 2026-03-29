@@ -176,7 +176,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         preparationDir.mkdirs()
         val files = jpegs.mapIndexed { index, jpeg ->
             val file = File(preparationDir, "$timestamp-${index + 1}.jpg")
-            file.writeBytes(jpeg.get())
+            file.writeBytes(jpeg.get().bytes)
             file
         }.toList()
         val sizeInBytes = files.sumOf { it.length() }

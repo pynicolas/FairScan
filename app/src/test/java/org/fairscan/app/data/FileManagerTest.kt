@@ -16,6 +16,7 @@ package org.fairscan.app.data
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.JpegProvider
 import org.junit.Test
 import java.io.File
@@ -74,12 +75,12 @@ class FileManagerTest {
         val fakePdfWriter = object : PdfWriter {
             override suspend fun writePdfFromJpegs(jpegs: List<JpegProvider>, outputStream: OutputStream): Int {
                 val list = jpegs.toList()
-                list.forEach { bytes -> outputStream.write(bytes.get()) }
+                list.forEach { bytes -> outputStream.write(bytes.get().bytes) }
                 return list.size
             }
         }
         val manager = FileManager(pdfDir, externalDir, fakePdfWriter)
-        val jpegs = listOf(byteArrayOf(0x01, 0x02), byteArrayOf(0x11)).map { JpegProvider { it } }
+        val jpegs = listOf(byteArrayOf(0x01, 0x02), byteArrayOf(0x11)).map { JpegProvider { Jpeg(it) } }
         val pdf = manager.generatePdf(jpegs)
         assertThat(pdf.pageCount).isEqualTo(2)
         assertThat(pdf.sizeInBytes).isEqualTo(3)

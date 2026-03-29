@@ -32,13 +32,13 @@ import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.ExportQuality
+import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.Rotation
 import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
-import org.fairscan.imageprocessing.encodeJpeg
 import org.fairscan.imageprocessing.extractDocument
 import org.fairscan.imageprocessing.isColoredDocument
 import org.fairscan.imageprocessing.scaledTo
@@ -197,14 +197,14 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     }
 }
 
-private fun compressJpeg(bitmap: Bitmap, quality: Int): ByteArray {
+private fun compressJpeg(bitmap: Bitmap, quality: Int): Jpeg {
     val rgba = Mat()
     Utils.bitmapToMat(bitmap, rgba)
     val bgr = Mat()
     Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR)
     rgba.release()
     return try {
-        encodeJpeg(bgr, quality)
+        Jpeg.fromMat(bgr, quality)
     } finally {
         bgr.release()
     }
@@ -233,7 +233,7 @@ fun extractDocumentFromBitmap(
     val isColored = isColoredDocument(bgr, mask, quad)
     val maxPixels = ExportQuality.BALANCED.maxPixels
     val page = extractDocument(bgr, quad, rotationDegrees, isColored, maxPixels)
-    val pageJpeg = encodeJpeg(page, ExportQuality.BALANCED.jpegQuality)
+    val pageJpeg = Jpeg.fromMat(page, ExportQuality.BALANCED.jpegQuality)
     bgr.release()
     page.release()
 
