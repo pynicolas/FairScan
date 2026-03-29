@@ -25,11 +25,15 @@ import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 import kotlin.math.min
 
-fun enhanceCapturedImage(img: Mat, isColored: Boolean): Mat {
-    return if (isColored) {
-        multiScaleRetinexOnL(img)
-    } else {
-        enhanceGrayscaleImage(img)
+enum class ColorMode {
+    COLOR,
+    GRAYSCALE,
+}
+
+fun enhanceCapturedImage(img: Mat, colorMode: ColorMode): Mat {
+    return when (colorMode) {
+        ColorMode.COLOR -> multiScaleRetinexOnL(img)
+        ColorMode.GRAYSCALE -> enhanceGrayscaleImage(img)
     }
 }
 

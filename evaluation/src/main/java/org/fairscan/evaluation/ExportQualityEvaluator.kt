@@ -16,7 +16,7 @@ package org.fairscan.evaluation
 
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.extractDocument
-import org.fairscan.imageprocessing.isColoredDocument
+import org.fairscan.imageprocessing.autoColorMode
 import org.fairscan.imageprocessing.scaledTo
 import org.fairscan.imageprocessing.toImageSize
 import org.opencv.core.MatOfInt
@@ -65,13 +65,13 @@ object ExportQualityEvaluator {
                 continue
             }
 
-            val isColored = isColoredDocument(sourceMat, mask, quad)
+            val colorMode = autoColorMode(sourceMat, mask, quad)
 
             for (quality in qualities) {
 
                 for (maxPixels in maxPixelsList) {
                     val outputMat =
-                        extractDocument(sourceMat, quad, 0, isColored, maxPixels.toLong())
+                        extractDocument(sourceMat, quad, 0, colorMode, maxPixels.toLong())
 
                     val outputFile = File(outputDir, "$imgName-$quality-$maxPixels.jpg")
                     val params = MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, quality)

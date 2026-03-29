@@ -33,6 +33,7 @@ import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.Rotation
 import org.fairscan.app.domain.ScanPage
+import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import java.io.File
@@ -151,7 +152,7 @@ class ImageRepository(
                     quad = metadata.normalizedQuad.toSerializable(),
                     baseRotationDegrees = metadata.baseRotation.degrees,
                     manualRotationDegrees = Rotation.R0.degrees,
-                    isColored = metadata.isColored
+                    isColored = metadata.autoColorMode == ColorMode.COLOR
                 )
             )
             saveMetadata()
@@ -313,6 +314,6 @@ fun PageV2.toMetadata(): PageMetadata? {
     return PageMetadata(
         quad.toQuad(),
         Rotation.fromDegrees(baseRotationDegrees),
-        isColored
+        if (isColored) ColorMode.COLOR else ColorMode.GRAYSCALE
     )
 }

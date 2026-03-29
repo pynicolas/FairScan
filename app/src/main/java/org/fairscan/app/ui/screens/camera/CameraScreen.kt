@@ -104,6 +104,7 @@ import org.fairscan.app.ui.components.pageCountText
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.fakeDocument
 import org.fairscan.app.ui.theme.FairScanTheme
+import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 
@@ -539,7 +540,7 @@ fun CameraScreenPreviewWithProcessedImage() {
         CapturedPage(
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
             CompletableDeferred(Jpeg(ByteArray(0))),
-            PageMetadata(quad, R0, false))))
+            PageMetadata(quad, R0, ColorMode.COLOR))))
 }
 
 @Preview(showBackground = true, widthDp = 640, heightDp = 320)

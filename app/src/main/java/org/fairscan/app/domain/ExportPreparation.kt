@@ -98,7 +98,7 @@ private fun prepareJpegForHigh(
             decoded,
             quad,
             pageMetadata.baseRotation.add(manualRotation).degrees,
-            pageMetadata.isColored,
+            pageMetadata.autoColorMode,
             exportQuality.maxPixels
         )
         return Jpeg.fromMat(page, exportQuality.jpegQuality)

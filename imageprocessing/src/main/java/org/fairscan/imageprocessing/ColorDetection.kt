@@ -26,7 +26,7 @@ import org.opencv.imgproc.Imgproc
 import org.opencv.imgproc.Imgproc.fillConvexPoly
 import kotlin.math.roundToInt
 
-fun isColoredDocument(
+fun autoColorMode(
     img: Mat,
     mask: Mask,
     quad: Quad,
@@ -34,7 +34,7 @@ fun isColoredDocument(
     proportionThreshold: Double = 0.0003,
     luminanceMin: Double = 40.0,
     luminanceMax: Double = 180.0
-): Boolean {
+): ColorMode {
 
     // Work on a reasonable size (for correct performance)
     val resizedImg = resizeForMaxPixels(img, 1024.0 * 768.0)
@@ -90,10 +90,13 @@ fun isColoredDocument(
     restrictedMask.release()
     docMask.release()
 
-    if (totalPixels == 0) return false
+    if (totalPixels == 0) return ColorMode.GRAYSCALE
 
     val proportion = coloredPixels.toDouble() / totalPixels.toDouble()
-    return proportion > proportionThreshold
+    return if (proportion > proportionThreshold)
+        ColorMode.COLOR
+    else
+        ColorMode.GRAYSCALE
 }
 
 private fun chroma(a: Mat, b: Mat): Mat {

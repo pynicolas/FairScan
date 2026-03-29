@@ -40,7 +40,7 @@ import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.extractDocument
-import org.fairscan.imageprocessing.isColoredDocument
+import org.fairscan.imageprocessing.autoColorMode
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.android.Utils
 import org.opencv.core.Mat
@@ -230,16 +230,16 @@ fun extractDocumentFromBitmap(
     val bgr = Mat()
     Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR) // CV_8UC4 → CV_8UC3
     rgba.release()
-    val isColored = isColoredDocument(bgr, mask, quad)
+    val colorMode = autoColorMode(bgr, mask, quad)
     val maxPixels = ExportQuality.BALANCED.maxPixels
-    val page = extractDocument(bgr, quad, rotationDegrees, isColored, maxPixels)
+    val page = extractDocument(bgr, quad, rotationDegrees, colorMode, maxPixels)
     val pageJpeg = Jpeg.fromMat(page, ExportQuality.BALANCED.jpegQuality)
     bgr.release()
     page.release()
 
     val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
     val baseRotation = Rotation.fromDegrees(rotationDegrees)
-    val metadata = PageMetadata(normalizedQuad, baseRotation, isColored)
+    val metadata = PageMetadata(normalizedQuad, baseRotation, colorMode)
     val sourceJpegDeferred = viewModelScope.async(Dispatchers.IO) {
         compressJpeg(source, 90)
     }

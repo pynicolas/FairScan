@@ -17,7 +17,7 @@ package org.fairscan.evaluation
 import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.extractDocument
-import org.fairscan.imageprocessing.isColoredDocument
+import org.fairscan.imageprocessing.autoColorMode
 import org.fairscan.imageprocessing.scaledTo
 import org.fairscan.imageprocessing.toImageSize
 import org.opencv.core.Mat
@@ -74,8 +74,8 @@ object DatasetEvaluator {
                 ?.scaledTo(mask.width, mask.height, inputMat.width(), inputMat.height())
 
             val corrected: Mat? = if (quad != null) {
-                val isColored = isColoredDocument(inputMat, mask, quad)
-                extractDocument(inputMat, quad = quad, rotationDegrees = 0, isColored, 2_000_000)
+                val colorMode = autoColorMode(inputMat, mask, quad)
+                extractDocument(inputMat, quad = quad, rotationDegrees = 0, colorMode, 2_000_000)
             } else null
 
             val inputOut = File(outputDir, "${e.name}_input.jpg")

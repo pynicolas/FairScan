@@ -14,12 +14,13 @@
  */
 package org.fairscan.app.domain
 
+import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.Quad
 
 data class PageMetadata(
     val normalizedQuad: Quad,
     val baseRotation: Rotation,
-    val isColored: Boolean,
+    val autoColorMode: ColorMode,
 )
 
 data class ScanPage(
