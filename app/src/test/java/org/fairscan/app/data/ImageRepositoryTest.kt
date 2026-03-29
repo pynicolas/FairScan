@@ -26,6 +26,7 @@ import org.fairscan.app.domain.Rotation.R0
 import org.fairscan.app.domain.Rotation.R180
 import org.fairscan.app.domain.Rotation.R270
 import org.fairscan.app.domain.Rotation.R90
+import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.junit.Rule
@@ -43,7 +44,7 @@ class ImageRepositoryTest {
     private val testScope = TestScope()
 
     val quad1 = Quad(Point(.01, .02), Point(.1, .03), Point(.11, .12), Point(.03, .09))
-    val metadata1 = PageMetadata(quad1, R90, true)
+    val metadata1 = PageMetadata(quad1, R90, ColorMode.COLOR)
 
     fun getFilesDir(): File {
         if (_filesDir == null) {
@@ -83,7 +84,7 @@ class ImageRepositoryTest {
         assertThat(metadata).isNotNull()
         assertThat(metadata!!.normalizedQuad).isEqualTo(quad1)
         assertThat(metadata.baseRotation).isEqualTo(metadata1.baseRotation)
-        assertThat(metadata.isColored).isEqualTo(metadata1.isColored)
+        assertThat(metadata.autoColorMode).isEqualTo(metadata1.autoColorMode)
     }
 
     @Test
@@ -253,7 +254,9 @@ class ImageRepositoryTest {
         listOf(true, false).forEach { isColored ->
             val metadata = PageV2("1", 0, 0, quad, isColored).toMetadata()
             assertThat(metadata).isNotNull()
-            assertThat(metadata!!.isColored).isEqualTo(isColored)
+            assertThat(metadata!!.autoColorMode).isEqualTo(
+                if (isColored) ColorMode.COLOR else ColorMode.GRAYSCALE
+            )
         }
     }
 

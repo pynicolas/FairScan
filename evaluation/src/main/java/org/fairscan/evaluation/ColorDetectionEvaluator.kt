@@ -14,9 +14,10 @@
  */
 package org.fairscan.evaluation
 
+import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.extractDocument
-import org.fairscan.imageprocessing.isColoredDocument
+import org.fairscan.imageprocessing.autoColorMode
 import org.fairscan.imageprocessing.scaledTo
 import org.fairscan.imageprocessing.toImageSize
 import org.opencv.imgcodecs.Imgcodecs
@@ -62,10 +63,10 @@ object ColorDetectionEvaluator {
                 ?.scaledTo(mask.width, mask.height, mat.width(), mat.height())
 
             if (quad == null) continue
-            val isColored = isColoredDocument(mat, mask, quad)
-            val extracted = extractDocument(mat, quad, 0, isColored, 2_000_000)
+            val colorMode = autoColorMode(mat, mask, quad)
+            val extracted = extractDocument(mat, quad, 0, colorMode, 2_000_000)
 
-            val detected = isColored
+            val detected = colorMode == ColorMode.COLOR
 
             nbProcessedImages++
 
