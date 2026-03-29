@@ -33,7 +33,7 @@ class AndroidPdfWriter : PdfWriter {
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
             for (jpegBytes in jpegs) {
-                val image = JPEGFactory.createFromByteArray(document, jpegBytes.get())
+                val image = JPEGFactory.createFromByteArray(document, jpegBytes.get().bytes)
                 val page = PDPage(PDRectangle(image.width.toFloat(), image.height.toFloat()))
                 document.addPage(page)
                 val contentStream = PDPageContentStream(document, page, AppendMode.OVERWRITE, false)

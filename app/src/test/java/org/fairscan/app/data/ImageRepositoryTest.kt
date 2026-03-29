@@ -19,6 +19,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.Rotation.R0
@@ -53,11 +54,11 @@ class ImageRepositoryTest {
 
     fun repo(): ImageRepository {
         val transformations = object : ImageTransformations {
-            override fun rotate(input: ByteArray, rotationDegrees: Int, jpegQuality: Int): ByteArray {
+            override fun rotate(input: Jpeg, rotationDegrees: Int, jpegQuality: Int): Jpeg {
                 return input
             }
-            override fun resize(input: ByteArray, maxSize: Int): ByteArray {
-                return byteArrayOf(input[0])
+            override fun resize(input: Jpeg, maxSize: Int): Jpeg {
+                return jpeg(input.bytes[0])
             }
         }
         return ImageRepository(getFilesDir(), transformations, 200, testScope)
@@ -67,13 +68,13 @@ class ImageRepositoryTest {
     fun add_image() = runTest {
         val repo = repo()
         assertThat(repo.imageIds()).isEmpty()
-        val bytes = byteArrayOf(101, 102, 103)
-        repo.add(bytes, byteArrayOf(51), metadata1)
+        val jpeg = jpeg(101, 102, 103)
+        repo.add(jpeg, jpeg(51), metadata1)
         assertThat(repo.imageIds()).hasSize(1)
         val id = repo.imageIds()[0]
         val key = PageViewKey(id, R0)
-        assertThat(repo.jpegBytes(key)).isEqualTo(bytes)
-        assertThat(repo.getThumbnail(key)).isEqualTo(byteArrayOf(101))
+        assertThat(repo.jpegBytes(key)).isEqualTo(jpeg)
+        assertThat(repo.getThumbnail(key)?.bytes).isEqualTo(byteArrayOf(101))
 
         val page = repo.pages().first()
         assertThat(page.id).isEqualTo(id)
@@ -88,8 +89,8 @@ class ImageRepositoryTest {
     @Test
     fun delete_image() = runTest {
         val repo = repo()
-        val bytes = byteArrayOf(101, 102, 103)
-        repo.add(bytes, byteArrayOf(51), metadata1)
+        val jpeg = jpeg(101, 102, 103)
+        repo.add(jpeg, jpeg(51), metadata1)
         assertThat(jpegFiles(processedDir())).hasSize(1)
         assertThat(jpegFiles(sourceDir())).hasSize(1)
         assertThat(repo.imageIds()).hasSize(1)
@@ -138,7 +139,7 @@ class ImageRepositoryTest {
         File(processedDir(), "1-90.jpg").writeBytes(bytes)
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("1")
-        assertThat(repo.jpegBytes(PageViewKey("1", R0))).isEqualTo(bytes)
+        assertThat(repo.jpegBytes(PageViewKey("1", R0))?.bytes).isEqualTo(bytes)
     }
 
     @Test
@@ -167,7 +168,7 @@ class ImageRepositoryTest {
         File(processedDir(), "1-90.jpg").writeBytes(bytes)
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("1")
-        assertThat(repo.jpegBytes(PageViewKey("1", R0))).isEqualTo(bytes)
+        assertThat(repo.jpegBytes(PageViewKey("1", R0))?.bytes).isEqualTo(bytes)
     }
 
     @Test
@@ -179,9 +180,9 @@ class ImageRepositoryTest {
 
     @Test
     fun `clear should delete pages`() = runTest {
-        val bytes = byteArrayOf(101, 102, 103)
+        val jpeg = jpeg(101, 102, 103)
         val repo1 = repo()
-        repo1.add(bytes, byteArrayOf(51), metadata1)
+        repo1.add(jpeg, jpeg(51), metadata1)
         assertThat(repo1.imageIds()).isNotEmpty()
         repo1.clear()
         assertThat(repo1.imageIds()).isEmpty()
@@ -194,7 +195,7 @@ class ImageRepositoryTest {
     @Test
     fun rotate() = runTest {
         val repo = repo()
-        repo.add(byteArrayOf(101, 102, 103), byteArrayOf(51), metadata1)
+        repo.add(jpeg(101, 102, 103), jpeg(51), metadata1)
         assertThat(repo.pages().last().metadata).isEqualTo(metadata1)
         val id = repo.pages().last().id
         repo.rotate(id, true)
@@ -223,9 +224,9 @@ class ImageRepositoryTest {
     @Test
     fun movePage() = runTest {
         val repo = repo()
-        repo.add(byteArrayOf(101), byteArrayOf(51), metadata1)
+        repo.add(jpeg(101), jpeg(51), metadata1)
         Thread.sleep(1L) // to avoid file name clashes
-        repo.add(byteArrayOf(110), byteArrayOf(51), metadata1)
+        repo.add(jpeg(110), jpeg(51), metadata1)
         val id0 = repo.imageIds().first()
         val id1 = repo.imageIds().last()
         repo.movePage(id1, 0)
@@ -275,10 +276,10 @@ class ImageRepositoryTest {
     fun last_added_source_file() = runTest {
         val repo = repo()
         assertThat(repo.lastAddedSourceFile()).isNull()
-        repo.add(byteArrayOf(101), byteArrayOf(51), metadata1)
+        repo.add(jpeg(101), jpeg(51), metadata1)
         assertThat(repo.lastAddedSourceFile()).hasBinaryContent(byteArrayOf(51))
         Thread.sleep(1)
-        repo.add(byteArrayOf(102), byteArrayOf(52), metadata1)
+        repo.add(jpeg(102), jpeg(52), metadata1)
         assertThat(repo.lastAddedSourceFile()).hasBinaryContent(byteArrayOf(52))
 
         val id = repo.imageIds().last()
@@ -307,4 +308,6 @@ class ImageRepositoryTest {
 
     suspend fun ImageRepository.imageIds(): PersistentList<String> =
         pages().map { it.id }.toPersistentList()
+
+    private fun jpeg(vararg bytes: Byte) = Jpeg(bytes)
 }

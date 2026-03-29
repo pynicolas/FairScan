@@ -12,14 +12,18 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.data
+package org.fairscan.app.domain
 
-import org.fairscan.app.domain.Jpeg
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import org.fairscan.imageprocessing.decodeJpeg
+import org.fairscan.imageprocessing.encodeJpeg
+import org.opencv.core.Mat
 
-interface ImageTransformations {
-
-    fun rotate(input: Jpeg, rotationDegrees: Int, jpegQuality: Int): Jpeg
-
-    fun resize(input: Jpeg, maxSize: Int): Jpeg
-
+class Jpeg(val bytes: ByteArray) {
+    companion object {
+        fun fromMat(mat: Mat, jpegQuality: Int): Jpeg = Jpeg(encodeJpeg(mat, jpegQuality))
+    }
+    fun toBitmap() : Bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    fun toMat() : Mat = decodeJpeg(bytes)
 }

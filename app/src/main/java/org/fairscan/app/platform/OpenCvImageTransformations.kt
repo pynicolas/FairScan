@@ -15,8 +15,7 @@
 package org.fairscan.app.platform
 
 import org.fairscan.app.data.ImageTransformations
-import org.fairscan.imageprocessing.decodeJpeg
-import org.fairscan.imageprocessing.encodeJpeg
+import org.fairscan.app.domain.Jpeg
 import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
@@ -25,16 +24,16 @@ import kotlin.math.min
 class OpenCvTransformations : ImageTransformations {
 
     override fun rotate(
-        input: ByteArray,
+        input: Jpeg,
         rotationDegrees: Int,
         jpegQuality: Int
-    ): ByteArray {
+    ): Jpeg {
         return transform(input, jpegQuality) {
             org.fairscan.imageprocessing.rotate(it, rotationDegrees)
         }
     }
 
-    override fun resize(input: ByteArray, maxSize: Int): ByteArray {
+    override fun resize(input: Jpeg, maxSize: Int): Jpeg {
         return transform(input, 85) { src ->
             val ratio = min(maxSize.toFloat() / src.width(), maxSize.toFloat() / src.height())
             val newW = (src.width() * ratio).toDouble()
@@ -46,15 +45,15 @@ class OpenCvTransformations : ImageTransformations {
     }
 
     private fun transform(
-        inBytes: ByteArray,
+        inJpeg: Jpeg,
         jpegQuality: Int,
         transform: (Mat) -> Mat,
-    ): ByteArray {
-        val input = decodeJpeg(inBytes)
+    ): Jpeg {
+        val input = inJpeg.toMat()
         var output: Mat? = null
         try {
             output = transform.invoke(input)
-            return encodeJpeg(output, jpegQuality)
+            return Jpeg.fromMat(output, jpegQuality)
         } finally {
             input.release()
             output?.release()

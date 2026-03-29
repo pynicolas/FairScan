@@ -145,9 +145,6 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         }
     }
 
-    private fun ByteArray.toBitmap() : Bitmap =
-        BitmapFactory.decodeByteArray(this, 0, this.size)
-
     fun handleImageCaptured(capturedPage: CapturedPage) {
         viewModelScope.launch {
             val pages = withContext(Dispatchers.IO) {

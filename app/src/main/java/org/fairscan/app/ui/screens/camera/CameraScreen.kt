@@ -91,6 +91,7 @@ import kotlinx.coroutines.delay
 import org.fairscan.app.MainViewModel
 import org.fairscan.app.R
 import org.fairscan.app.domain.CapturedPage
+import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.Rotation.R0
 import org.fairscan.app.ui.Navigation
@@ -286,7 +287,7 @@ private fun CameraScreenScaffold(
             )
         }
         if (cameraUiState.captureState is CaptureState.CapturePreview) {
-            val page = bitmap(cameraUiState.captureState.capturedPage.pageJpeg)
+            val page = cameraUiState.captureState.capturedPage.pageJpeg.toBitmap()
             CapturedImage(page.asImageBitmap(), thumbnailCoords)
         }
     }
@@ -534,10 +535,10 @@ fun CameraScreenPreviewWithProcessedImage() {
     val p = Point(0 , 0)
     val quad = Quad(p, p, p, p)
     ScreenPreview(CaptureState.CapturePreview(
-        bitmap(debugImage("uncropped/img01.jpg")),
+        debugImage("uncropped/img01.jpg").toBitmap(),
         CapturedPage(
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
-            CompletableDeferred(ByteArray(0)),
+            CompletableDeferred(Jpeg(ByteArray(0))),
             PageMetadata(quad, R0, false))))
 }
 
@@ -560,7 +561,7 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
                     contentAlignment = Alignment.TopCenter
                 ) {
                     Image(
-                        bitmap(debugImage("uncropped/img01.jpg")).asImageBitmap(),
+                        debugImage("uncropped/img01.jpg").toBitmap().asImageBitmap(),
                         modifier=Modifier.rotate(rotationDegrees),
                         contentDescription = null
                     )
@@ -592,9 +593,7 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
 }
 
 @Composable
-private fun debugImage(imgName: String): ByteArray {
+private fun debugImage(imgName: String): Jpeg {
     val context = LocalContext.current
-    return context.assets.open(imgName).readBytes()
+    return Jpeg(context.assets.open(imgName).readBytes())
 }
-
-private fun bitmap(jpeg: ByteArray): Bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size)

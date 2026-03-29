@@ -51,7 +51,7 @@ class DocumentDetectionTest {
         listOf("img01.jpg", "img02.jpg", "img03.jpg").forEach { imageFileName ->
             val inputStream = context.assets.open("uncropped/$imageFileName")
             val bitmap = BitmapFactory.decodeStream(inputStream)
-            var outputJpeg: ByteArray? = null
+            var outputJpeg: Jpeg? = null
 
             val segmentationResult = runBlocking {
                 segmentationService.runSegmentationAndReturn(bitmap)
@@ -64,7 +64,7 @@ class DocumentDetectionTest {
                         quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
                     outputJpeg = extractDocumentFromBitmap(bitmap, resizedQuad, 0, mask, scope).pageJpeg
                     val file = File(context.getExternalFilesDir(null), imageFileName)
-                    file.writeBytes(outputJpeg)
+                    file.writeBytes(outputJpeg.bytes)
                     Log.i("DocumentDetectionTest", "Image saved to ${file.absolutePath}")
                 }
             }

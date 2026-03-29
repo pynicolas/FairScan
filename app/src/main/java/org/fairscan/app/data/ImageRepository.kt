@@ -19,7 +19,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -29,6 +28,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.fairscan.app.domain.ExportQuality
+import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.Rotation
@@ -64,8 +64,8 @@ class ImageRepository(
     private val json = Json { prettyPrint = false; encodeDefaults = true }
     private var pages: PageStore = PageStore(loadPages())
 
-    private val imageCache = createLruCache<PageViewKey, Deferred<ByteArray?>>(maxEntries = 50)
-    private val thumbnailCache = createLruCache<PageViewKey, Deferred<ByteArray?>>(maxEntries = 200)
+    private val imageCache = createLruCache<PageViewKey, Deferred<Jpeg?>>(maxEntries = 50)
+    private val thumbnailCache = createLruCache<PageViewKey, Deferred<Jpeg?>>(maxEntries = 200)
 
     private fun <K, V> createLruCache(maxEntries: Int): MutableMap<K, V> =
         Collections.synchronizedMap(object : LinkedHashMap<K, V>(16, 0.75f, true) {
@@ -139,12 +139,12 @@ class ImageRepository(
         }
     }
 
-    suspend fun add(pageBytes: ByteArray, sourceBytes: ByteArray, metadata: PageMetadata) =
+    suspend fun add(processed: Jpeg, source: Jpeg, metadata: PageMetadata) =
         mutex.withLock {
             val id = "${System.currentTimeMillis()}"
             val fileName = "$id.jpg"
-            File(processedDir, fileName).writeBytes(pageBytes)
-            File(sourceDir, fileName).writeBytes(sourceBytes)
+            File(processedDir, fileName).writeBytes(processed.bytes)
+            File(sourceDir, fileName).writeBytes(source.bytes)
             pages.addOrReplace(
                 PageV2(
                     id = id,
@@ -157,7 +157,7 @@ class ImageRepository(
             saveMetadata()
             // Pre-populate cache for R0
             val key = PageViewKey(id, Rotation.R0)
-            imageCache.put(key, CompletableDeferred(pageBytes))
+            imageCache.put(key, CompletableDeferred(processed))
         }
 
     suspend fun rotate(id: String, clockwise: Boolean) = mutex.withLock {
@@ -170,20 +170,20 @@ class ImageRepository(
         saveMetadata()
     }
 
-    suspend fun jpegBytes(key: PageViewKey): ByteArray? =
+    suspend fun jpegBytes(key: PageViewKey): Jpeg? =
         getOrCompute(imageCache, key, ::computeProcessedImage)
 
 
-    suspend fun getThumbnail(key: PageViewKey): ByteArray? =
+    suspend fun getThumbnail(key: PageViewKey): Jpeg? =
         getOrCompute(thumbnailCache, key, ::computeThumbnail)
 
     // --- Cache compute functions ---
 
     private suspend fun getOrCompute(
-        cache: MutableMap<PageViewKey, Deferred<ByteArray?>>,
+        cache: MutableMap<PageViewKey, Deferred<Jpeg?>>,
         key: PageViewKey,
-        compute: suspend (PageViewKey) -> ByteArray?
-    ): ByteArray? {
+        compute: suspend (PageViewKey) -> Jpeg?
+    ): Jpeg? {
         val deferred = cache.computeIfAbsent(key) { k ->
             scope.async(Dispatchers.IO) { compute(k) }
         }
@@ -195,32 +195,33 @@ class ImageRepository(
         }
     }
 
-    private suspend fun computeProcessedImage(key: PageViewKey): ByteArray? =
+    private suspend fun computeProcessedImage(key: PageViewKey): Jpeg? =
         withContext(Dispatchers.IO) {
             val baseFile = File(processedDir, "${key.pageId}.jpg")
             if (!baseFile.exists()) return@withContext null
+            val baseJpeg = Jpeg(baseFile.readBytes())
             if (key.rotation == Rotation.R0) {
-                baseFile.readBytes()
+                baseJpeg
             } else {
                 transformations.rotate(
-                    baseFile.readBytes(),
+                    baseJpeg,
                     key.rotation.degrees,
                     ExportQuality.BALANCED.jpegQuality)
             }
         }
 
-    private suspend fun computeThumbnail(key: PageViewKey): ByteArray? =
+    private suspend fun computeThumbnail(key: PageViewKey): Jpeg? =
         withContext(Dispatchers.IO) {
-            val imageBytes = getOrCompute(imageCache, key, ::computeProcessedImage)
+            val processed = getOrCompute(imageCache, key, ::computeProcessedImage)
                 ?: return@withContext null
-            transformations.resize(imageBytes, thumbnailSizePx)
+            transformations.resize(processed, thumbnailSizePx)
         }
 
     // --- Other operations ---
 
-    fun sourceJpegBytes(id: String): ByteArray? {
+    fun source(id: String): Jpeg? {
         val file = File(sourceDir, "$id.jpg")
-        return if (file.exists()) file.readBytes() else null
+        return if (file.exists()) Jpeg(file.readBytes()) else null
     }
 
     suspend fun movePage(id: String, newIndex: Int) = mutex.withLock {
