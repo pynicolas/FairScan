@@ -22,17 +22,18 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
 import org.fairscan.app.BuildConfig
 import org.fairscan.app.data.PdfWriter
+import org.fairscan.app.domain.JpegProvider
 import java.io.OutputStream
 import java.util.Calendar
 
 class AndroidPdfWriter : PdfWriter {
-    override fun writePdfFromJpegs(jpegs: Sequence<ByteArray>, outputStream: OutputStream): Int {
+    override suspend fun writePdfFromJpegs(jpegs: List<JpegProvider>, outputStream: OutputStream): Int {
         val doc = PDDocument()
         doc.documentInformation.creationDate = Calendar.getInstance()
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
             for (jpegBytes in jpegs) {
-                val image = JPEGFactory.createFromByteArray(document, jpegBytes)
+                val image = JPEGFactory.createFromByteArray(document, jpegBytes.get())
                 val page = PDPage(PDRectangle(image.width.toFloat(), image.height.toFloat()))
                 document.addPage(page)
                 val contentStream = PDPageContentStream(document, page, AppendMode.OVERWRITE, false)

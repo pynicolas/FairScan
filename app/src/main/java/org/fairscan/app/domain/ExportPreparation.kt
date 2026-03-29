@@ -22,36 +22,46 @@ import org.fairscan.imageprocessing.resizeForMaxPixels
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.core.Mat
 
+fun interface JpegProvider {
+    suspend fun get(): ByteArray
+}
+
 suspend fun jpegsForExport(
     imageRepository: ImageRepository,
     exportQuality: ExportQuality
-): Sequence<ByteArray> {
+): List<JpegProvider> {
 
-    val pages = imageRepository.pages().asSequence()
+    val pages = imageRepository.pages()
     return when (exportQuality) {
-        ExportQuality.BALANCED -> pages.map { jpegBytes(it, imageRepository) }
+        ExportQuality.BALANCED -> pages.map {
+            JpegProvider { jpegBytes(it, imageRepository) }
+        }
 
         ExportQuality.LOW -> pages.map { page ->
-            resizeJpegBytesForMaxPixels(
-                jpegBytes = jpegBytes(page, imageRepository),
-                maxPixels = exportQuality.maxPixels.toDouble(),
-                jpegQuality = exportQuality.jpegQuality
-            )
+            JpegProvider {
+                resizeJpegBytesForMaxPixels(
+                    jpegBytes = jpegBytes(page, imageRepository),
+                    maxPixels = exportQuality.maxPixels.toDouble(),
+                    jpegQuality = exportQuality.jpegQuality
+                )
+            }
         }
 
         ExportQuality.HIGH -> pages.map { page ->
-            val sourceJpegBytes = imageRepository.sourceJpegBytes(page.id)
-            val pageMetadata = page.metadata
-            val manualRotation = page.manualRotation
-            if (sourceJpegBytes != null && pageMetadata != null)
-                prepareJpegForHigh(sourceJpegBytes, pageMetadata, manualRotation, exportQuality)
-            else
-                jpegBytes(page, imageRepository)
+            JpegProvider {
+                val sourceJpegBytes = imageRepository.sourceJpegBytes(page.id)
+                val pageMetadata = page.metadata
+                val manualRotation = page.manualRotation
+                if (sourceJpegBytes != null && pageMetadata != null)
+                    prepareJpegForHigh(sourceJpegBytes, pageMetadata, manualRotation, exportQuality)
+                else
+                    jpegBytes(page, imageRepository)
+            }
         }
     }
 }
 
-private fun jpegBytes(page: ScanPage, imageRepository: ImageRepository): ByteArray {
+private suspend fun jpegBytes(page: ScanPage, imageRepository: ImageRepository): ByteArray {
     val key = page.key()
     return imageRepository.jpegBytes(key)
         ?: throw IllegalArgumentException("JPEG not found for $key")
