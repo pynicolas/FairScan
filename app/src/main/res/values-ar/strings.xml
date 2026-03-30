@@ -8,6 +8,8 @@
     <string name="cancel">ألغِ</string>
     <string name="change_directory">غيّر المجلد</string>
     <string name="clear_text">امحُ النص</string>
+    <string name="color_mode_color">ألوان</string>
+    <string name="color_mode_grayscale">تدرج الرمادي</string>
     <string name="contact">تواصل</string>
     <string name="copied_logs">نُسخت السجلات إلى الحافظة</string>
     <string name="copy_logs">انسخ السجلات</string>

@@ -15,13 +15,13 @@
 package org.fairscan.app
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,10 +38,14 @@ import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.ScanPage
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
+import org.fairscan.app.ui.screens.document.CurrentPageUiState
+import org.fairscan.app.ui.screens.document.DocumentUiState
 import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.state.PageThumbnail
+import org.fairscan.imageprocessing.ColorMode
 import kotlin.math.min
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
 
     private val _navigationState = MutableStateFlow(NavigationState.initial(launchMode))
@@ -68,21 +72,31 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = DocumentUiModel(persistentListOf())
+            initialValue = DocumentUiModel()
         )
 
     private val _currentPageIndex = MutableStateFlow(0)
-    val currentPageIndex: StateFlow<Int> =
-        _currentPageIndex.stateIn(viewModelScope, SharingStarted.Eagerly, 0)
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val currentPageBitmap: StateFlow<Bitmap?> =
-        _currentPageIndex
-            .combine(_pages) { index, pages -> pages.getOrNull(index) }
+
+    val currentPageUiState: Flow<CurrentPageUiState> =
+        combine(_currentPageIndex, _pages) { index, pages -> pages.getOrNull(index) }
             .mapLatest { page ->
-                page?.let { imageRepository.jpegBytes(it.key())?.toBitmap() }
+                page?.let {
+                    CurrentPageUiState(
+                        imageRepository.jpegBytes(it.key())?.toBitmap(),
+                        page.colorMode
+                    )
+                } ?: CurrentPageUiState()
             }
             .flowOn(Dispatchers.IO)
-            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val documentUiState: StateFlow<DocumentUiState> =
+        combine(_currentPageIndex, currentPageUiState, documentUiModel) { index, page, document ->
+            DocumentUiState(index, page, document)
+        }
+            .stateIn(
+                viewModelScope, SharingStarted.Eagerly,
+                DocumentUiState(0, CurrentPageUiState(), DocumentUiModel())
+            )
 
     fun onPageSelected(index: Int) {
         _currentPageIndex.value = index
@@ -90,6 +104,9 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     fun navigateTo(destination: Screen) {
         if (destination is Screen.Main.Document) {
+            require(_pages.value.isNotEmpty()) {
+                "Cannot navigate to DocumentScreen with zero pages"
+            }
             _currentPageIndex.value = min(_pages.value.size - 1, destination.initialPage)
         }
         _navigationState.update { it.navigateTo(destination) }
@@ -125,13 +142,28 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
                 imageRepository.delete(id)
                 imageRepository.pages()
             }
-            _pages.value = pages
 
             if (pages.isEmpty()) {
                 navigateTo(Screen.Main.Camera)
                 _currentPageIndex.value = 0
             } else if (_currentPageIndex.value >= pages.size) {
                 _currentPageIndex.value = pages.size - 1
+            }
+            _pages.value = pages
+        }
+    }
+
+    fun togglePageColorMode(id: String) {
+        viewModelScope.launch {
+            val currentColorMode = _pages.value.find { p -> p.id == id }?.colorMode
+            currentColorMode?.let {
+                val newColorMode =
+                    if (it == ColorMode.COLOR) ColorMode.GRAYSCALE else ColorMode.COLOR
+                val pages = withContext(Dispatchers.IO) {
+                    imageRepository.setColorMode(id, newColorMode)
+                    imageRepository.pages()
+                }
+                _pages.value = pages
             }
         }
     }

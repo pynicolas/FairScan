@@ -37,7 +37,7 @@ import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import java.io.File
-import java.util.Collections
+import java.util.Collections.synchronizedMap
 
 const val SOURCE_DIR_NAME = "sources"
 const val PROCESSED_DIR_NAME = "scanned_pages"
@@ -65,11 +65,12 @@ class ImageRepository(
     private val json = Json { prettyPrint = false; encodeDefaults = true }
     private var pages: PageStore = PageStore(loadPages())
 
+    private val processingJobs = synchronizedMap(mutableMapOf<PageViewKey, Deferred<Unit>>())
     private val imageCache = createLruCache<PageViewKey, Deferred<Jpeg?>>(maxEntries = 50)
     private val thumbnailCache = createLruCache<PageViewKey, Deferred<Jpeg?>>(maxEntries = 200)
 
     private fun <K, V> createLruCache(maxEntries: Int): MutableMap<K, V> =
-        Collections.synchronizedMap(object : LinkedHashMap<K, V>(16, 0.75f, true) {
+        synchronizedMap(object : LinkedHashMap<K, V>(16, 0.75f, true) {
             override fun removeEldestEntry(eldest: Map.Entry<K, V>) = size > maxEntries
         })
 
@@ -91,7 +92,7 @@ class ImageRepository(
         return when {
             metadataPages != null ->
                 metadataPages
-                    .filter { "${it.id}.jpg" in filesOnDisk }
+                    .filter { processedImageFileName(it.id, it.colorMode) in filesOnDisk }
                     .toMutableList()
             else ->
                 filesOnDisk
@@ -135,7 +136,7 @@ class ImageRepository(
         pages.pages().mapNotNull {
             runCatching {
                 val manualRotation = Rotation.fromDegrees(it.manualRotationDegrees)
-                ScanPage(it.id, manualRotation, it.toMetadata())
+                ScanPage(it.id, manualRotation, it.colorMode, it.toMetadata())
             }.getOrNull()
         }
     }
@@ -143,23 +144,52 @@ class ImageRepository(
     suspend fun add(processed: Jpeg, source: Jpeg, metadata: PageMetadata) =
         mutex.withLock {
             val id = "${System.currentTimeMillis()}"
-            val fileName = "$id.jpg"
-            File(processedDir, fileName).writeBytes(processed.bytes)
-            File(sourceDir, fileName).writeBytes(source.bytes)
+            val key = PageViewKey(id, Rotation.R0, metadata.autoColorMode)
+            processedImageFile(key).writeBytes(processed.bytes)
+            sourceFile(id).writeBytes(source.bytes)
             pages.addOrReplace(
                 PageV2(
                     id = id,
                     quad = metadata.normalizedQuad.toSerializable(),
                     baseRotationDegrees = metadata.baseRotation.degrees,
                     manualRotationDegrees = Rotation.R0.degrees,
-                    isColored = metadata.autoColorMode == ColorMode.COLOR
+                    isColored = metadata.autoColorMode == ColorMode.COLOR,
+                    colorMode = metadata.autoColorMode,
                 )
             )
             saveMetadata()
             // Pre-populate cache for R0
-            val key = PageViewKey(id, Rotation.R0)
             imageCache.put(key, CompletableDeferred(processed))
         }
+
+    suspend fun setColorMode(id: String, colorMode: ColorMode) {
+        val key = PageViewKey(id, Rotation.R0, colorMode)
+        val processedFile = processedImageFile(key)
+        val metadata = mutex.withLock { pages.get(id)?.toMetadata() }
+        val sourceFile = sourceFile(id)
+        if (metadata == null || !sourceFile.exists())
+            return
+
+        val job = processingJobs.computeIfAbsent(key) {
+            scope.async(Dispatchers.IO) {
+                if (!processedFile.exists()) {
+                    val sourceJpeg = Jpeg(sourceFile.readBytes())
+                    val processedJpeg = transformations.process(sourceJpeg, metadata, colorMode)
+                    processedFile.writeBytes(processedJpeg.bytes)
+                }
+            }
+        }
+        try {
+            job.await()
+        } finally {
+            processingJobs.remove(key, job)
+        }
+
+        mutex.withLock {
+            pages.update(id) { it.copy(colorMode = colorMode) }
+            saveMetadata()
+        }
+    }
 
     suspend fun rotate(id: String, clockwise: Boolean) = mutex.withLock {
         val page = pages.get(id) ?: return@withLock
@@ -198,7 +228,7 @@ class ImageRepository(
 
     private suspend fun computeProcessedImage(key: PageViewKey): Jpeg? =
         withContext(Dispatchers.IO) {
-            val baseFile = File(processedDir, "${key.pageId}.jpg")
+            val baseFile = processedImageFile(key)
             if (!baseFile.exists()) return@withContext null
             val baseJpeg = Jpeg(baseFile.readBytes())
             if (key.rotation == Rotation.R0) {
@@ -220,8 +250,20 @@ class ImageRepository(
 
     // --- Other operations ---
 
+    private fun processedImageFileName(id: String, colorMode: ColorMode?) : String =
+        if (colorMode == null)
+            "${id}.jpg"
+        else
+            "${id}.${colorMode.name.lowercase()}.jpg"
+
+    private fun processedImageFile(key: PageViewKey) : File =
+        File(processedDir, processedImageFileName(key.pageId, key.colorMode))
+
+    private fun sourceFile(id: String): File =
+        File(sourceDir, "$id.jpg")
+
     fun source(id: String): Jpeg? {
-        val file = File(sourceDir, "$id.jpg")
+        val file = sourceFile(id)
         return if (file.exists()) Jpeg(file.readBytes()) else null
     }
 
@@ -233,7 +275,7 @@ class ImageRepository(
     suspend fun delete(id: String) = mutex.withLock {
         pages.delete(id)
         saveMetadata()
-        File(sourceDir, "$id.jpg").delete()
+        sourceFile(id).delete()
         processedDir.listFiles()
             ?.filter { it.name.startsWith("$id.") || it.name.startsWith("$id-") }
             ?.forEach { it.delete() }

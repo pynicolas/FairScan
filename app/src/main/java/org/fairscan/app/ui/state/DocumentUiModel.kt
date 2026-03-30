@@ -16,10 +16,11 @@ package org.fairscan.app.ui.state
 
 import android.graphics.Bitmap
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import org.fairscan.app.domain.PageViewKey
 
 data class DocumentUiModel(
-    val pages: ImmutableList<PageThumbnail>,
+    val pages: ImmutableList<PageThumbnail> = persistentListOf(),
 ) {
     fun pageCount(): Int {
         return pages.size

@@ -9,6 +9,8 @@
     <string name="cancel">Cancel</string>
     <string name="change_directory">Change folder</string>
     <string name="clear_text">Clear text</string>
+    <string name="color_mode_color">Color</string>
+    <string name="color_mode_grayscale">Grayscale</string>
     <string name="contact">Contact</string>
     <string name="copied_logs">Logs copied to clipboard</string>
     <string name="copy_logs">Copy logs</string>

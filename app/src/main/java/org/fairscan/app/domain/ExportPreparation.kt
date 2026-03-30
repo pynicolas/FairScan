@@ -15,6 +15,7 @@
 package org.fairscan.app.domain
 
 import org.fairscan.app.data.ImageRepository
+import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.extractDocument
 import org.fairscan.imageprocessing.resizeForMaxPixels
 import org.fairscan.imageprocessing.scaledTo
@@ -48,10 +49,11 @@ suspend fun jpegsForExport(
         ExportQuality.HIGH -> pages.map { page ->
             JpegProvider {
                 val source = imageRepository.source(page.id)
-                val pageMetadata = page.metadata
+                val metadata = page.metadata
                 val manualRotation = page.manualRotation
-                if (source != null && pageMetadata != null)
-                    prepareJpegForHigh(source, pageMetadata, manualRotation, exportQuality)
+                val colorMode = page.colorMode
+                if (source != null && metadata != null && colorMode != null)
+                    prepareJpegForHigh(source, metadata, manualRotation, colorMode, exportQuality)
                 else
                     jpeg(page, imageRepository)
             }
@@ -86,6 +88,7 @@ private fun prepareJpegForHigh(
     source: Jpeg,
     pageMetadata: PageMetadata,
     manualRotation: Rotation,
+    colorMode: ColorMode,
     exportQuality: ExportQuality,
 ): Jpeg {
 
@@ -94,13 +97,8 @@ private fun prepareJpegForHigh(
     try {
         decoded = source.toMat()
         val quad = pageMetadata.normalizedQuad.scaledTo(1, 1, decoded.width(), decoded.height())
-        page = extractDocument(
-            decoded,
-            quad,
-            pageMetadata.baseRotation.add(manualRotation).degrees,
-            pageMetadata.autoColorMode,
-            exportQuality.maxPixels
-        )
+        val rotationDegrees = pageMetadata.baseRotation.add(manualRotation).degrees
+        page = extractDocument(decoded, quad, rotationDegrees, colorMode, exportQuality.maxPixels)
         return Jpeg.fromMat(page, exportQuality.jpegQuality)
     } finally {
         decoded?.release()

@@ -27,6 +27,7 @@ import org.fairscan.app.domain.Rotation.R180
 import org.fairscan.app.domain.Rotation.R270
 import org.fairscan.app.domain.Rotation.R90
 import org.fairscan.imageprocessing.ColorMode
+import org.fairscan.imageprocessing.ColorMode.COLOR
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.junit.Rule
@@ -44,7 +45,7 @@ class ImageRepositoryTest {
     private val testScope = TestScope()
 
     val quad1 = Quad(Point(.01, .02), Point(.1, .03), Point(.11, .12), Point(.03, .09))
-    val metadata1 = PageMetadata(quad1, R90, ColorMode.COLOR)
+    val metadata1 = PageMetadata(quad1, R90, COLOR)
 
     fun getFilesDir(): File {
         if (_filesDir == null) {
@@ -61,6 +62,10 @@ class ImageRepositoryTest {
             override fun resize(input: Jpeg, maxSize: Int): Jpeg {
                 return jpeg(input.bytes[0])
             }
+
+            override fun process(source: Jpeg, metadata: PageMetadata, colorMode: ColorMode): Jpeg {
+                TODO("Not yet implemented")
+            }
         }
         return ImageRepository(getFilesDir(), transformations, 200, testScope)
     }
@@ -73,7 +78,7 @@ class ImageRepositoryTest {
         repo.add(jpeg, jpeg(51), metadata1)
         assertThat(repo.imageIds()).hasSize(1)
         val id = repo.imageIds()[0]
-        val key = PageViewKey(id, R0)
+        val key = PageViewKey(id, R0, COLOR)
         assertThat(repo.jpegBytes(key)).isEqualTo(jpeg)
         assertThat(repo.getThumbnail(key)?.bytes).isEqualTo(byteArrayOf(101))
 
@@ -140,7 +145,7 @@ class ImageRepositoryTest {
         File(processedDir(), "1-90.jpg").writeBytes(bytes)
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("1")
-        assertThat(repo.jpegBytes(PageViewKey("1", R0))?.bytes).isEqualTo(bytes)
+        assertThat(repo.jpegBytes(PageViewKey("1", R0, null))?.bytes).isEqualTo(bytes)
     }
 
     @Test
@@ -169,14 +174,14 @@ class ImageRepositoryTest {
         File(processedDir(), "1-90.jpg").writeBytes(bytes)
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("1")
-        assertThat(repo.jpegBytes(PageViewKey("1", R0))?.bytes).isEqualTo(bytes)
+        assertThat(repo.jpegBytes(PageViewKey("1", R0, null))?.bytes).isEqualTo(bytes)
     }
 
     @Test
     fun `should return null on invalid id`() = runTest {
         val repo = repo()
         assertThat(repo.imageIds()).isEmpty()
-        assertThat(repo.jpegBytes(PageViewKey("x", R0))).isNull()
+        assertThat(repo.jpegBytes(PageViewKey("x", R0, COLOR))).isNull()
     }
 
     @Test
@@ -255,7 +260,7 @@ class ImageRepositoryTest {
             val metadata = PageV2("1", 0, 0, quad, isColored).toMetadata()
             assertThat(metadata).isNotNull()
             assertThat(metadata!!.autoColorMode).isEqualTo(
-                if (isColored) ColorMode.COLOR else ColorMode.GRAYSCALE
+                if (isColored) COLOR else ColorMode.GRAYSCALE
             )
         }
     }
