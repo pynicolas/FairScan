@@ -164,4 +164,87 @@ class QuadEditingHandlerTest {
         assertThat(result.bottomRight.y).isEqualTo(1.0)
         assertThat(result.bottomLeft.y).isEqualTo(1.0)
     }
+
+    // ── Convexity enforcement tests ──────────────────────────────────────
+
+    @Test
+    fun updateQuadCorner_rejectsConcaveResult() {
+        // Drag the topLeft corner past the diagonal to create a concave quad.
+        // Moving topLeft far to the right and down should make the quad concave.
+        val result = handler.updateQuadCorner(centeredQuad, 0, Offset(0.7f, 0.7f))
+        // The result should still be convex, meaning the move was rejected
+        // (the original quad is returned).
+        assertThat(result).isEqualTo(centeredQuad)
+    }
+
+    @Test
+    fun updateQuadCorner_allowsConvexResult() {
+        // A small move that keeps the quad convex should be allowed.
+        val result = handler.updateQuadCorner(centeredQuad, 0, Offset(0.05f, 0.05f))
+        // The corner should have moved.
+        assertThat(result.topLeft.x).isCloseTo(0.25, AssertJOffset.offset(0.001))
+        assertThat(result.topLeft.y).isCloseTo(0.25, AssertJOffset.offset(0.001))
+    }
+
+    @Test
+    fun updateQuadEdge_rejectsConcaveResult() {
+        // Drag the top edge far down, past the bottom edge.
+        val result = handler.updateQuadEdge(centeredQuad, 0, Offset(0.0f, 0.7f))
+        // The result should still be convex, meaning the move was rejected.
+        assertThat(result).isEqualTo(centeredQuad)
+    }
+
+    @Test
+    fun updateQuadEdge_allowsConvexResult() {
+        // A small move that keeps the quad convex should be allowed.
+        val result = handler.updateQuadEdge(centeredQuad, 0, Offset(0.0f, 0.05f))
+        assertThat(result.topLeft.y).isCloseTo(0.25, AssertJOffset.offset(0.001))
+        assertThat(result.topRight.y).isCloseTo(0.25, AssertJOffset.offset(0.001))
+    }
+
+    @Test
+    fun updateQuadCorner_allowsFixingConcaveQuad() {
+        // Start with a concave quad (topLeft is pushed too far inward).
+        val concaveQuad = Quad(
+            topLeft = Point(0.7, 0.7),  // past the center, making it concave
+            topRight = Point(0.8, 0.2),
+            bottomRight = Point(0.8, 0.8),
+            bottomLeft = Point(0.2, 0.8)
+        )
+        // Move topLeft back outward to restore convexity.
+        val result = handler.updateQuadCorner(concaveQuad, 0, Offset(-0.5f, -0.5f))
+        // The move should be allowed because the result is convex.
+        assertThat(result.topLeft.x).isCloseTo(0.2, AssertJOffset.offset(0.001))
+        assertThat(result.topLeft.y).isCloseTo(0.2, AssertJOffset.offset(0.001))
+    }
+
+    @Test
+    fun updateQuadEdge_allowsFixingConcaveQuad() {
+        // Start with a concave quad where the top edge is pushed past the bottom.
+        val concaveQuad = Quad(
+            topLeft = Point(0.2, 0.9),  // top edge below bottom edge
+            topRight = Point(0.8, 0.9),
+            bottomRight = Point(0.8, 0.8),
+            bottomLeft = Point(0.2, 0.8)
+        )
+        // Move the top edge back up to restore convexity.
+        val result = handler.updateQuadEdge(concaveQuad, 0, Offset(0.0f, -0.7f))
+        // The result should be convex and the move should be accepted.
+        assertThat(result.topLeft.y).isCloseTo(0.2, AssertJOffset.offset(0.001))
+        assertThat(result.topRight.y).isCloseTo(0.2, AssertJOffset.offset(0.001))
+    }
+
+    @Test
+    fun updateQuadCorner_rejectsMoveAlongEdgeThatCreatesConcavity() {
+        // Start with a nearly-flat quad that's still convex.
+        val narrowQuad = Quad(
+            topLeft = Point(0.2, 0.2),
+            topRight = Point(0.8, 0.2),
+            bottomRight = Point(0.8, 0.3),
+            bottomLeft = Point(0.2, 0.3)
+        )
+        // Drag bottomLeft upward past the top edge — should be rejected.
+        val result = handler.updateQuadCorner(narrowQuad, 3, Offset(0.0f, -0.2f))
+        assertThat(result).isEqualTo(narrowQuad)
+    }
 }

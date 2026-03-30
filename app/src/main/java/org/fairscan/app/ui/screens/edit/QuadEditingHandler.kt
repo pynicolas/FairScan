@@ -54,18 +54,19 @@ class QuadEditingHandler {
 
     fun updateQuadCorner(quad: Quad, cornerIndex: Int, delta: Offset): Quad {
         val normalizedDelta = Point(delta.x.toDouble(), delta.y.toDouble())
-        return when (cornerIndex) {
+        val candidate = when (cornerIndex) {
             0 -> quad.copy(topLeft = clampPoint(quad.topLeft + normalizedDelta))
             1 -> quad.copy(topRight = clampPoint(quad.topRight + normalizedDelta))
             2 -> quad.copy(bottomRight = clampPoint(quad.bottomRight + normalizedDelta))
             3 -> quad.copy(bottomLeft = clampPoint(quad.bottomLeft + normalizedDelta))
             else -> quad
         }
+        return if (candidate.isConvex()) candidate else quad
     }
 
     fun updateQuadEdge(quad: Quad, edgeIndex: Int, delta: Offset): Quad {
         val normalizedDelta = Point(delta.x.toDouble(), delta.y.toDouble())
-        return when (edgeIndex) {
+        val candidate = when (edgeIndex) {
             0 -> quad.copy( // top edge
                 topLeft = clampPoint(quad.topLeft + normalizedDelta),
                 topRight = clampPoint(quad.topRight + normalizedDelta)
@@ -84,6 +85,7 @@ class QuadEditingHandler {
             )
             else -> quad
         }
+        return if (candidate.isConvex()) candidate else quad
     }
 
     private fun getCornerPositions(quad: Quad, containerSize: IntSize, displaySize: IntSize): List<Offset> {
