@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.fairscan.imageprocessing.Quad
 import kotlin.math.roundToInt
 
 private val LOUPE_BORDER_WIDTH = 3.dp
@@ -95,6 +96,7 @@ fun MagnifyingGlass(
     focusPosition: Offset,
     containerSize: IntSize,
     displaySize: IntSize,
+    quad: Quad? = null,
     configDp: LoupeLayoutConfig<Dp> = LoupeLayoutConfig.Default,
 ) {
     val density = LocalDensity.current
@@ -123,7 +125,7 @@ fun MagnifyingGlass(
     val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
 
     val borderColor = MaterialTheme.colorScheme.primary
-    val crosshairColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+    val quadLineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
     val backgroundColor = MaterialTheme.colorScheme.background
 
     Canvas(
@@ -141,11 +143,10 @@ fun MagnifyingGlass(
                 }
             }
     ) {
+        val loupeDiameter = configPx.loupeRadius * 2
         val circlePath = Path().apply {
             addOval(
-                androidx.compose.ui.geometry.Rect(
-                    0f, 0f, configPx.loupeRadius * 2, configPx.loupeRadius * 2
-                )
+                androidx.compose.ui.geometry.Rect(0f, 0f, loupeDiameter, loupeDiameter)
             )
         }
 
@@ -162,11 +163,11 @@ fun MagnifyingGlass(
             if (srcRight > srcLeft && srcBottom > srcTop) {
 
                 // Destination offset – compensate when the source rect was clamped
-                val dstOffsetX = ((srcLeft - (bitmapX - bitmapRegionHalf)) / (2 * bitmapRegionHalf) * configPx.loupeRadius * 2)
-                val dstOffsetY = ((srcTop - (bitmapY - bitmapRegionHalf)) / (2 * bitmapRegionHalf) * configPx.loupeRadius * 2)
+                val dstOffsetX = ((srcLeft - (bitmapX - bitmapRegionHalf)) / (2 * bitmapRegionHalf) * loupeDiameter)
+                val dstOffsetY = ((srcTop - (bitmapY - bitmapRegionHalf)) / (2 * bitmapRegionHalf) * loupeDiameter)
 
-                val dstWidth = ((srcRight - srcLeft) / (2 * bitmapRegionHalf) * configPx.loupeRadius * 2).toInt()
-                val dstHeight = ((srcBottom - srcTop) / (2 * bitmapRegionHalf) * configPx.loupeRadius * 2).toInt()
+                val dstWidth = ((srcRight - srcLeft) / (2 * bitmapRegionHalf) * loupeDiameter).toInt()
+                val dstHeight = ((srcBottom - srcTop) / (2 * bitmapRegionHalf) * loupeDiameter).toInt()
 
                 drawImage(
                     image = imageBitmap,
@@ -177,11 +178,39 @@ fun MagnifyingGlass(
                 )
             }
 
-            // Crosshair
-            val center = Offset(configPx.loupeRadius, configPx.loupeRadius)
-            val crosshairLen = configPx.loupeRadius * 0.25f
-            drawLine(crosshairColor, Offset(center.x - crosshairLen, center.y), Offset(center.x + crosshairLen, center.y), strokeWidth = 2f)
-            drawLine(crosshairColor, Offset(center.x, center.y - crosshairLen), Offset(center.x, center.y + crosshairLen), strokeWidth = 2f)
+            // Draw quad edges inside the loupe
+            // Convert each normalized quad corner to bitmap-pixel coords,
+            // then to loupe-local coords using the same mapping as the bitmap sampling.
+            if (quad != null) {
+                val bitmapOriginX = bitmapX - bitmapRegionHalf
+                val bitmapOriginY = bitmapY - bitmapRegionHalf
+                val scale = loupeDiameter / (2 * bitmapRegionHalf)
+
+                fun normalizedToLoupe(nx: Double, ny: Double): Offset {
+                    val bx = (nx * bitmap.width).toFloat()
+                    val by = (ny * bitmap.height).toFloat()
+                    return Offset(
+                        (bx - bitmapOriginX) * scale,
+                        (by - bitmapOriginY) * scale
+                    )
+                }
+
+                val loupeCorners = listOf(
+                    normalizedToLoupe(quad.topLeft.x, quad.topLeft.y),
+                    normalizedToLoupe(quad.topRight.x, quad.topRight.y),
+                    normalizedToLoupe(quad.bottomRight.x, quad.bottomRight.y),
+                    normalizedToLoupe(quad.bottomLeft.x, quad.bottomLeft.y),
+                )
+
+                for (i in 0 until 4) {
+                    drawLine(
+                        color = quadLineColor,
+                        start = loupeCorners[i],
+                        end = loupeCorners[(i + 1) % 4],
+                        strokeWidth = 3f
+                    )
+                }
+            }
         }
 
         // Border

@@ -468,6 +468,7 @@ private fun DragMagnifyingGlass(state: EditPageScreenState) {
         focusPosition = effectiveFocusPosition,
         containerSize = containerSize,
         displaySize = displaySize,
+        quad = state.editableQuad,
     )
 }
 
