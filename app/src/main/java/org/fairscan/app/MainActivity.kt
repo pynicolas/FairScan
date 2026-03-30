@@ -182,7 +182,7 @@ class MainActivity : ComponentActivity() {
                             pageId = document.pageId(screen.pageIndex),
                             imageRepository = imageRepository,
                             navigation = navigation,
-                            onUpdatePageQuad = { id, quad -> viewModel.updatePageQuad(id, quad) }
+                            onUpdatePageQuad = { id, quad, onComplete -> viewModel.updatePageQuad(id, quad, onComplete) }
                         )
                     }
                     is Screen.Main.Document -> {

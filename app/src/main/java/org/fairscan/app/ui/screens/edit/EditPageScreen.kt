@@ -87,7 +87,7 @@ fun EditPageScreen(
     pageId: String,
     imageRepository: ImageRepository,
     navigation: Navigation,
-    onUpdatePageQuad: (String, Quad) -> Unit,
+    onUpdatePageQuad: (String, Quad, onComplete: () -> Unit) -> Unit,
 ) {
     val showDiscardChangesDialog = rememberSaveable { mutableStateOf(false) }
     val state = remember { EditPageScreenState() }
@@ -220,7 +220,6 @@ fun EditPageScreen(
                     } else {
                         navigation.back()
                     }
-                    navigation.back()
                 }
             )
         }
@@ -502,7 +501,7 @@ fun EditPageScreenPreview() {
             pageId = "preview-page-id",
             imageRepository = dummyImageRepo,
             navigation = dummyNavigation(),
-            onUpdatePageQuad = { _, _ -> }
+            onUpdatePageQuad = { _, _, onComplete -> onComplete() }
         )
     }
 }

@@ -103,12 +103,13 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         }
     }
 
-    fun updatePageQuad(id: String, newQuad: Quad) {
+    fun updatePageQuad(id: String, newQuad: Quad, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 imageRepository.updatePageQuad(id, newQuad)
             }
             _pages.value = imageRepository.pages()
+            onComplete()
         }
     }
 
