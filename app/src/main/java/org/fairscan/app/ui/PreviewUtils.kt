@@ -24,6 +24,7 @@ import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.state.PageThumbnail
+import org.fairscan.imageprocessing.ColorMode
 
 fun dummyNavigation(): Navigation {
     return Navigation({}, {}, {}, {}, {}, {}, {}, {})
@@ -35,7 +36,7 @@ fun fakeDocument(): DocumentUiModel {
 
 fun fakeDocument(pageIds: ImmutableList<String>, context: Context): DocumentUiModel {
     val pageKeys = pageIds.map {
-        PageThumbnail(PageViewKey(it, Rotation.R0), fakeImage(it, context))
+        PageThumbnail(PageViewKey(it, Rotation.R0, ColorMode.COLOR), fakeImage(it, context))
     }.toImmutableList()
     return DocumentUiModel(pageKeys)
 }

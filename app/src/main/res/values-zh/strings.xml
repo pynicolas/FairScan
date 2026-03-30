@@ -8,6 +8,8 @@
     <string name="cancel">取消</string>
     <string name="change_directory">更改目录</string>
     <string name="clear_text">清除文字</string>
+    <string name="color_mode_color">彩色</string>
+    <string name="color_mode_grayscale">灰度</string>
     <string name="contact">联系人</string>
     <string name="copied_logs">日志已复制到剪贴板</string>
     <string name="copy_logs">复制日志</string>

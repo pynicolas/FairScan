@@ -8,6 +8,8 @@
     <string name="cancel">Cancelar</string>
     <string name="change_directory">Alterar diretório</string>
     <string name="clear_text">Limpar texto</string>
+    <string name="color_mode_color">Cor</string>
+    <string name="color_mode_grayscale">Escala de cinza</string>
     <string name="contact">Contato</string>
     <string name="copied_logs">Registros copiados para a área de transferência</string>
     <string name="copy_logs">Copiar registros</string>

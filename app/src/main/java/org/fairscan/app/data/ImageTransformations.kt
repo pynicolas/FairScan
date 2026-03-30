@@ -15,11 +15,15 @@
 package org.fairscan.app.data
 
 import org.fairscan.app.domain.Jpeg
+import org.fairscan.app.domain.PageMetadata
+import org.fairscan.imageprocessing.ColorMode
 
 interface ImageTransformations {
 
     fun rotate(input: Jpeg, rotationDegrees: Int, jpegQuality: Int): Jpeg
 
     fun resize(input: Jpeg, maxSize: Int): Jpeg
+
+    fun process(source: Jpeg, metadata: PageMetadata, colorMode: ColorMode): Jpeg
 
 }

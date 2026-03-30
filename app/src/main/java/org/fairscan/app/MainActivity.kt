@@ -124,8 +124,7 @@ class MainActivity : ComponentActivity() {
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
-            val currentPageIndex by viewModel.currentPageIndex.collectAsStateWithLifecycle()
-            val currentPageBitmap by viewModel.currentPageBitmap.collectAsStateWithLifecycle()
+            val documentUiState by viewModel.documentUiState.collectAsStateWithLifecycle()
             val exportUiState by exportViewModel.uiState.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
@@ -180,11 +179,12 @@ class MainActivity : ComponentActivity() {
                     }
                     is Screen.Main.Document -> {
                         DocumentScreen (
-                            uiState = DocumentUiState(currentPageIndex, currentPageBitmap, document),
+                            uiState = documentUiState,
                             navigation = navigation,
                             onExportClick = onExportClick,
                             onDeleteImage =  { id -> viewModel.deletePage(id) },
                             onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) },
+                            onToggleColorMode = { id -> viewModel.togglePageColorMode(id) },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
                             onPageSelected = viewModel::onPageSelected
                         )

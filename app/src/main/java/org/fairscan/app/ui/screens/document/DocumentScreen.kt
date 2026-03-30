@@ -31,7 +31,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RotateLeft
 import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.outlined.Add
@@ -74,6 +76,9 @@ import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.fakeDocument
 import org.fairscan.app.ui.fakeImage
 import org.fairscan.app.ui.theme.FairScanTheme
+import org.fairscan.imageprocessing.ColorMode
+import org.fairscan.imageprocessing.ColorMode.COLOR
+import org.fairscan.imageprocessing.ColorMode.GRAYSCALE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +88,7 @@ fun DocumentScreen(
     onExportClick: () -> Unit,
     onDeleteImage: (String) -> Unit,
     onRotateImage: (String, Boolean) -> Unit,
+    onToggleColorMode: (String) -> Unit,
     onPageReorder: (String, Int) -> Unit,
     onPageSelected: (Int) -> Unit,
 ) {
@@ -116,6 +122,7 @@ fun DocumentScreen(
             uiState,
             { showDeletePageDialog.value = true },
             onRotateImage,
+            onToggleColorMode,
             modifier
         )
         if (showDeletePageDialog.value) {
@@ -133,6 +140,7 @@ private fun DocumentPreview(
     uiState: DocumentUiState,
     onDeleteImage: (String) -> Unit,
     onRotateImage: (String, Boolean) -> Unit,
+    onToggleColorMode: (String) -> Unit,
     modifier: Modifier,
 ) {
     val currentPageIndex = uiState.currentPageIndex
@@ -145,7 +153,7 @@ private fun DocumentPreview(
         Box (
             modifier = Modifier.fillMaxSize()
         ) {
-            val bitmap = uiState.currentPageBitmap
+            val bitmap = uiState.currentPage.bitmap
             if (bitmap != null) {
                 val imageBitmap = bitmap.asImageBitmap()
                 val zoomState = remember(imageId) {
@@ -167,6 +175,15 @@ private fun DocumentPreview(
                     )
                 }
             }
+            uiState.currentPage.colorMode?.let {
+                ColorModeButton(
+                    currentColorMode = it,
+                    onToggle = { onToggleColorMode(imageId) },
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(8.dp)
+                )
+            }
             RotationButtons(imageId, onRotateImage, Modifier.align(Alignment.BottomCenter))
             SecondaryActionButton(
                 Icons.Outlined.Delete,
@@ -179,10 +196,10 @@ private fun DocumentPreview(
             Text("${currentPageIndex + 1} / ${document.pageCount()}",
                 color = MaterialTheme.colorScheme.inverseOnSurface,
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
+                    .align(Alignment.TopCenter)
                     .padding(all = 16.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.7f),
                         shape = RoundedCornerShape(4.dp)
                     )
                     .padding(horizontal = 8.dp, vertical = 2.dp)
@@ -199,7 +216,7 @@ fun RotationButtons(
 ) {
     // RotateLeft on the left, RotateRight on the right: for both LTR and RTL languages
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        Row(modifier = modifier.padding(4.dp)) {
+        Row(modifier = modifier.padding(8.dp)) {
             // Using AutoMirrored icons would lead to an opposite rotation in RTL languages
             @Suppress("DEPRECATION")
             SecondaryActionButton(
@@ -215,6 +232,32 @@ fun RotationButtons(
                 onClick = { onRotateImage(imageId, true) }
             )
         }
+    }
+}
+
+@Composable
+fun ColorModeButton(
+    currentColorMode: ColorMode,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val icon = when (currentColorMode) {
+        COLOR ->  Icons.Default.Palette
+        GRAYSCALE -> Icons.Default.Contrast
+    }
+    val label = when (currentColorMode) {
+        COLOR ->  stringResource(R.string.color_mode_color)
+        GRAYSCALE -> stringResource(R.string.color_mode_grayscale)
+    }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+    ) {
+        SecondaryActionButton(
+            icon = icon,
+            contentDescription = label,
+            onClick = onToggle,
+        )
     }
 }
 
@@ -264,11 +307,12 @@ fun DocumentScreenPreview() {
             LocalContext.current
         )
         DocumentScreen(
-            uiState = DocumentUiState(1, image, document),
+            uiState = DocumentUiState(1, CurrentPageUiState(image, COLOR), document),
             navigation = dummyNavigation(),
             onExportClick = {},
             onDeleteImage = { _ -> },
             onRotateImage = { _,_ -> },
+            onToggleColorMode = { _ -> },
             onPageReorder = { _,_ -> },
             onPageSelected = { _ -> },
         )

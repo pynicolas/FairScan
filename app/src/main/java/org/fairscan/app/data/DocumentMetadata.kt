@@ -15,6 +15,7 @@
 package org.fairscan.app.data
 
 import kotlinx.serialization.Serializable
+import org.fairscan.imageprocessing.ColorMode
 
 @Serializable
 data class DocumentMetadataV1(
@@ -39,7 +40,8 @@ data class PageV2(
     val baseRotationDegrees: Int = 0,
     val manualRotationDegrees: Int = 0,
     val quad: NormalizedQuad? = null,
-    val isColored: Boolean? = null
+    val isColored: Boolean? = null,
+    val colorMode: ColorMode? = null,
 )
 
 @Serializable
