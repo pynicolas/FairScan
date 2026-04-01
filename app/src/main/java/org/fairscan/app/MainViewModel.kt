@@ -42,7 +42,6 @@ import org.fairscan.app.ui.screens.document.DocumentUiState
 import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.state.PageThumbnail
 import org.fairscan.imageprocessing.ColorMode
-import java.lang.IllegalStateException
 import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -76,16 +75,17 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         )
 
     private val _currentPageIndex = MutableStateFlow(0)
-
+    private val _loadingPageId = MutableStateFlow<String?>(null)
     private val currentPageUiState: Flow<CurrentPageUiState?> =
-        combine(_currentPageIndex, _pages) { index, pages -> pages.getOrNull(index) }
-            .mapLatest { page ->
+        combine(_currentPageIndex, _pages, _loadingPageId) { index, pages, loadingId ->
+            val page = pages.getOrNull(index)
+            Pair(page, loadingId)
+        }
+            .mapLatest { (page,loadingId) ->
                 page?.let {
-                    CurrentPageUiState(
-                        page.id,
-                        imageRepository.jpegBytes(it.key())?.toBitmap(),
-                        page.colorMode
-                    )
+                    val isLoading = (it.id == loadingId)
+                    val bitmap = imageRepository.jpegBytes(it.key())?.toBitmap()
+                    CurrentPageUiState(it.id, bitmap, it.colorMode, isLoading)
                 }
             }
             .flowOn(Dispatchers.IO)
@@ -158,6 +158,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         viewModelScope.launch {
             val currentPage = currentPage()
             currentPage.colorMode?.let {
+                _loadingPageId.value = currentPage.id
                 val newColorMode =
                     if (it == ColorMode.COLOR) ColorMode.GRAYSCALE else ColorMode.COLOR
                 val pages = withContext(Dispatchers.IO) {
@@ -165,6 +166,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
                     imageRepository.pages()
                 }
                 _pages.value = pages
+                _loadingPageId.value = null
             }
         }
     }

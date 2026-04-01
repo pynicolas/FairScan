@@ -28,4 +28,5 @@ data class CurrentPageUiState(
     val id: String,
     val bitmap: Bitmap?,
     val colorMode: ColorMode?,
+    val isLoading: Boolean = false,
 )

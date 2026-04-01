@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -179,6 +180,16 @@ private fun DocumentPreview(
                             .align(Alignment.Center)
                             .zoomable(zoomState)
                     )
+                }
+            }
+            if (uiState.currentPage?.isLoading ?: false) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
             }
             uiState.currentPage?.colorMode?.let {
