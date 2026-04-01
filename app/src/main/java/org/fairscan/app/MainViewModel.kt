@@ -14,7 +14,6 @@
  */
 package org.fairscan.app
 
-import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.persistentListOf
@@ -43,6 +42,7 @@ import org.fairscan.app.ui.screens.document.DocumentUiState
 import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.state.PageThumbnail
 import org.fairscan.imageprocessing.ColorMode
+import java.lang.IllegalStateException
 import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -77,15 +77,16 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     private val _currentPageIndex = MutableStateFlow(0)
 
-    val currentPageUiState: Flow<CurrentPageUiState> =
+    private val currentPageUiState: Flow<CurrentPageUiState?> =
         combine(_currentPageIndex, _pages) { index, pages -> pages.getOrNull(index) }
             .mapLatest { page ->
                 page?.let {
                     CurrentPageUiState(
+                        page.id,
                         imageRepository.jpegBytes(it.key())?.toBitmap(),
                         page.colorMode
                     )
-                } ?: CurrentPageUiState()
+                }
             }
             .flowOn(Dispatchers.IO)
 
@@ -95,7 +96,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         }
             .stateIn(
                 viewModelScope, SharingStarted.Eagerly,
-                DocumentUiState(0, CurrentPageUiState(), DocumentUiModel())
+                DocumentUiState(0, null, DocumentUiModel())
             )
 
     fun onPageSelected(index: Int) {
@@ -116,10 +117,10 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         _navigationState.update { stack -> stack.navigateBack() }
     }
 
-    fun rotateImage(id: String, clockwise: Boolean) {
+    fun rotateCurrentPage(clockwise: Boolean) {
         viewModelScope.launch {
             val pages = withContext(Dispatchers.IO) {
-                imageRepository.rotate(id, clockwise)
+                imageRepository.rotate(currentPage().id, clockwise)
                 imageRepository.pages()
             }
             _pages.value = pages
@@ -136,10 +137,10 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         }
     }
 
-    fun deletePage(id: String) {
+    fun deleteCurrentPage() {
         viewModelScope.launch {
             val pages = withContext(Dispatchers.IO) {
-                imageRepository.delete(id)
+                imageRepository.delete(currentPage().id)
                 imageRepository.pages()
             }
 
@@ -153,19 +154,26 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         }
     }
 
-    fun togglePageColorMode(id: String) {
+    fun toggleCurrentPageColorMode() {
         viewModelScope.launch {
-            val currentColorMode = _pages.value.find { p -> p.id == id }?.colorMode
-            currentColorMode?.let {
+            val currentPage = currentPage()
+            currentPage.colorMode?.let {
                 val newColorMode =
                     if (it == ColorMode.COLOR) ColorMode.GRAYSCALE else ColorMode.COLOR
                 val pages = withContext(Dispatchers.IO) {
-                    imageRepository.setColorMode(id, newColorMode)
+                    imageRepository.setColorMode(currentPage.id, newColorMode)
                     imageRepository.pages()
                 }
                 _pages.value = pages
             }
         }
+    }
+
+    private fun currentPage(): ScanPage {
+        val index = _currentPageIndex.value
+        val pages = _pages.value
+        return pages.getOrNull(index) ?: throw IllegalStateException(
+            "No current page for index $index (${pages.size} pages)")
     }
 
     fun startNewDocument() {

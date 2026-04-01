@@ -62,7 +62,6 @@ import org.fairscan.app.ui.screens.about.createEmailWithImageIntent
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
-import org.fairscan.app.ui.screens.document.DocumentUiState
 import org.fairscan.app.ui.screens.export.ExportActions
 import org.fairscan.app.ui.screens.export.ExportEvent
 import org.fairscan.app.ui.screens.export.ExportResult
@@ -182,9 +181,9 @@ class MainActivity : ComponentActivity() {
                             uiState = documentUiState,
                             navigation = navigation,
                             onExportClick = onExportClick,
-                            onDeleteImage =  { id -> viewModel.deletePage(id) },
-                            onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) },
-                            onToggleColorMode = { id -> viewModel.togglePageColorMode(id) },
+                            onDeleteImage =  { viewModel.deleteCurrentPage() },
+                            onRotateImage = { clockwise -> viewModel.rotateCurrentPage(clockwise) },
+                            onToggleColorMode = { viewModel.toggleCurrentPageColorMode() },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
                             onPageSelected = viewModel::onPageSelected
                         )

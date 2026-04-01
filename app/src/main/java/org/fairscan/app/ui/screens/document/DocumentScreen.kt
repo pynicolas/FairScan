@@ -86,9 +86,9 @@ fun DocumentScreen(
     uiState: DocumentUiState,
     navigation: Navigation,
     onExportClick: () -> Unit,
-    onDeleteImage: (String) -> Unit,
-    onRotateImage: (String, Boolean) -> Unit,
-    onToggleColorMode: (String) -> Unit,
+    onDeleteImage: () -> Unit,
+    onRotateImage: (Boolean) -> Unit,
+    onToggleColorMode: () -> Unit,
     onPageReorder: (String, Int) -> Unit,
     onPageSelected: (Int) -> Unit,
 ) {
@@ -130,7 +130,7 @@ fun DocumentScreen(
                 title = stringResource(R.string.delete_page),
                 message = stringResource(R.string.delete_page_warning),
                 showDialog = showDeletePageDialog
-            ) { onDeleteImage(document.pageId(currentPageIndex)) }
+            ) { onDeleteImage() }
         }
     }
 }
@@ -138,14 +138,13 @@ fun DocumentScreen(
 @Composable
 private fun DocumentPreview(
     uiState: DocumentUiState,
-    onDeleteImage: (String) -> Unit,
-    onRotateImage: (String, Boolean) -> Unit,
-    onToggleColorMode: (String) -> Unit,
+    onDeleteImage: () -> Unit,
+    onRotateImage: (Boolean) -> Unit,
+    onToggleColorMode: () -> Unit,
     modifier: Modifier,
 ) {
     val currentPageIndex = uiState.currentPageIndex
     val document = uiState.document
-    val imageId = document.pageId(currentPageIndex)
     Column (
         modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
@@ -153,10 +152,11 @@ private fun DocumentPreview(
         Box (
             modifier = Modifier.fillMaxSize()
         ) {
-            val bitmap = uiState.currentPage.bitmap
-            if (bitmap != null) {
+            val bitmap = uiState.currentPage?.bitmap
+            val pageId = uiState.currentPage?.id
+            if (bitmap != null && pageId != null) {
                 val imageBitmap = bitmap.asImageBitmap()
-                val zoomState = remember(imageId) {
+                val zoomState = remember(pageId) {
                     ZoomState(
                         contentSize = Size(bitmap.width.toFloat(), bitmap.height.toFloat())
                     )
@@ -175,20 +175,20 @@ private fun DocumentPreview(
                     )
                 }
             }
-            uiState.currentPage.colorMode?.let {
+            uiState.currentPage?.colorMode?.let {
                 ColorModeButton(
                     currentColorMode = it,
-                    onToggle = { onToggleColorMode(imageId) },
+                    onToggle = { onToggleColorMode() },
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(8.dp)
                 )
             }
-            RotationButtons(imageId, onRotateImage, Modifier.align(Alignment.BottomCenter))
+            RotationButtons(onRotateImage, Modifier.align(Alignment.BottomCenter))
             SecondaryActionButton(
                 Icons.Outlined.Delete,
                 contentDescription = stringResource(R.string.delete_page),
-                onClick = { onDeleteImage(imageId) },
+                onClick = { onDeleteImage() },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(8.dp)
@@ -210,8 +210,7 @@ private fun DocumentPreview(
 
 @Composable
 fun RotationButtons(
-    imageId: String,
-    onRotateImage: (String, Boolean) -> Unit,
+    onRotateImage: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // RotateLeft on the left, RotateRight on the right: for both LTR and RTL languages
@@ -222,14 +221,14 @@ fun RotationButtons(
             SecondaryActionButton(
                 icon = Icons.Default.RotateLeft,
                 contentDescription = stringResource(R.string.rotate_left),
-                onClick = { onRotateImage(imageId, false) }
+                onClick = { onRotateImage(false) }
             )
             Spacer(Modifier.width(8.dp))
             @Suppress("DEPRECATION")
             SecondaryActionButton(
                 icon = Icons.Default.RotateRight,
                 contentDescription = stringResource(R.string.rotate_right),
-                onClick = { onRotateImage(imageId, true) }
+                onClick = { onRotateImage(true) }
             )
         }
     }
@@ -307,12 +306,12 @@ fun DocumentScreenPreview() {
             LocalContext.current
         )
         DocumentScreen(
-            uiState = DocumentUiState(1, CurrentPageUiState(image, COLOR), document),
+            uiState = DocumentUiState(1, CurrentPageUiState("123",image, COLOR), document),
             navigation = dummyNavigation(),
             onExportClick = {},
-            onDeleteImage = { _ -> },
-            onRotateImage = { _,_ -> },
-            onToggleColorMode = { _ -> },
+            onDeleteImage = { },
+            onRotateImage = { _ -> },
+            onToggleColorMode = { },
             onPageReorder = { _,_ -> },
             onPageSelected = { _ -> },
         )
