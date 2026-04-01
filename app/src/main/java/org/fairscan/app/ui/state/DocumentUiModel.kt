@@ -25,9 +25,6 @@ data class DocumentUiModel(
     fun pageCount(): Int {
         return pages.size
     }
-    fun pageId(index: Int): String {
-        return pages[index].key.pageId
-    }
     fun isEmpty(): Boolean {
         return pages.isEmpty()
     }

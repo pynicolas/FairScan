@@ -20,11 +20,12 @@ import org.fairscan.imageprocessing.ColorMode
 
 data class DocumentUiState(
     val currentPageIndex: Int,
-    val currentPage: CurrentPageUiState,
+    val currentPage: CurrentPageUiState?,
     val document: DocumentUiModel,
 )
 
 data class CurrentPageUiState(
-    val bitmap: Bitmap? = null,
-    val colorMode: ColorMode? = null,
+    val id: String,
+    val bitmap: Bitmap?,
+    val colorMode: ColorMode?,
 )
