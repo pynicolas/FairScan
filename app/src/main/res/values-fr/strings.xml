@@ -8,6 +8,7 @@
     <string name="cancel">Annuler</string>
     <string name="change_directory">Changer de dossier</string>
     <string name="clear_text">Effacer le text</string>
+    <string name="color_mode">Filtre</string>
     <string name="color_mode_color">Couleur</string>
     <string name="color_mode_grayscale">Niveaux de gris</string>
     <string name="contact">Contact</string>

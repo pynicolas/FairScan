@@ -8,6 +8,7 @@
     <string name="cancel">Zrušit</string>
     <string name="change_directory">Změnit složku</string>
     <string name="clear_text">Smazat text</string>
+    <string name="color_mode">Filtr</string>
     <string name="color_mode_color">Barva</string>
     <string name="color_mode_grayscale">Odstíny šedi</string>
     <string name="contact">Kontakt</string>
