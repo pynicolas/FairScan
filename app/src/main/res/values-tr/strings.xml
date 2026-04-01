@@ -8,6 +8,7 @@
     <string name="cancel">İptal</string>
     <string name="change_directory">Dizini değiştir</string>
     <string name="clear_text">Metni temizle</string>
+    <string name="color_mode">Filtre</string>
     <string name="color_mode_color">Renkli</string>
     <string name="color_mode_grayscale">Gri tonlama</string>
     <string name="contact">İletişim</string>

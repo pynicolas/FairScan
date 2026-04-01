@@ -8,6 +8,7 @@
     <string name="cancel">Cancelar</string>
     <string name="change_directory">Trocar cartafol</string>
     <string name="clear_text">Borrar texto</string>
+    <string name="color_mode">Filtro</string>
     <string name="color_mode_color">Cor</string>
     <string name="color_mode_grayscale">Escala de grises</string>
     <string name="contact">Contacto</string>

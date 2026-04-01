@@ -11,6 +11,7 @@
     <string name="color_mode_color">Цвет</string>
     <string name="color_mode_grayscale">Оттенки серого</string>
     <string name="contact">Контакты</string>
+    <string name="color_mode">Фильтр</string>
     <string name="copied_logs">Журналы скопированы в буфер обмена</string>
     <string name="copy_logs">Копировать журналы</string>
     <string name="creating_export">Подготовка экспорта…</string>

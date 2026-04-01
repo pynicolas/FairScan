@@ -31,6 +31,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Palette
@@ -39,6 +41,8 @@ import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,9 +51,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -240,23 +246,45 @@ fun ColorModeButton(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val icon = when (currentColorMode) {
-        COLOR ->  Icons.Default.Palette
-        GRAYSCALE -> Icons.Default.Contrast
-    }
-    val label = when (currentColorMode) {
-        COLOR ->  stringResource(R.string.color_mode_color)
-        GRAYSCALE -> stringResource(R.string.color_mode_grayscale)
-    }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-    ) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
         SecondaryActionButton(
-            icon = icon,
-            contentDescription = label,
-            onClick = onToggle,
+            icon = Icons.Default.AutoFixHigh,
+            contentDescription = stringResource(R.string.color_mode),
+            onClick = { expanded = true },
         )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.color_mode_color)) },
+                leadingIcon = { Icon(Icons.Default.Palette, contentDescription = null) },
+                onClick = {
+                    if (currentColorMode != COLOR) onToggle()
+                    expanded = false
+                },
+                trailingIcon = {
+                    if (currentColorMode == COLOR) {
+                        Icon(Icons.Default.Check, contentDescription = null)
+                    }
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.color_mode_grayscale)) },
+                leadingIcon = { Icon(Icons.Default.Contrast, contentDescription = null) },
+                onClick = {
+                    if (currentColorMode != GRAYSCALE) onToggle()
+                    expanded = false
+                },
+                trailingIcon = {
+                    if (currentColorMode == GRAYSCALE) {
+                        Icon(Icons.Default.Check, contentDescription = null)
+                    }
+                }
+            )
+        }
     }
 }
 
