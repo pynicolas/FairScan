@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -42,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -108,28 +110,28 @@ private fun SettingsContent(
     Column(
         modifier
             .fillMaxSize()
-            .padding(20.dp)
+            .padding(vertical = 8.dp, horizontal = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        val context = LocalResources.current
+
         Text(stringResource(R.string.settings_section_scan), style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
 
-        Text(stringResource(R.string.color_mode_default), style = MaterialTheme.typography.titleMedium)
+        RadioButtonGroup(
+            R.string.color_mode_default,
+            DefaultColorMode.entries,
+            onClick = onDefaultColorModeChanged,
+            label = { t -> context.getString(t.labelResource) },
+            selectedValue = uiState.defaultColorMode
+        )
 
-        DefaultColorMode.entries.forEach { mode ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = uiState.defaultColorMode == mode,
-                    onClick = { onDefaultColorModeChanged(mode) },
-                )
-                Text(stringResource(mode.labelResource))
-            }
-        }
-
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
+        HorizontalDivider()
+        Spacer(Modifier.height(16.dp))
 
         Text(stringResource(R.string.settings_section_export), style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
 
         DirectorySettingItem(
             label = stringResource(R.string.export_directory),
@@ -149,38 +151,51 @@ private fun SettingsContent(
             }
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
 
-        Text(stringResource(R.string.export_quality), style = MaterialTheme.typography.titleMedium)
-
-        ExportQuality.entries.reversed().forEach { quality ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = uiState.exportQuality == quality,
-                    onClick = { onExportQualityChanged(quality) },
-                )
-                Text(stringResource(quality.labelResource))
-            }
-        }
+        RadioButtonGroup(
+            R.string.export_quality,
+            ExportQuality.entries.reversed(),
+            onClick = onExportQualityChanged,
+            label = { t -> context.getString(t.labelResource) },
+            selectedValue = uiState.exportQuality
+        )
 
         Spacer(Modifier.height(32.dp))
 
-        Text(stringResource(R.string.export_format), style = MaterialTheme.typography.titleMedium)
+        RadioButtonGroup(
+            R.string.export_format,
+            ExportFormat.entries,
+            onClick = onExportFormatChanged,
+            label = { t -> t.name},
+            selectedValue = uiState.exportFormat
+        )
+    }
+}
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+@Composable
+fun <T: Enum<T>> RadioButtonGroup(
+    title: Int,
+    entries: List<T>,
+    onClick: (T) -> Unit,
+    label: (T) -> String,
+    selectedValue: T,
+) {
+    Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+    entries.forEach { t ->
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick(t) }
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             RadioButton(
-                selected = uiState.exportFormat == ExportFormat.PDF,
-                onClick = { onExportFormatChanged(ExportFormat.PDF) },
+                selected = selectedValue == t,
+                onClick = null,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 0.dp)
             )
-            Text("PDF")
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            RadioButton(
-                selected = uiState.exportFormat == ExportFormat.JPEG,
-                onClick = { onExportFormatChanged(ExportFormat.JPEG) },
-            )
-            Text("JPEG")
+            Text(label(t))
         }
     }
 }
@@ -230,6 +245,7 @@ fun DirectorySettingItem(
 }
 
 @Preview
+@Preview(heightDp = 780)
 @Composable
 fun SettingsScreenPreviewWithoutDir() {
     SettingsScreenPreview(SettingsUiState())
