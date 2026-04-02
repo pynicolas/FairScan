@@ -195,6 +195,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
                     capturedPage.pageJpeg,
                     sourceJpeg,
                     capturedPage.metadata,
+                    capturedPage.colorMode,
                 )
                 imageRepository.pages()
             }

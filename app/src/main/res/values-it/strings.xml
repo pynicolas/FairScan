@@ -9,7 +9,9 @@
     <string name="change_directory">Cambia cartella</string>
     <string name="clear_text">Svuota testo</string>
     <string name="color_mode">Filtro</string>
+    <string name="color_mode_auto">Automatico</string>
     <string name="color_mode_color">Colore</string>
+    <string name="color_mode_default">Filtro predefinito</string>
     <string name="color_mode_grayscale">Scala di grigi</string>
     <string name="contact">Contatti</string>
     <string name="copied_logs">Log copiati negli appunti</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">Nuova scansione</string>
     <string name="scan_in_progress">Scansione in corso</string>
     <string name="settings">Impostazioni</string>
+    <string name="settings_section_scan">Scansione</string>
+    <string name="settings_section_export">Esportazione</string>
     <string name="share">Condividi</string>
     <string name="share_document">Condividi documento</string>
     <string name="storage_permission_denied">Impossibile salvare il file: permesso negato</string>

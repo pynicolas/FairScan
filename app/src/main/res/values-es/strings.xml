@@ -9,7 +9,9 @@
     <string name="change_directory">Cambiar carpeta</string>
     <string name="clear_text">Borrar texto</string>
     <string name="color_mode">Filtro</string>
+    <string name="color_mode_auto">Automático</string>
     <string name="color_mode_color">Color</string>
+    <string name="color_mode_default">Filtro predeterminado</string>
     <string name="color_mode_grayscale">Escala de grises</string>
     <string name="contact">Contacto</string>
     <string name="copied_logs">Registros copiados al portapapeles</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">Nuevo escaneo</string>
     <string name="scan_in_progress">Escaneo en curso</string>
     <string name="settings">Ajustes</string>
+    <string name="settings_section_scan">Escaneo</string>
+    <string name="settings_section_export">Exportación</string>
     <string name="share">Compartir</string>
     <string name="share_document">Compartir documento</string>
     <string name="storage_permission_denied">No se puede guardar el archivo: permiso denegado</string>

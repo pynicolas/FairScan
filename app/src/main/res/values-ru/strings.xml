@@ -8,10 +8,12 @@
     <string name="cancel">Отмена</string>
     <string name="change_directory">Изменить папку</string>
     <string name="clear_text">Стереть текст</string>
+    <string name="color_mode">Фильтр</string>
+    <string name="color_mode_auto">Автоматически</string>
     <string name="color_mode_color">Цвет</string>
+    <string name="color_mode_default">Фильтр по умолчанию</string>
     <string name="color_mode_grayscale">Оттенки серого</string>
     <string name="contact">Контакты</string>
-    <string name="color_mode">Фильтр</string>
     <string name="copied_logs">Журналы скопированы в буфер обмена</string>
     <string name="copy_logs">Копировать журналы</string>
     <string name="creating_export">Подготовка экспорта…</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">Начать</string>
     <string name="scan_in_progress">Сканирование выполняется</string>
     <string name="settings">Настройки</string>
+    <string name="settings_section_scan">Сканирование</string>
+    <string name="settings_section_export">Экспорт</string>
     <string name="share">Поделиться</string>
     <string name="share_document">Поделиться документом</string>
     <string name="storage_permission_denied">Невозможно сохранить файл: доступ запрещён</string>

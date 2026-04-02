@@ -9,7 +9,9 @@
     <string name="change_directory">غيّر المجلد</string>
     <string name="clear_text">امحُ النص</string>
     <string name="color_mode">فلتر</string>
+    <string name="color_mode_auto">تلقائي</string>
     <string name="color_mode_color">ألوان</string>
+    <string name="color_mode_default">الفلتر الافتراضي</string>
     <string name="color_mode_grayscale">تدرج الرمادي</string>
     <string name="contact">تواصل</string>
     <string name="copied_logs">نُسخت السجلات إلى الحافظة</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">مسح جديد</string>
     <string name="scan_in_progress">المسح قيد التقدم</string>
     <string name="settings">الإعدادات</string>
+    <string name="settings_section_scan">المسح</string>
+    <string name="settings_section_export">التصدير</string>
     <string name="share">شارك</string>
     <string name="share_document">شارك المستند</string>
     <string name="storage_permission_denied">تعذر حفظ الملف: رُفض الإذن</string>

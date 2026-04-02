@@ -269,6 +269,7 @@ class MainActivity : ComponentActivity() {
         }
         SettingsScreen(
             settingsUiState,
+            onDefaultColorModeChanged = { mode -> settingsViewModel.setDefaultColorMode(mode) },
             onChooseDirectoryClick = {
                 try {
                     launcher.launch(null)

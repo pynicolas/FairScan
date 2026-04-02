@@ -27,6 +27,7 @@ import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.ExportQuality
 
 data class SettingsUiState(
+    val defaultColorMode: DefaultColorMode = DefaultColorMode.AUTO,
     val exportDirUri: String? = null,
     val exportDirName: String? = null,
     val exportFormat: ExportFormat = ExportFormat.PDF,
@@ -41,12 +42,14 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
     val dirName: StateFlow<String?> = _dirName
 
     val uiState = combine(
+        repo.defaultColorMode,
         repo.exportDirUri,
         dirName,
         repo.exportFormat,
         repo.exportQuality,
-    ) { uri, name, format, quality ->
+    ) { colorMode, uri, name, format, quality ->
         SettingsUiState(
+            defaultColorMode = colorMode,
             exportDirUri = uri,
             exportDirName = name,
             exportFormat = format,
@@ -57,6 +60,12 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
         SharingStarted.WhileSubscribed(5000),
         SettingsUiState()
     )
+
+    fun setDefaultColorMode(pref: DefaultColorMode) {
+        viewModelScope.launch {
+            repo.setDefaultColorMode(pref)
+        }
+    }
 
     fun setExportDirUri(uri: String?) {
         viewModelScope.launch {

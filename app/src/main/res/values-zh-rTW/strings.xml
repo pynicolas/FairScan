@@ -9,7 +9,9 @@
     <string name="change_directory">變更目錄</string>
     <string name="clear_text">清除文字</string>
     <string name="color_mode">濾鏡</string>
+    <string name="color_mode_auto">自動</string>
     <string name="color_mode_color">彩色</string>
+    <string name="color_mode_default">預設濾鏡</string>
     <string name="color_mode_grayscale">灰階</string>
     <string name="contact">聯絡我們</string>
     <string name="copied_logs">日誌已複製到剪貼簿</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">開始掃描</string>
     <string name="scan_in_progress">掃描進行中</string>
     <string name="settings">設定</string>
+    <string name="settings_section_scan">掃描</string>
+    <string name="settings_section_export">匯出</string>
     <string name="share">分享</string>
     <string name="share_document">分享文件</string>
     <string name="storage_permission_denied">無法儲存檔案：權限遭拒</string>
