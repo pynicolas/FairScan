@@ -141,10 +141,10 @@ class ImageRepository(
         }
     }
 
-    suspend fun add(processed: Jpeg, source: Jpeg, metadata: PageMetadata) =
+    suspend fun add(processed: Jpeg, source: Jpeg, metadata: PageMetadata, colorMode: ColorMode) =
         mutex.withLock {
             val id = "${System.currentTimeMillis()}"
-            val key = PageViewKey(id, Rotation.R0, metadata.autoColorMode)
+            val key = PageViewKey(id, Rotation.R0, colorMode)
             processedImageFile(key).writeBytes(processed.bytes)
             sourceFile(id).writeBytes(source.bytes)
             pages.addOrReplace(
@@ -154,7 +154,7 @@ class ImageRepository(
                     baseRotationDegrees = metadata.baseRotation.degrees,
                     manualRotationDegrees = Rotation.R0.degrees,
                     isColored = metadata.autoColorMode == ColorMode.COLOR,
-                    colorMode = metadata.autoColorMode,
+                    colorMode = colorMode,
                 )
             )
             saveMetadata()

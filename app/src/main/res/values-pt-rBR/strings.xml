@@ -9,7 +9,9 @@
     <string name="change_directory">Alterar diretório</string>
     <string name="clear_text">Limpar texto</string>
     <string name="color_mode">Filtro</string>
+    <string name="color_mode_auto">Automático</string>
     <string name="color_mode_color">Cor</string>
+    <string name="color_mode_default">Filtro padrão</string>
     <string name="color_mode_grayscale">Escala de cinza</string>
     <string name="contact">Contato</string>
     <string name="copied_logs">Registros copiados para a área de transferência</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">Nova digitalização</string>
     <string name="scan_in_progress">Digitalização em andamento</string>
     <string name="settings">Configurações</string>
+    <string name="settings_section_scan">Digitalização</string>
+    <string name="settings_section_export">Exportação</string>
     <string name="share">Compartilhar</string>
     <string name="share_document">Compartilhar documento</string>
     <string name="storage_permission_denied">Não foi possível salvar o arquivo: permissão negada</string>

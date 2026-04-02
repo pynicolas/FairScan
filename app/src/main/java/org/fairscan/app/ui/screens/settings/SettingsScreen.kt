@@ -54,6 +54,7 @@ import org.fairscan.app.ui.theme.FairScanTheme
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
+    onDefaultColorModeChanged: (DefaultColorMode) -> Unit,
     onChooseDirectoryClick: () -> Unit,
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
@@ -71,6 +72,7 @@ fun SettingsScreen(
     ) { paddingValues ->
         SettingsContent(
             uiState,
+            onDefaultColorModeChanged,
             onChooseDirectoryClick,
             onResetExportDirClick,
             onExportFormatChanged,
@@ -82,6 +84,7 @@ fun SettingsScreen(
 @Composable
 private fun SettingsContent(
     uiState: SettingsUiState,
+    onDefaultColorModeChanged: (DefaultColorMode) -> Unit,
     onChooseDirectoryClick: () -> Unit,
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
@@ -108,6 +111,26 @@ private fun SettingsContent(
             .padding(20.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        Text(stringResource(R.string.settings_section_scan), style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(32.dp))
+
+        Text(stringResource(R.string.color_mode_default), style = MaterialTheme.typography.titleMedium)
+
+        DefaultColorMode.entries.forEach { mode ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = uiState.defaultColorMode == mode,
+                    onClick = { onDefaultColorModeChanged(mode) },
+                )
+                Text(stringResource(mode.labelResource))
+            }
+        }
+
+        Spacer(Modifier.height(32.dp))
+
+        Text(stringResource(R.string.settings_section_export), style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(32.dp))
+
         DirectorySettingItem(
             label = stringResource(R.string.export_directory),
             folderLabel,
@@ -128,7 +151,7 @@ private fun SettingsContent(
 
         Spacer(Modifier.height(32.dp))
 
-        Text(stringResource(R.string.export_quality), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.export_quality), style = MaterialTheme.typography.titleMedium)
 
         ExportQuality.entries.reversed().forEach { quality ->
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -142,7 +165,7 @@ private fun SettingsContent(
 
         Spacer(Modifier.height(32.dp))
 
-        Text(stringResource(R.string.export_format), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.export_format), style = MaterialTheme.typography.titleMedium)
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             RadioButton(
@@ -173,7 +196,7 @@ fun DirectorySettingItem(
     Column {
         Text(
             text = label,
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.titleMedium
         )
 
         Spacer(Modifier.height(8.dp))
@@ -209,13 +232,13 @@ fun DirectorySettingItem(
 @Preview
 @Composable
 fun SettingsScreenPreviewWithoutDir() {
-    SettingsScreenPreview(SettingsUiState(null))
+    SettingsScreenPreview(SettingsUiState())
 }
 
 @Preview
 @Composable
 fun SettingsScreenPreviewWithDir() {
-    SettingsScreenPreview(SettingsUiState("content://root/dir"))
+    SettingsScreenPreview(SettingsUiState(exportDirUri = "content://root/dir"))
 }
 
 @Composable
@@ -223,6 +246,7 @@ fun SettingsScreenPreview(uiState: SettingsUiState) {
     FairScanTheme {
         SettingsScreen(
             uiState,
+            onDefaultColorModeChanged = {},
             onChooseDirectoryClick = {},
             onResetExportDirClick = {},
             onExportFormatChanged = {},

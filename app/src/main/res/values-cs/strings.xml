@@ -9,7 +9,9 @@
     <string name="change_directory">Změnit složku</string>
     <string name="clear_text">Smazat text</string>
     <string name="color_mode">Filtr</string>
+    <string name="color_mode_auto">Automaticky</string>
     <string name="color_mode_color">Barva</string>
+    <string name="color_mode_default">Výchozí filtr</string>
     <string name="color_mode_grayscale">Odstíny šedi</string>
     <string name="contact">Kontakt</string>
     <string name="copied_logs">Protokoly zkopírovány do schránky</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">Nové skenování</string>
     <string name="scan_in_progress">Probíhá skenování</string>
     <string name="settings">Nastavení</string>
+    <string name="settings_section_scan">Skenování</string>
+    <string name="settings_section_export">Export</string>
     <string name="share">Sdílet</string>
     <string name="share_document">Sdílet dokument</string>
     <string name="storage_permission_denied">Nelze uložit soubor: oprávnění bylo odmítnuto</string>

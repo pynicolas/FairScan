@@ -16,9 +16,11 @@
 package org.fairscan.app.domain
 
 import kotlinx.coroutines.Deferred
+import org.fairscan.imageprocessing.ColorMode
 
 data class CapturedPage(
     val pageJpeg: Jpeg,
     val sourceJpeg: Deferred<Jpeg>,
     val metadata: PageMetadata,
+    val colorMode: ColorMode,
 )

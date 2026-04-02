@@ -9,7 +9,9 @@
     <string name="change_directory">Ordner ändern</string>
     <string name="clear_text">Text löschen</string>
     <string name="color_mode">Filter</string>
+    <string name="color_mode_auto">Automatisch</string>
     <string name="color_mode_color">Farbe</string>
+    <string name="color_mode_default">Standardfilter</string>
     <string name="color_mode_grayscale">Graustufen</string>
     <string name="contact">Kontakt</string>
     <string name="copied_logs">Logs in die Zwischenablage kopiert</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">Neuer Scan</string>
     <string name="scan_in_progress">Scan läuft</string>
     <string name="settings">Einstellungen</string>
+    <string name="settings_section_scan">Scan</string>
+    <string name="settings_section_export">Export</string>
     <string name="share">Teilen</string>
     <string name="share_document">Dokument teilen</string>
     <string name="storage_permission_denied">Datei kann nicht gespeichert werden: Berechtigung verweigert</string>

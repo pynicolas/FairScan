@@ -22,15 +22,28 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.fairscan.app.R
 import org.fairscan.app.domain.ExportQuality
+import org.fairscan.imageprocessing.ColorMode
 
 private val Context.dataStore by preferencesDataStore(name = "fairscan_settings")
 
 class SettingsRepository(private val context: Context) {
 
+    private val DEFAULT_COLOR_MODE = stringPreferencesKey("default_color_mode")
     private val EXPORT_DIR_URI = stringPreferencesKey("export_dir_uri")
     private val EXPORT_FORMAT = stringPreferencesKey("export_format")
     private val EXPORT_QUALITY = stringPreferencesKey("export_quality")
+
+    val defaultColorMode: Flow<DefaultColorMode> =
+        context.dataStore.data.map { prefs ->
+            when (prefs[DEFAULT_COLOR_MODE]) {
+                "AUTO" -> DefaultColorMode.AUTO
+                "COLOR" -> DefaultColorMode.COLOR
+                "GRAYSCALE" -> DefaultColorMode.GRAYSCALE
+                else -> DefaultColorMode.AUTO
+            }
+        }
 
     val exportDirUri: Flow<String?> =
         context.dataStore.data.map { prefs ->
@@ -60,6 +73,12 @@ class SettingsRepository(private val context: Context) {
             }
         }
 
+    suspend fun setDefaultColorMode(mode: DefaultColorMode) {
+        context.dataStore.edit { prefs ->
+            prefs[DEFAULT_COLOR_MODE] = mode.name
+        }
+    }
+
     suspend fun setExportDirUri(uri: String?) {
         context.dataStore.edit { prefs ->
             if (uri == null) {
@@ -81,6 +100,12 @@ class SettingsRepository(private val context: Context) {
             prefs[EXPORT_QUALITY] = quality.name
         }
     }
+}
+
+enum class DefaultColorMode(val colorMode: ColorMode?, val labelResource: Int) {
+    AUTO(null, R.string.color_mode_auto),
+    COLOR(ColorMode.COLOR, R.string.color_mode_color),
+    GRAYSCALE(ColorMode.GRAYSCALE, R.string.color_mode_grayscale),
 }
 
 enum class ExportFormat(val mimeType: String) {

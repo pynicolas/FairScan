@@ -9,7 +9,9 @@
     <string name="change_directory">Dizini değiştir</string>
     <string name="clear_text">Metni temizle</string>
     <string name="color_mode">Filtre</string>
+    <string name="color_mode_auto">Otomatik</string>
     <string name="color_mode_color">Renkli</string>
+    <string name="color_mode_default">Varsayılan filtre</string>
     <string name="color_mode_grayscale">Gri tonlama</string>
     <string name="contact">İletişim</string>
     <string name="copied_logs">Günlükler panoya kopyalandı</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">Yeni Tarama</string>
     <string name="scan_in_progress">Tarama devam ediyor</string>
     <string name="settings">Ayarlar</string>
+    <string name="settings_section_scan">Tarama</string>
+    <string name="settings_section_export">Dışa aktarma</string>
     <string name="share">Paylaş</string>
     <string name="share_document">Belgeyi paylaş</string>
     <string name="storage_permission_denied">Dosya kaydedilemiyor: izin reddedildi</string>

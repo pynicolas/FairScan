@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
@@ -35,6 +36,7 @@ import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.Rotation
+import org.fairscan.app.ui.screens.settings.DefaultColorMode
 import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Quad
@@ -53,6 +55,7 @@ sealed interface CameraEvent {
 class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
     private val imageSegmentationService = appContainer.imageSegmentationService
+    private val settingsRepository = appContainer.settingsRepository
     private val logger = appContainer.logger
 
     private val _events = MutableSharedFlow<CameraEvent>()
@@ -165,8 +168,9 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
             val quad = detectDocumentQuad(mask, originalSize, isLiveAnalysis = false)
             if (quad != null) {
                 val resizedQuad = quad.scaledTo(mask.width, mask.height, source.width, source.height)
+                val defaultColorMode = settingsRepository.defaultColorMode.first()
                 result = extractDocumentFromBitmap(
-                    source, resizedQuad, rotationDegrees, mask, viewModelScope)
+                    source, resizedQuad, rotationDegrees, mask, viewModelScope, defaultColorMode)
             }
         }
         return@withContext result
@@ -223,14 +227,20 @@ sealed class CaptureState {
 }
 
 fun extractDocumentFromBitmap(
-    source: Bitmap, quad: Quad, rotationDegrees: Int, mask: Mask, viewModelScope: CoroutineScope
+    source: Bitmap,
+    quad: Quad,
+    rotationDegrees: Int,
+    mask: Mask,
+    viewModelScope: CoroutineScope,
+    defaultColorMode: DefaultColorMode = DefaultColorMode.AUTO
 ): CapturedPage {
     val rgba = Mat()
     Utils.bitmapToMat(source, rgba)
     val bgr = Mat()
     Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR) // CV_8UC4 → CV_8UC3
     rgba.release()
-    val colorMode = autoColorMode(bgr, mask, quad)
+    val autoColorMode = autoColorMode(bgr, mask, quad)
+    val colorMode = defaultColorMode.colorMode ?: autoColorMode
     val maxPixels = ExportQuality.BALANCED.maxPixels
     val page = extractDocument(bgr, quad, rotationDegrees, colorMode, maxPixels)
     val pageJpeg = Jpeg.fromMat(page, ExportQuality.BALANCED.jpegQuality)
@@ -239,11 +249,11 @@ fun extractDocumentFromBitmap(
 
     val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
     val baseRotation = Rotation.fromDegrees(rotationDegrees)
-    val metadata = PageMetadata(normalizedQuad, baseRotation, colorMode)
+    val metadata = PageMetadata(normalizedQuad, baseRotation, autoColorMode)
     val sourceJpegDeferred = viewModelScope.async(Dispatchers.IO) {
         compressJpeg(source, 90)
     }
-    return CapturedPage(pageJpeg, sourceJpegDeferred, metadata)
+    return CapturedPage(pageJpeg, sourceJpegDeferred, metadata, colorMode)
 }
 
 fun rotateBitmap(source: Bitmap, angle: Float): Bitmap {

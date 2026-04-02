@@ -9,7 +9,9 @@
     <string name="change_directory">更改目录</string>
     <string name="clear_text">清除文字</string>
     <string name="color_mode">滤镜</string>
+    <string name="color_mode_auto">自动</string>
     <string name="color_mode_color">彩色</string>
+    <string name="color_mode_default">默认滤镜</string>
     <string name="color_mode_grayscale">灰度</string>
     <string name="contact">联系人</string>
     <string name="copied_logs">日志已复制到剪贴板</string>
@@ -58,6 +60,8 @@
     <string name="scan_button">新建扫描</string>
     <string name="scan_in_progress">正在进行扫描</string>
     <string name="settings">设置</string>
+    <string name="settings_section_scan">扫描</string>
+    <string name="settings_section_export">导出</string>
     <string name="share">共享</string>
     <string name="share_document">分享文档</string>
     <string name="storage_permission_denied">无法保存文件：权限被拒绝</string>

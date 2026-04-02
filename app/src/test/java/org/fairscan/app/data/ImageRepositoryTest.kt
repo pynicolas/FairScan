@@ -75,7 +75,7 @@ class ImageRepositoryTest {
         val repo = repo()
         assertThat(repo.imageIds()).isEmpty()
         val jpeg = jpeg(101, 102, 103)
-        repo.add(jpeg, jpeg(51), metadata1)
+        repo.add(jpeg, jpeg(51), metadata1, COLOR)
         assertThat(repo.imageIds()).hasSize(1)
         val id = repo.imageIds()[0]
         val key = PageViewKey(id, R0, COLOR)
@@ -96,7 +96,7 @@ class ImageRepositoryTest {
     fun delete_image() = runTest {
         val repo = repo()
         val jpeg = jpeg(101, 102, 103)
-        repo.add(jpeg, jpeg(51), metadata1)
+        repo.add(jpeg, jpeg(51), metadata1, COLOR)
         assertThat(jpegFiles(processedDir())).hasSize(1)
         assertThat(jpegFiles(sourceDir())).hasSize(1)
         assertThat(repo.imageIds()).hasSize(1)
@@ -188,7 +188,7 @@ class ImageRepositoryTest {
     fun `clear should delete pages`() = runTest {
         val jpeg = jpeg(101, 102, 103)
         val repo1 = repo()
-        repo1.add(jpeg, jpeg(51), metadata1)
+        repo1.add(jpeg, jpeg(51), metadata1, COLOR)
         assertThat(repo1.imageIds()).isNotEmpty()
         repo1.clear()
         assertThat(repo1.imageIds()).isEmpty()
@@ -201,7 +201,7 @@ class ImageRepositoryTest {
     @Test
     fun rotate() = runTest {
         val repo = repo()
-        repo.add(jpeg(101, 102, 103), jpeg(51), metadata1)
+        repo.add(jpeg(101, 102, 103), jpeg(51), metadata1, COLOR)
         assertThat(repo.pages().last().metadata).isEqualTo(metadata1)
         val id = repo.pages().last().id
         repo.rotate(id, true)
@@ -230,9 +230,9 @@ class ImageRepositoryTest {
     @Test
     fun movePage() = runTest {
         val repo = repo()
-        repo.add(jpeg(101), jpeg(51), metadata1)
+        repo.add(jpeg(101), jpeg(51), metadata1, COLOR)
         Thread.sleep(1L) // to avoid file name clashes
-        repo.add(jpeg(110), jpeg(51), metadata1)
+        repo.add(jpeg(110), jpeg(51), metadata1, COLOR)
         val id0 = repo.imageIds().first()
         val id1 = repo.imageIds().last()
         repo.movePage(id1, 0)
@@ -284,10 +284,10 @@ class ImageRepositoryTest {
     fun last_added_source_file() = runTest {
         val repo = repo()
         assertThat(repo.lastAddedSourceFile()).isNull()
-        repo.add(jpeg(101), jpeg(51), metadata1)
+        repo.add(jpeg(101), jpeg(51), metadata1, COLOR)
         assertThat(repo.lastAddedSourceFile()).hasBinaryContent(byteArrayOf(51))
         Thread.sleep(1)
-        repo.add(jpeg(102), jpeg(52), metadata1)
+        repo.add(jpeg(102), jpeg(52), metadata1, COLOR)
         assertThat(repo.lastAddedSourceFile()).hasBinaryContent(byteArrayOf(52))
 
         val id = repo.imageIds().last()

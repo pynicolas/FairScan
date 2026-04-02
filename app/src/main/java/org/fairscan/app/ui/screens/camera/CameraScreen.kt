@@ -540,7 +540,8 @@ fun CameraScreenPreviewWithProcessedImage() {
         CapturedPage(
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
             CompletableDeferred(Jpeg(ByteArray(0))),
-            PageMetadata(quad, R0, ColorMode.COLOR))))
+            PageMetadata(quad, R0, ColorMode.COLOR),
+            ColorMode.COLOR)))
 }
 
 @Preview(showBackground = true, widthDp = 640, heightDp = 320)
