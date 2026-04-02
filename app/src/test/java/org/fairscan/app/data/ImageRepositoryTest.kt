@@ -16,6 +16,10 @@ package org.fairscan.app.data
 
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
@@ -28,6 +32,7 @@ import org.fairscan.app.domain.Rotation.R270
 import org.fairscan.app.domain.Rotation.R90
 import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.ColorMode.COLOR
+import org.fairscan.imageprocessing.ColorMode.GRAYSCALE
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.junit.Rule
@@ -54,19 +59,22 @@ class ImageRepositoryTest {
         return _filesDir!!
     }
 
-    fun repo(): ImageRepository {
-        val transformations = object : ImageTransformations {
-            override fun rotate(input: Jpeg, rotationDegrees: Int, jpegQuality: Int): Jpeg {
-                return input
-            }
-            override fun resize(input: Jpeg, maxSize: Int): Jpeg {
-                return jpeg(input.bytes[0])
-            }
-
-            override fun process(source: Jpeg, metadata: PageMetadata, colorMode: ColorMode): Jpeg {
-                TODO("Not yet implemented")
-            }
+    fun repo(
+        rotate: (Jpeg, Int, Int) -> Jpeg = { input, _, _ -> input },
+        resize: (Jpeg, Int) -> Jpeg = { input, _ -> jpeg(input.bytes[0]) },
+        process: (Jpeg, PageMetadata, ColorMode) -> Jpeg = { _, _, _ ->
+            throw UnsupportedOperationException()
         }
+    ): ImageRepository {
+        val transformations = object : ImageTransformations {
+            override fun rotate(input: Jpeg, rotationDegrees: Int, jpegQuality: Int): Jpeg =
+                rotate(input, rotationDegrees, jpegQuality)
+            override fun resize(input: Jpeg, maxSize: Int): Jpeg =
+                resize(input, maxSize)
+            override fun process(source: Jpeg, metadata: PageMetadata, colorMode: ColorMode): Jpeg =
+                process(source, metadata, colorMode)
+        }
+
         return ImageRepository(getFilesDir(), transformations, 200, testScope)
     }
 
@@ -228,6 +236,52 @@ class ImageRepositoryTest {
     }
 
     @Test
+    fun setColorMode_should_process_and_update_metadata() = runTest {
+        val jpeg1 = jpeg(10)
+        val repo = repo(
+            process = { jpeg ,meta, mode ->
+                assertThat(mode).isEqualTo(GRAYSCALE)
+                jpeg(41)
+            }
+        )
+        repo.add(jpeg1, jpeg(20), metadata1, COLOR)
+        assertThat(repo.pages().first().colorMode).isEqualTo(COLOR)
+        val id = repo.pages().first().id
+        repo.setColorMode(id, GRAYSCALE)
+        assertThat(repo.pages().first().colorMode).isEqualTo(GRAYSCALE)
+        val key = PageViewKey(id, R0, GRAYSCALE)
+        assertThat(repo.jpegBytes(key)?.bytes).isEqualTo(byteArrayOf(41))
+    }
+
+    @Test
+    fun setColorMode_should_not_run_twice_in_parallel() = runTest {
+        var processCalls = 0
+        val repo = repo(
+            process = { _, _, _ ->
+                processCalls++
+                runBlocking { delay(10) }
+                jpeg(1)
+            }
+        )
+        repo.add(jpeg(10), jpeg(20), metadata1, COLOR)
+        val id = repo.imageIds().first()
+        coroutineScope {
+            launch { repo.setColorMode(id, GRAYSCALE) }
+            launch { repo.setColorMode(id, GRAYSCALE) }
+        }
+        val key = PageViewKey(id, R0, GRAYSCALE)
+        assertThat(repo.jpegBytes(key)?.bytes).isEqualTo(byteArrayOf(1))
+        assertThat(processCalls).isEqualTo(1)
+    }
+
+    @Test
+    fun setColorMode_unknown_id_should_do_nothing() = runTest {
+        val repo = repo()
+        repo.setColorMode("x", GRAYSCALE)
+        assertThat(repo.imageIds()).isEmpty()
+    }
+
+    @Test
     fun movePage() = runTest {
         val repo = repo()
         repo.add(jpeg(101), jpeg(51), metadata1, COLOR)
@@ -260,7 +314,7 @@ class ImageRepositoryTest {
             val metadata = PageV2("1", 0, 0, quad, isColored).toMetadata()
             assertThat(metadata).isNotNull()
             assertThat(metadata!!.autoColorMode).isEqualTo(
-                if (isColored) COLOR else ColorMode.GRAYSCALE
+                if (isColored) COLOR else GRAYSCALE
             )
         }
     }
