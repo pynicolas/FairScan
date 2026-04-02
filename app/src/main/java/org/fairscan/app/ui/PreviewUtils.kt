@@ -15,11 +15,10 @@
 package org.fairscan.app.ui
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.state.DocumentUiModel
@@ -41,8 +40,5 @@ fun fakeDocument(pageIds: ImmutableList<String>, context: Context): DocumentUiMo
     return DocumentUiModel(pageKeys)
 }
 
-fun fakeImage(id: String, context: Context): Bitmap =
-    context.assets.open("${id}.jpg").use { input ->
-        BitmapFactory.decodeStream(input)
-    }
-
+fun fakeImage(id: String, context: Context): Jpeg =
+    Jpeg(context.assets.open("${id}.jpg").readBytes())

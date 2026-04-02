@@ -63,7 +63,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
         _pages.map { pages ->
             pages.map {
                 val jpeg = imageRepository.getThumbnail(it.key())
-                PageThumbnail(it.key(), jpeg?.toBitmap())
+                PageThumbnail(it.key(), jpeg)
             }.toImmutableList()
         }
         .flowOn(Dispatchers.IO)

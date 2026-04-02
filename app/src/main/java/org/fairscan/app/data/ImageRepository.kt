@@ -67,7 +67,7 @@ class ImageRepository(
 
     private val processingJobs = synchronizedMap(mutableMapOf<PageViewKey, Deferred<Unit>>())
     private val imageCache = createLruCache<PageViewKey, Deferred<Jpeg?>>(maxEntries = 50)
-    private val thumbnailCache = createLruCache<PageViewKey, Deferred<Jpeg?>>(maxEntries = 200)
+    private val thumbnailCache = createLruCache<PageViewKey, Deferred<Jpeg?>>(maxEntries = 1000)
 
     private fun <K, V> createLruCache(maxEntries: Int): MutableMap<K, V> =
         synchronizedMap(object : LinkedHashMap<K, V>(16, 0.75f, true) {

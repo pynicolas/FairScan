@@ -339,7 +339,7 @@ private fun BottomBar(
 @Preview(name = "Landscape", showBackground = true, widthDp = 640, heightDp = 320)
 fun DocumentScreenPreview() {
     FairScanTheme {
-        val image = fakeImage("gallica.bnf.fr-bpt6k5530456s-1", LocalContext.current)
+        val image = fakeImage("gallica.bnf.fr-bpt6k5530456s-1", LocalContext.current).toBitmap()
         val document = fakeDocument(
             listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it" }.toImmutableList(),
             LocalContext.current
