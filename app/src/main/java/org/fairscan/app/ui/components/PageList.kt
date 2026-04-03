@@ -83,8 +83,8 @@ fun CommonPageList(
         state.onPageReorder(pageId, to.index)
     }
     val content: LazyListScope.() -> Unit = {
-        itemsIndexed(state.document.pages.map { it.key }, key = { _, item -> item.saveKey}) { index, item ->
-            ReorderableItem(reorderableLazyListState, key = item.saveKey) { isDragging ->
+        itemsIndexed(state.document.pages.map { it.key }, key = { _, item -> item.pageId}) { index, item ->
+            ReorderableItem(reorderableLazyListState, key = item.pageId) { isDragging ->
                 val borderColor =
                     if (isDragging) MaterialTheme.colorScheme.primary else Color.Transparent
                 val modifier = Modifier
