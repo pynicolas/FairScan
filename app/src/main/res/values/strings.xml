@@ -79,6 +79,7 @@
     <string name="view_full_list">View full list</string>
     <string name="view_the_full_license">View the full license</string>
     <string name="yes">Yes</string>
+    <string name="report">Report</string>
     <plurals name="files_saved_to">
         <item quantity="one">%2$s saved to %3$s</item>
         <item quantity="other">%1$d files saved to %3$s</item>

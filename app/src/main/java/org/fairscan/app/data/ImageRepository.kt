@@ -203,7 +203,7 @@ class ImageRepository(
         return if (file.exists()) file.readBytes() else null
     }
 
-    private fun getSourceFile(id: String): File {
+    fun getSourceFile(id: String): File {
         return File(sourceDir, "$id.jpg")
     }
 

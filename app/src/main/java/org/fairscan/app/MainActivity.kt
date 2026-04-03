@@ -182,7 +182,13 @@ class MainActivity : ComponentActivity() {
                             pageId = document.pageId(screen.pageIndex),
                             imageRepository = imageRepository,
                             navigation = navigation,
-                            onUpdatePageQuad = { id, quad, onComplete -> viewModel.updatePageQuad(id, quad, onComplete) }
+                            onUpdatePageQuad = { id, quad, onComplete -> viewModel.updatePageQuad(id, quad, onComplete) },
+                            onReportProblem = {
+                                val file = imageRepository.getSourceFile(document.pageId(screen.pageIndex))
+                                if (file.exists()) {
+                                    startActivity(createEmailWithImageIntent(context, file))
+                                }
+                            }
                         )
                     }
                     is Screen.Main.Document -> {

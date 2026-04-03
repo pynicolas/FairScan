@@ -152,6 +152,7 @@ fun isLandscape(configuration: Configuration): Boolean {
 fun AppOverflowMenu(
     navigation: Navigation,
     modifier: Modifier = Modifier,
+    extraItems: (@Composable (onDismiss: () -> Unit) -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box(
@@ -171,6 +172,8 @@ fun AppOverflowMenu(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surface)
         ) {
+
+            extraItems?.invoke { expanded = false }
 
             navigation.toSettingsScreen?.let { toSettings ->
                 DropdownMenuItem(

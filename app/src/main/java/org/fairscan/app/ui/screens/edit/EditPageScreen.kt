@@ -38,8 +38,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -88,6 +92,7 @@ fun EditPageScreen(
     imageRepository: ImageRepository,
     navigation: Navigation,
     onUpdatePageQuad: (String, Quad, onComplete: () -> Unit) -> Unit,
+    onReportProblem: () -> Unit = {},
 ) {
     val showDiscardChangesDialog = rememberSaveable { mutableStateOf(false) }
     val state = remember { EditPageScreenState() }
@@ -192,7 +197,17 @@ fun EditPageScreen(
                 navigation,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .windowInsetsPadding(WindowInsets.safeDrawing),
+                extraItems = { onDismiss ->
+                    DropdownMenuItem(
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        text = { Text(stringResource(R.string.report)) },
+                        onClick = {
+                            onDismiss()
+                            onReportProblem()
+                        }
+                    )
+                }
             )
 
             DragMagnifyingGlass(state)
