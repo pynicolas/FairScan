@@ -20,7 +20,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import org.fairscan.app.data.ImageRepository
-import org.fairscan.app.platform.OpenCvTransformations
+import org.fairscan.app.platform.ImageProcessor
 import java.io.File
 import java.util.UUID
 
@@ -66,8 +66,7 @@ class ScanSessionContainer(
 
     val imageRepository = ImageRepository(
         scanRootDir,
-        OpenCvTransformations(),
-        thumbnailSizePx,
+        ImageProcessor(thumbnailSizePx),
         scope,
     )
 }

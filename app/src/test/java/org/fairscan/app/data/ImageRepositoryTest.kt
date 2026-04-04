@@ -60,22 +60,22 @@ class ImageRepositoryTest {
     }
 
     fun repo(
-        rotate: (Jpeg, Int, Int) -> Jpeg = { input, _, _ -> input },
-        resize: (Jpeg, Int) -> Jpeg = { input, _ -> jpeg(input.bytes[0]) },
+        rotate: (Jpeg, Int) -> Jpeg = { input, _ -> input },
+        resizeToThumbnail: (Jpeg) -> Jpeg = { input -> jpeg(input.bytes[0]) },
         process: (Jpeg, PageMetadata, ColorMode) -> Jpeg = { _, _, _ ->
             throw UnsupportedOperationException()
         }
     ): ImageRepository {
         val transformations = object : ImageTransformations {
-            override fun rotate(input: Jpeg, rotationDegrees: Int, jpegQuality: Int): Jpeg =
-                rotate(input, rotationDegrees, jpegQuality)
-            override fun resize(input: Jpeg, maxSize: Int): Jpeg =
-                resize(input, maxSize)
+            override fun rotate(input: Jpeg, rotationDegrees: Int): Jpeg =
+                rotate(input, rotationDegrees)
+            override fun resizeToThumbnail(input: Jpeg): Jpeg =
+                resizeToThumbnail(input)
             override fun process(source: Jpeg, metadata: PageMetadata, colorMode: ColorMode): Jpeg =
                 process(source, metadata, colorMode)
         }
 
-        return ImageRepository(getFilesDir(), transformations, 200, testScope)
+        return ImageRepository(getFilesDir(), transformations, testScope)
     }
 
     @Test

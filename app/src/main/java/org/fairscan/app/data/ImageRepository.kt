@@ -52,7 +52,6 @@ const val THUMBNAIL_DIR_NAME = "thumbnails"
 class ImageRepository(
     scanRootDir: File,
     val transformations: ImageTransformations,
-    private val thumbnailSizePx: Int,
     private val scope: CoroutineScope,
 ) {
     private val sourceDir = File(scanRootDir, SOURCE_DIR_NAME).apply { mkdirs() }
@@ -236,8 +235,7 @@ class ImageRepository(
             } else {
                 transformations.rotate(
                     baseJpeg,
-                    key.rotation.degrees,
-                    ExportQuality.BALANCED.jpegQuality)
+                    key.rotation.degrees)
             }
         }
 
@@ -245,7 +243,7 @@ class ImageRepository(
         withContext(Dispatchers.IO) {
             val processed = getOrCompute(imageCache, key, ::computeProcessedImage)
                 ?: return@withContext null
-            transformations.resize(processed, thumbnailSizePx)
+            transformations.resizeToThumbnail(processed)
         }
 
     // --- Other operations ---

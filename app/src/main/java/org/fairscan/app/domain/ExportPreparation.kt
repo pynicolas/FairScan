@@ -15,10 +15,8 @@
 package org.fairscan.app.domain
 
 import org.fairscan.app.data.ImageRepository
-import org.fairscan.imageprocessing.ColorMode
-import org.fairscan.imageprocessing.extractDocument
+import org.fairscan.app.platform.processedImage
 import org.fairscan.imageprocessing.resizeForMaxPixels
-import org.fairscan.imageprocessing.scaledTo
 import org.opencv.core.Mat
 
 fun interface JpegProvider {
@@ -52,8 +50,10 @@ suspend fun jpegsForExport(
                 val metadata = page.metadata
                 val manualRotation = page.manualRotation
                 val colorMode = page.colorMode
-                if (source != null && metadata != null && colorMode != null)
-                    prepareJpegForHigh(source, metadata, manualRotation, colorMode, exportQuality)
+                if (source != null && metadata != null && colorMode != null) {
+                    val rotation = metadata.baseRotation.add(manualRotation)
+                    processedImage(source, metadata, rotation, colorMode, exportQuality)
+                }
                 else
                     jpeg(page, imageRepository)
             }
@@ -81,27 +81,5 @@ private fun resizeJpegBytesForMaxPixels(
     } finally {
         decoded?.release()
         resized?.release()
-    }
-}
-
-private fun prepareJpegForHigh(
-    source: Jpeg,
-    pageMetadata: PageMetadata,
-    manualRotation: Rotation,
-    colorMode: ColorMode,
-    exportQuality: ExportQuality,
-): Jpeg {
-
-    var decoded: Mat? = null
-    var page: Mat? = null
-    try {
-        decoded = source.toMat()
-        val quad = pageMetadata.normalizedQuad.scaledTo(1, 1, decoded.width(), decoded.height())
-        val rotationDegrees = pageMetadata.baseRotation.add(manualRotation).degrees
-        page = extractDocument(decoded, quad, rotationDegrees, colorMode, exportQuality.maxPixels)
-        return Jpeg.fromMat(page, exportQuality.jpegQuality)
-    } finally {
-        decoded?.release()
-        page?.release()
     }
 }

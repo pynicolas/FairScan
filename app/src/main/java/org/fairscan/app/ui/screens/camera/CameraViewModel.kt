@@ -19,9 +19,7 @@ import android.graphics.Matrix
 import androidx.camera.core.ImageProxy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,21 +30,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.CapturedPage
-import org.fairscan.app.domain.ExportQuality
-import org.fairscan.app.domain.Jpeg
-import org.fairscan.app.domain.PageMetadata
-import org.fairscan.app.domain.Rotation
-import org.fairscan.app.ui.screens.settings.DefaultColorMode
+import org.fairscan.app.platform.extractDocumentFromBitmap
 import org.fairscan.imageprocessing.ImageSize
-import org.fairscan.imageprocessing.Mask
-import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
-import org.fairscan.imageprocessing.extractDocument
-import org.fairscan.imageprocessing.autoColorMode
-import org.fairscan.imageprocessing.scaledTo
-import org.opencv.android.Utils
-import org.opencv.core.Mat
-import org.opencv.imgproc.Imgproc
 
 sealed interface CameraEvent {
     data class ImageCaptured(val page: CapturedPage) : CameraEvent
@@ -167,10 +153,9 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
             val originalSize = ImageSize(source.width, source.height)
             val quad = detectDocumentQuad(mask, originalSize, isLiveAnalysis = false)
             if (quad != null) {
-                val resizedQuad = quad.scaledTo(mask.width, mask.height, source.width, source.height)
                 val defaultColorMode = settingsRepository.defaultColorMode.first()
                 result = extractDocumentFromBitmap(
-                    source, resizedQuad, rotationDegrees, mask, viewModelScope, defaultColorMode)
+                    source, quad, rotationDegrees, mask, viewModelScope, defaultColorMode)
             }
         }
         return@withContext result
@@ -201,19 +186,6 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     }
 }
 
-private fun compressJpeg(bitmap: Bitmap, quality: Int): Jpeg {
-    val rgba = Mat()
-    Utils.bitmapToMat(bitmap, rgba)
-    val bgr = Mat()
-    Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR)
-    rgba.release()
-    return try {
-        Jpeg.fromMat(bgr, quality)
-    } finally {
-        bgr.release()
-    }
-}
-
 sealed class CaptureState {
     open val frozenImage: Bitmap? = null
 
@@ -224,36 +196,6 @@ sealed class CaptureState {
         override val frozenImage: Bitmap,
         val capturedPage: CapturedPage,
     ) : CaptureState()
-}
-
-fun extractDocumentFromBitmap(
-    source: Bitmap,
-    quad: Quad,
-    rotationDegrees: Int,
-    mask: Mask,
-    viewModelScope: CoroutineScope,
-    defaultColorMode: DefaultColorMode = DefaultColorMode.AUTO
-): CapturedPage {
-    val rgba = Mat()
-    Utils.bitmapToMat(source, rgba)
-    val bgr = Mat()
-    Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR) // CV_8UC4 → CV_8UC3
-    rgba.release()
-    val autoColorMode = autoColorMode(bgr, mask, quad)
-    val colorMode = defaultColorMode.colorMode ?: autoColorMode
-    val maxPixels = ExportQuality.BALANCED.maxPixels
-    val page = extractDocument(bgr, quad, rotationDegrees, colorMode, maxPixels)
-    val pageJpeg = Jpeg.fromMat(page, ExportQuality.BALANCED.jpegQuality)
-    bgr.release()
-    page.release()
-
-    val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
-    val baseRotation = Rotation.fromDegrees(rotationDegrees)
-    val metadata = PageMetadata(normalizedQuad, baseRotation, autoColorMode)
-    val sourceJpegDeferred = viewModelScope.async(Dispatchers.IO) {
-        compressJpeg(source, 90)
-    }
-    return CapturedPage(pageJpeg, sourceJpegDeferred, metadata, colorMode)
 }
 
 fun rotateBitmap(source: Bitmap, angle: Float): Bitmap {

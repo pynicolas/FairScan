@@ -24,11 +24,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
-import org.fairscan.app.ui.screens.camera.extractDocumentFromBitmap
+import org.fairscan.app.platform.extractDocumentFromBitmap
 import org.fairscan.app.ui.screens.settings.DefaultColorMode
 import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.detectDocumentQuad
-import org.fairscan.imageprocessing.scaledTo
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Test
@@ -61,10 +60,8 @@ class DocumentDetectionTest {
                 val mask = segmentationResult.segmentation
                 val quad = detectDocumentQuad(mask, ImageSize(bitmap.width, bitmap.height),false)
                 if (quad != null) {
-                    val resizedQuad =
-                        quad.scaledTo(mask.width, mask.height, bitmap.width, bitmap.height)
                     val auto = DefaultColorMode.AUTO
-                    val page = extractDocumentFromBitmap(bitmap, resizedQuad,0, mask, scope, auto)
+                    val page = extractDocumentFromBitmap(bitmap, quad,0, mask, scope, auto)
                     outputJpeg = page.pageJpeg
                     val file = File(context.getExternalFilesDir(null), imageFileName)
                     file.writeBytes(outputJpeg.bytes)

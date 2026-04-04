@@ -20,9 +20,9 @@ import org.fairscan.imageprocessing.ColorMode
 
 interface ImageTransformations {
 
-    fun rotate(input: Jpeg, rotationDegrees: Int, jpegQuality: Int): Jpeg
+    fun rotate(input: Jpeg, rotationDegrees: Int): Jpeg
 
-    fun resize(input: Jpeg, maxSize: Int): Jpeg
+    fun resizeToThumbnail(input: Jpeg): Jpeg
 
     fun process(source: Jpeg, metadata: PageMetadata, colorMode: ColorMode): Jpeg
 
