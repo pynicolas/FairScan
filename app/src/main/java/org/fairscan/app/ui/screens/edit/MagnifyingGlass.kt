@@ -22,17 +22,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.ClipOp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.fairscan.imageprocessing.Quad
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
 private val LOUPE_BORDER_WIDTH = 3.dp
@@ -178,7 +183,7 @@ fun MagnifyingGlass(
                 )
             }
 
-            // Draw quad edges inside the loupe
+            // Draw quad overlay and edges inside the loupe
             // Convert each normalized quad corner to bitmap-pixel coords,
             // then to loupe-local coords using the same mapping as the bitmap sampling.
             if (quad != null) {
@@ -202,6 +207,49 @@ fun MagnifyingGlass(
                     normalizedToLoupe(quad.bottomLeft.x, quad.bottomLeft.y),
                 )
 
+                // Striped overlay outside the quad to distinguish document from background
+                val quadPath = Path().apply {
+                    moveTo(loupeCorners[0].x, loupeCorners[0].y)
+                    for (corner in loupeCorners.drop(1)) {
+                        lineTo(corner.x, corner.y)
+                    }
+                    close()
+                }
+                clipPath(quadPath, clipOp = ClipOp.Difference) {
+                    // Clip to actual image bounds so stripes only appear over
+                    // image content, not in the background area near edges.
+                    val imgLeft = -bitmapOriginX * scale
+                    val imgTop = -bitmapOriginY * scale
+                    val imgRight = (bitmap.width - bitmapOriginX) * scale
+                    val imgBottom = (bitmap.height - bitmapOriginY) * scale
+
+                    clipRect(
+                        left = imgLeft, top = imgTop,
+                        right = imgRight, bottom = imgBottom
+                    ) {
+                        val stripeSpacing = 50f
+                        val stripeWidth = 10f
+                        val stripeColor = Color.Gray.copy(alpha = 0.35f)
+
+                        // Stripes are placed at fixed positions in bitmap coordinate
+                        // space so they scroll with the image as the loupe pans.
+                        val originShift = (bitmapOriginX + bitmapOriginY) * scale
+                        val kMin = floor(originShift / stripeSpacing).toInt() - 1
+                        val kMax = ceil((originShift + 2f * loupeDiameter) / stripeSpacing).toInt() + 1
+
+                        for (k in kMin..kMax) {
+                            val loupeSum = k * stripeSpacing - originShift
+                            drawLine(
+                                color = stripeColor,
+                                start = Offset(loupeSum, 0f),
+                                end = Offset(0f, loupeSum),
+                                strokeWidth = stripeWidth,
+                            )
+                        }
+                    }
+                }
+
+                // Draw quad edge lines on top
                 for (i in 0 until 4) {
                     drawLine(
                         color = quadLineColor,
