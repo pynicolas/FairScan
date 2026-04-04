@@ -77,6 +77,9 @@ import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
 import java.io.File
 
+private const val INTENT_ACTION_SCAN = "org.fairscan.app.action.SCAN_TO_PDF"
+private const val EXTRA_EDIT_MODE = "org.fairscan.app.extra.EDIT_MODE"
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +88,11 @@ class MainActivity : ComponentActivity() {
 
         val appContainer = (application as FairScanApp).appContainer
         val launchMode = resolveLaunchMode(intent)
+        val intentEditMode: Boolean? =
+            if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF
+                && intent?.hasExtra(EXTRA_EDIT_MODE) == true)
+                intent.getBooleanExtra(EXTRA_EDIT_MODE, false)
+            else null
 
         val sessionViewModel: SessionViewModel by viewModels {
             SessionViewModelFactory(
@@ -126,6 +134,7 @@ class MainActivity : ComponentActivity() {
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val exportUiState by exportViewModel.uiState.collectAsStateWithLifecycle()
             val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+            val imageEditingEnabled = intentEditMode ?: settingsUiState.imageEditingEnabled
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
             CollectExportEvents(context, exportViewModel)
@@ -175,7 +184,7 @@ class MainActivity : ComponentActivity() {
                             onImageAnalyzed = { image -> cameraViewModel.liveAnalysis(image) },
                             onFinalizePressed = onExportClick,
                             cameraPermission = cameraPermission,
-                            imageEditingEnabled = settingsUiState.imageEditingEnabled,
+                            imageEditingEnabled = imageEditingEnabled,
                         )
                     }
                     is Screen.Main.EditImage -> {
@@ -201,7 +210,7 @@ class MainActivity : ComponentActivity() {
                             onDeleteImage =  { id -> viewModel.deletePage(id) },
                             onRotateImage = { id, clockwise -> viewModel.rotateImage(id, clockwise) },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
-                            showEditButton = settingsUiState.imageEditingEnabled,
+                            showEditButton = imageEditingEnabled,
                         )
                     }
                     is Screen.Main.Export -> {
@@ -249,7 +258,7 @@ class MainActivity : ComponentActivity() {
 
     private fun resolveLaunchMode(intent: Intent?): LaunchMode {
         return when (intent?.action) {
-            "org.fairscan.app.action.SCAN_TO_PDF" -> LaunchMode.EXTERNAL_SCAN_TO_PDF
+            INTENT_ACTION_SCAN -> LaunchMode.EXTERNAL_SCAN_TO_PDF
             else -> LaunchMode.NORMAL
         }
     }

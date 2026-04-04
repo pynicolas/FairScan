@@ -83,6 +83,13 @@ When started via this intent:
 - the resulting PDF is returned to the calling application as a URI with a limited lifetime
 - the calling application should immediately copy the content of the URI as FairScan deletes it later
 
+Optional boolean extra: `org.fairscan.app.extra.EDIT_MODE`
+- when set to `true`, the image editing screen is enabled for this invocation, regardless of the user's app setting.
+- when set to `false`, the image editing screen is disabled for this invocation, regardless of the user's app setting.
+- when the extra is **not provided**, the app's own setting is used.
+
+This extra does **not** change the persisted app setting.
+
 See an example app: [fairscan-intent-sample](https://github.com/pynicolas/fairscan-intent-sample)
 
 ---
