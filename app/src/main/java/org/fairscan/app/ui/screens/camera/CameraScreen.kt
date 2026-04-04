@@ -118,6 +118,7 @@ fun CameraScreen(
     onImageAnalyzed: (ImageProxy) -> Unit,
     onFinalizePressed: () -> Unit,
     cameraPermission: CameraPermissionState,
+    imageEditingEnabled: Boolean = false,
 ) {
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
@@ -210,7 +211,7 @@ fun CameraScreen(
                 Log.i("FairScan", "Pressed <Capture>")
                 cameraViewModel.onCapturePressed(it)
                 captureController.takePicture(
-                    onImageCaptured = { imageProxy -> cameraViewModel.onImageCaptured(imageProxy) }
+                    onImageCaptured = { imageProxy -> cameraViewModel.onImageCaptured(imageProxy, imageEditingEnabled) }
                 )
             }
         },

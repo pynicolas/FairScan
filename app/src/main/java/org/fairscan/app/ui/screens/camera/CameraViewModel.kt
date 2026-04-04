@@ -36,6 +36,7 @@ import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.Rotation
 import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Mask
+import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.encodeJpeg
@@ -48,6 +49,7 @@ import org.opencv.imgproc.Imgproc
 
 sealed interface CameraEvent {
     data class ImageCaptured(val page: CapturedPage) : CameraEvent
+    data class ImageCapturedForEditing(val page: CapturedPage) : CameraEvent
 }
 
 class CameraViewModel(appContainer: AppContainer): ViewModel() {
@@ -135,14 +137,21 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         }
     }
 
-    fun onImageCaptured(imageProxy: ImageProxy?) {
+    fun onImageCaptured(imageProxy: ImageProxy?, imageEditingEnabled: Boolean = false) {
         if (imageProxy != null) {
             viewModelScope.launch {
                 try {
                     val source = imageProxy.toBitmap()
-                    val page = processCapturedImage(source, imageProxy.imageInfo.rotationDegrees)
+                    val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+                    val page = processCapturedImage(source, rotationDegrees)
                     imageProxy.close()
-                    onCaptureProcessed(page)
+                    if (page == null && imageEditingEnabled) {
+                        val fallbackPage = createFullImagePage(source, rotationDegrees)
+                        _events.emit(CameraEvent.ImageCapturedForEditing(fallbackPage))
+                        _captureState.value = CaptureState.Idle
+                    } else {
+                        onCaptureProcessed(page)
+                    }
                 } catch (e: RuntimeException) {
                     logger.e("Camera", "Failed to process captured image", e)
                     onCaptureProcessed(null)
@@ -151,6 +160,27 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         } else {
             onCaptureProcessed(null)
         }
+    }
+
+    private suspend fun createFullImagePage(
+        source: Bitmap, rotationDegrees: Int
+    ): CapturedPage = withContext(Dispatchers.IO) {
+        val rotatedSource = if (rotationDegrees != 0) {
+            rotateBitmap(source, rotationDegrees.toFloat())
+        } else source
+        val pageJpeg = compressJpeg(rotatedSource, ExportQuality.BALANCED.jpegQuality)
+        if (rotatedSource !== source) rotatedSource.recycle()
+
+        val normalizedQuad = Quad(
+            Point(0.0, 0.0), Point(1.0, 0.0),
+            Point(1.0, 1.0), Point(0.0, 1.0)
+        )
+        val baseRotation = Rotation.fromDegrees(rotationDegrees)
+        val metadata = PageMetadata(normalizedQuad, baseRotation, isColored = true)
+        val sourceJpegDeferred = viewModelScope.async(Dispatchers.IO) {
+            compressJpeg(source, 90)
+        }
+        CapturedPage(pageJpeg, sourceJpegDeferred, metadata)
     }
 
     private suspend fun processCapturedImage(

@@ -134,16 +134,25 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
 
     fun handleImageCaptured(capturedPage: CapturedPage) {
         viewModelScope.launch {
-            val pages = withContext(Dispatchers.IO) {
-                val sourceJpeg = capturedPage.sourceJpeg.await()
-                imageRepository.add(
-                    capturedPage.pageJpeg,
-                    sourceJpeg,
-                    capturedPage.metadata,
-                )
-                imageRepository.pages()
-            }
-            _pages.value = pages
+            addPage(capturedPage)
         }
+    }
+
+    suspend fun addPageAndGetIndex(capturedPage: CapturedPage): Int {
+        return addPage(capturedPage)
+    }
+
+    private suspend fun addPage(capturedPage: CapturedPage): Int {
+        val pages = withContext(Dispatchers.IO) {
+            val sourceJpeg = capturedPage.sourceJpeg.await()
+            imageRepository.add(
+                capturedPage.pageJpeg,
+                sourceJpeg,
+                capturedPage.metadata,
+            )
+            imageRepository.pages()
+        }
+        _pages.value = pages
+        return pages.size - 1
     }
 }

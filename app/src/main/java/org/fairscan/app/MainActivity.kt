@@ -174,7 +174,8 @@ class MainActivity : ComponentActivity() {
                             liveAnalysisState,
                             onImageAnalyzed = { image -> cameraViewModel.liveAnalysis(image) },
                             onFinalizePressed = onExportClick,
-                            cameraPermission = cameraPermission
+                            cameraPermission = cameraPermission,
+                            imageEditingEnabled = settingsUiState.imageEditingEnabled,
                         )
                     }
                     is Screen.Main.EditImage -> {
@@ -368,6 +369,10 @@ class MainActivity : ComponentActivity() {
             cameraViewModel.events.collect { event ->
                 when (event) {
                     is CameraEvent.ImageCaptured -> viewModel.handleImageCaptured(event.page)
+                    is CameraEvent.ImageCapturedForEditing -> {
+                        val pageIndex = viewModel.addPageAndGetIndex(event.page)
+                        viewModel.navigateTo(Screen.Main.EditImage(pageIndex))
+                    }
                 }
             }
         }
