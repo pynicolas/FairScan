@@ -15,8 +15,6 @@
 package org.fairscan.app.ui.screens.camera
 
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.camera.core.ImageProxy
@@ -34,11 +32,14 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
@@ -48,6 +49,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Highlight
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -223,7 +226,9 @@ fun CameraScreen(
         },
         thumbnailCoords = thumbnailCoords,
         navigation = navigation,
-        captureController
+        captureController,
+        cameraPermission.isGranted,
+        { cameraPermission.request() },
     )
 }
 
@@ -239,6 +244,8 @@ private fun CameraScreenScaffold(
     thumbnailCoords: MutableState<Offset>,
     navigation: Navigation,
     captureController: CameraCaptureController,
+    isCameraPermissionGranted: Boolean,
+    onRequestCameraPermission: () -> Unit,
 ) {
     var focusPoint by remember { mutableStateOf<Offset?>(null) }
     LaunchedEffect(focusPoint) {
@@ -272,20 +279,24 @@ private fun CameraScreenScaffold(
             onBack = navigation.back,
             bottomBar = { Bar(cameraUiState.pageCount, onFinalizePressed) }
         ) { modifier ->
-            CameraPreviewBox(
-                cameraPreview,
-                cameraUiState,
-                focusPoint,
-                onCapture,
-                onTorchSwitched,
-                modifier.pointerInput(Unit) {
-                    detectTapGestures { offset ->
-                        focusPoint = offset
-                        captureController.tapToFocus(offset)
-                        onPageCountClick()
+            if (!isCameraPermissionGranted) {
+                CameraPermissionRationale(onRequestCameraPermission, modifier)
+            } else {
+                CameraPreviewBox(
+                    cameraPreview,
+                    cameraUiState,
+                    focusPoint,
+                    onCapture,
+                    onTorchSwitched,
+                    modifier.pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            focusPoint = offset
+                            captureController.tapToFocus(offset)
+                            onPageCountClick()
+                        }
                     }
-                }
-            )
+                )
+            }
         }
         if (cameraUiState.captureState is CaptureState.CapturePreview) {
             val page = cameraUiState.captureState.capturedPage.pageJpeg.toBitmap()
@@ -522,6 +533,31 @@ private fun Bar(
     }
 }
 
+@Composable
+private fun CameraPermissionRationale(onRequestCameraPermission: () -> Unit, modifier:Modifier) {
+    Box (modifier = modifier, contentAlignment = Alignment.Center) {
+        Card(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    stringResource(R.string.camera_permission_rationale),
+                )
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = onRequestCameraPermission,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text(stringResource(R.string.grant_permission))
+                }
+            }
+        }
+    }
+}
+
 @Preview(name="Pixel 1", showSystemUi = true, device = Devices.PIXEL)
 @Preview(name="Pixel 4", showSystemUi = true, device = Devices.PIXEL_4)
 @Preview(name="Pixel 9 pro XL", showSystemUi = true, device = Devices.PIXEL_9_PRO_XL)
@@ -550,8 +586,18 @@ fun CameraScreenPreviewInLandscapeMode() {
     ScreenPreview(CaptureState.Idle, rotationDegrees = 90f)
 }
 
+@Preview
 @Composable
-private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0f) {
+fun CameraScreenPreviewWithNoPermission() {
+    ScreenPreview(CaptureState.Idle, isCameraPermissionGranted = false)
+}
+
+@Composable
+private fun ScreenPreview(
+    captureState: CaptureState,
+    rotationDegrees: Float = 0f,
+    isCameraPermissionGranted: Boolean = true,
+) {
     FairScanTheme {
         val thumbnailCoords = remember { mutableStateOf(Offset.Zero) }
         CameraScreenScaffold(
@@ -589,7 +635,9 @@ private fun ScreenPreview(captureState: CaptureState, rotationDegrees: Float = 0
             onTorchSwitched = {},
             thumbnailCoords = thumbnailCoords,
             navigation = dummyNavigation(),
-            captureController = CameraCaptureController()
+            captureController = CameraCaptureController(),
+            isCameraPermissionGranted = isCameraPermissionGranted,
+            onRequestCameraPermission = {}
         )
     }
 }
