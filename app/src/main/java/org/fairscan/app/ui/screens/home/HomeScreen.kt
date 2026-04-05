@@ -96,17 +96,13 @@ fun HomeScreen(
         ) {
             Spacer(Modifier.weight(1f))
 
-            if (!cameraPermission.isGranted) {
-                CameraPermissionRationale(cameraPermission)
-            } else {
-                ScanButton(
-                    onClick = {
-                        onClearScan()
-                        navigation.toCameraScreen()
-                    },
-                    Modifier.align(Alignment.CenterHorizontally)
-                )
-            }
+            ScanButton(
+                onClick = {
+                    onClearScan()
+                    navigation.toCameraScreen()
+                },
+                Modifier.align(Alignment.CenterHorizontally)
+            )
 
             Spacer(Modifier.weight(1f))
 
@@ -118,28 +114,6 @@ fun HomeScreen(
                 )
             } else if (recentDocuments.isNotEmpty()) {
                 RecentDocumentList(recentDocuments, onOpenPdf)
-            }
-        }
-    }
-}
-
-@Composable
-private fun CameraPermissionRationale(cameraPermission: CameraPermissionState) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp)
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(
-                stringResource(R.string.camera_permission_rationale),
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = { cameraPermission.request() },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Text(stringResource(R.string.grant_permission))
             }
         }
     }
