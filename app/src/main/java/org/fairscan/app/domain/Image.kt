@@ -16,6 +16,7 @@ package org.fairscan.app.domain
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import org.fairscan.imageprocessing.decodeJpeg
 import org.fairscan.imageprocessing.encodeJpeg
 import org.opencv.core.Mat
@@ -26,4 +27,8 @@ class Jpeg(val bytes: ByteArray) {
     }
     fun toBitmap() : Bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
     fun toMat() : Mat = decodeJpeg(bytes)
+}
+
+interface ImageLoader {
+    suspend fun load(uri: Uri): Bitmap
 }

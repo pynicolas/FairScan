@@ -22,6 +22,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
@@ -47,13 +48,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Highlight
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -123,6 +127,7 @@ fun CameraScreen(
     onImageAnalyzed: (ImageProxy) -> Unit,
     onFinalizePressed: () -> Unit,
     cameraPermission: CameraPermissionState,
+    onImportClicked: () -> Unit,
 ) {
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
@@ -227,8 +232,9 @@ fun CameraScreen(
         thumbnailCoords = thumbnailCoords,
         navigation = navigation,
         captureController,
-        cameraPermission.isGranted,
-        { cameraPermission.request() },
+        isCameraPermissionGranted = cameraPermission.isGranted,
+        onRequestCameraPermission = { cameraPermission.request() },
+        onImportClicked = onImportClicked,
     )
 }
 
@@ -246,6 +252,7 @@ private fun CameraScreenScaffold(
     captureController: CameraCaptureController,
     isCameraPermissionGranted: Boolean,
     onRequestCameraPermission: () -> Unit,
+    onImportClicked: () -> Unit,
 ) {
     var focusPoint by remember { mutableStateOf<Offset?>(null) }
     LaunchedEffect(focusPoint) {
@@ -277,7 +284,7 @@ private fun CameraScreenScaffold(
             navigation = navigation,
             pageListState = pageListState,
             onBack = navigation.back,
-            bottomBar = { Bar(cameraUiState.pageCount, onFinalizePressed) }
+            bottomBar = { Bar(cameraUiState.pageCount, onFinalizePressed, onImportClicked) }
         ) { modifier ->
             if (!isCameraPermissionGranted) {
                 CameraPermissionRationale(onRequestCameraPermission, modifier)
@@ -518,12 +525,26 @@ fun MessageBox(inferenceTime: Long) {
 private fun Bar(
     pageCount: Int,
     onFinalizePressed: () -> Unit,
+    onImportClicked: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
+        OutlinedButton(
+            onClick = onImportClicked,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.primary
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        ) {
+            Icon(
+                Icons.Default.AddPhotoAlternate,
+                // TODO Externalize string
+                contentDescription = "Import photos",)
+        }
         MainActionButton(
             onClick = onFinalizePressed,
             enabled = pageCount > 0,
@@ -637,7 +658,8 @@ private fun ScreenPreview(
             navigation = dummyNavigation(),
             captureController = CameraCaptureController(),
             isCameraPermissionGranted = isCameraPermissionGranted,
-            onRequestCameraPermission = {}
+            onRequestCameraPermission = {},
+            onImportClicked = {},
         )
     }
 }

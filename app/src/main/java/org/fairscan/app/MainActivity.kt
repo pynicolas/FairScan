@@ -33,6 +33,7 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
@@ -166,6 +167,10 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     is Screen.Main.Camera -> {
+                        val pickMultiple = rememberLauncherForActivityResult(
+                            ActivityResultContracts.PickMultipleVisualMedia(10)) { uris ->
+                            if (uris.isNotEmpty()) cameraViewModel.importPhotos(uris)
+                        }
                         CameraScreen(
                             viewModel,
                             cameraViewModel,
@@ -173,7 +178,11 @@ class MainActivity : ComponentActivity() {
                             liveAnalysisState,
                             onImageAnalyzed = { image -> cameraViewModel.liveAnalysis(image) },
                             onFinalizePressed = onExportClick,
-                            cameraPermission = cameraPermission
+                            cameraPermission = cameraPermission,
+                            onImportClicked = {
+                                pickMultiple.launch(PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            }
                         )
                     }
                     is Screen.Main.Document -> {
