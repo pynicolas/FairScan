@@ -25,8 +25,8 @@ import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.LogRepository
 import org.fairscan.app.data.recentDocumentsDataStore
 import org.fairscan.app.domain.ImageSegmentationService
+import org.fairscan.app.platform.AndroidImageLoader
 import org.fairscan.app.platform.AndroidPdfWriter
-import org.fairscan.app.ui.screens.about.AboutViewModel
 import org.fairscan.app.ui.screens.camera.CameraViewModel
 import org.fairscan.app.ui.screens.home.HomeViewModel
 import org.fairscan.app.ui.screens.settings.SettingsRepository
@@ -56,6 +56,7 @@ class AppContainer(context: Context) {
     val logRepository = LogRepository(File(context.filesDir, "logs.txt"))
     val logger = FileLogger(logRepository)
     val imageSegmentationService = ImageSegmentationService(context, logger)
+    val imageLoader = AndroidImageLoader(context.contentResolver)
     val recentDocumentsDataStore = context.recentDocumentsDataStore
     val settingsRepository = SettingsRepository(context)
 

@@ -16,6 +16,7 @@ package org.fairscan.app.ui.screens.camera
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.net.Uri
 import androidx.camera.core.ImageProxy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -42,6 +43,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
     private val imageSegmentationService = appContainer.imageSegmentationService
     private val settingsRepository = appContainer.settingsRepository
+    private val imageLoader = appContainer.imageLoader
     private val logger = appContainer.logger
 
     private val _events = MutableSharedFlow<CameraEvent>()
@@ -183,6 +185,18 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
     fun setTorchEnabled(enabled: Boolean) {
         _isTorchEnabled.value = enabled
+    }
+
+    fun importPhotos(uris: List<Uri>) {
+        viewModelScope.launch {
+            for (uri in uris) {
+                val photoToImport = imageLoader.load(uri)
+                val page = processCapturedImage(photoToImport, 0)
+                page?.let {
+                    _events.emit(CameraEvent.ImageCaptured(it))
+                }
+            }
+        }
     }
 }
 
