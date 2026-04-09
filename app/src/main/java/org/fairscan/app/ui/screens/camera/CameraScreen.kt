@@ -43,6 +43,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -56,6 +57,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -86,7 +88,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -124,6 +128,7 @@ fun CameraScreen(
     cameraViewModel: CameraViewModel,
     navigation: Navigation,
     liveAnalysisState: LiveAnalysisState,
+    importState: ImportState,
     onImageAnalyzed: (ImageProxy) -> Unit,
     onFinalizePressed: () -> Unit,
     cameraPermission: CameraPermissionState,
@@ -211,6 +216,7 @@ fun CameraScreen(
             document.pageCount(),
             liveAnalysisState,
             captureState,
+            importState,
             showDetectionError,
             isLandscape = isLandscape,
             isDebugMode,
@@ -286,7 +292,11 @@ private fun CameraScreenScaffold(
             onBack = navigation.back,
             bottomBar = { Bar(cameraUiState.pageCount, onFinalizePressed, onImportClicked) }
         ) { modifier ->
-            if (!isCameraPermissionGranted) {
+            if (cameraUiState.importState is ImportState.Selecting) {
+                // display nothing: photo picker is active
+            } else if (cameraUiState.importState is ImportState.Importing) {
+                ImportInProgress(cameraUiState.importState, modifier)
+            } else if (!isCameraPermissionGranted) {
                 CameraPermissionRationale(onRequestCameraPermission, modifier)
             } else {
                 CameraPreviewBox(
@@ -308,6 +318,43 @@ private fun CameraScreenScaffold(
         if (cameraUiState.captureState is CaptureState.CapturePreview) {
             val page = cameraUiState.captureState.capturedPage.pageJpeg.toBitmap()
             CapturedImage(page.asImageBitmap(), thumbnailCoords)
+        }
+    }
+}
+
+@Composable
+fun ImportInProgress(state: ImportState.Importing, modifier: Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.6f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = LocalResources.current.getQuantityString(
+                    R.plurals.importing_photos,
+                    state.total,
+                    state.total
+                ),
+                color = Color.White
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            if (state.total > 1) {
+                LinearProgressIndicator(
+                    progress = { state.processed.toFloat() / state.total },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }
@@ -540,10 +587,11 @@ private fun Bar(
             ),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
         ) {
-            Icon(
-                Icons.Default.AddPhotoAlternate,
-                // TODO Externalize string
-                contentDescription = "Import photos",)
+            Icon(Icons.Default.AddPhotoAlternate, contentDescription = null)
+            Spacer(Modifier.width(4.dp))
+            Text(stringResource(R.string.import_photos),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis)
         }
         MainActionButton(
             onClick = onFinalizePressed,
@@ -613,9 +661,16 @@ fun CameraScreenPreviewWithNoPermission() {
     ScreenPreview(CaptureState.Idle, isCameraPermissionGranted = false)
 }
 
+@Preview
+@Composable
+fun CameraScreenPreviewImporting() {
+    ScreenPreview(CaptureState.Idle, ImportState.Importing(2, 3))
+}
+
 @Composable
 private fun ScreenPreview(
     captureState: CaptureState,
+    importState: ImportState = ImportState.Idle,
     rotationDegrees: Float = 0f,
     isCameraPermissionGranted: Boolean = true,
 ) {
@@ -649,7 +704,7 @@ private fun ScreenPreview(
                     showPageNumbers = false,
                 ),
             cameraUiState = CameraUiState(pageCount = 4, LiveAnalysisState(), captureState,
-                false, rotationDegrees > 0, false, false),
+                importState, false, rotationDegrees > 0, false, false),
             onCapture = {},
             onFinalizePressed = {},
             onDebugModeSwitched = {},

@@ -43,6 +43,7 @@
     <string name="file_size_total">Toplam boyut: %1$s</string>
     <string name="filename">Dosya adı</string>
     <string name="grant_permission">İzin ver</string>
+    <string name="import_photos">İçe aktar</string>
     <string name="last_saved_pdf_files">Bu cihaza kaydedilen son PDF\'ler:</string>
     <string name="libraries">Kütüphaneler</string>
     <string name="libraries_open_source">Açık kaynaklı kütüphaneler</string>
@@ -77,6 +78,10 @@
     <plurals name="files_saved_to">
         <item quantity="one">%2$s, %3$s konumuna kaydedildi</item>
         <item quantity="other">%1$d dosya %3$s konumuna kaydedildi</item>
+    </plurals>
+    <plurals name="importing_photos">
+        <item quantity="one">1 foto içe aktarılıyor</item>
+        <item quantity="other">%d foto içe aktarılıyor</item>
     </plurals>
     <plurals name="page_count">
         <item quantity="one">%d sayfa</item>

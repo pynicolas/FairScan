@@ -43,6 +43,7 @@
     <string name="file_size_total">Gesamtgröße: %1$s</string>
     <string name="filename">Dateiname</string>
     <string name="grant_permission">Berechtigung erteilen</string>
+    <string name="import_photos">Importieren</string>
     <string name="last_saved_pdf_files">Zuletzt auf diesem Gerät gespeicherte PDFs:</string>
     <string name="libraries">Bibliotheken</string>
     <string name="libraries_open_source">Open-Source-Bibliotheken</string>
@@ -77,6 +78,10 @@
     <plurals name="files_saved_to">
         <item quantity="one">%2$s gespeichert in %3$s</item>
         <item quantity="other">%1$d Dateien gespeichert in %3$s</item>
+    </plurals>
+    <plurals name="importing_photos">
+        <item quantity="one">1 Foto wird importiert</item>
+        <item quantity="other">%d Fotos werden importiert</item>
     </plurals>
     <plurals name="page_count">
         <item quantity="one">%d Seite</item>

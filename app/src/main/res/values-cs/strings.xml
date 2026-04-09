@@ -43,6 +43,7 @@
     <string name="file_size_total">Celková velikost: %1$s</string>
     <string name="filename">Název souboru</string>
     <string name="grant_permission">Povolit přístup</string>
+    <string name="import_photos">Import</string>
     <string name="last_saved_pdf_files">Poslední PDF uložené v tomto zařízení:</string>
     <string name="libraries">Kníhovny</string>
     <string name="libraries_open_source">Open-source knihovny</string>
@@ -79,6 +80,12 @@
         <item quantity="few">%1$d soubory uloženy do %3$s</item>
         <item quantity="many">%1$d souborů uloženo do %3$s</item>
         <item quantity="other">%1$d souborů uloženo do %3$s</item>
+    </plurals>
+    <plurals name="importing_photos">
+        <item quantity="one">Importování 1 fotografie</item>
+        <item quantity="few">Importování %d fotografií</item>
+        <item quantity="many">Importování %d fotografií</item>
+        <item quantity="other">Importování %d fotografií</item>
     </plurals>
     <plurals name="page_count">
         <item quantity="one">%d stránka</item>     <!-- 1 -->

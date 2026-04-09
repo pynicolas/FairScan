@@ -123,6 +123,7 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
+            val importState by cameraViewModel.importState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val documentUiState by viewModel.documentUiState.collectAsStateWithLifecycle()
             val exportUiState by exportViewModel.uiState.collectAsStateWithLifecycle()
@@ -168,18 +169,20 @@ class MainActivity : ComponentActivity() {
                     }
                     is Screen.Main.Camera -> {
                         val pickMultiple = rememberLauncherForActivityResult(
-                            ActivityResultContracts.PickMultipleVisualMedia(10)) { uris ->
-                            if (uris.isNotEmpty()) cameraViewModel.importPhotos(uris)
+                            ActivityResultContracts.PickMultipleVisualMedia(10)) {
+                            uris -> cameraViewModel.importPhotos(uris)
                         }
                         CameraScreen(
                             viewModel,
                             cameraViewModel,
                             navigation,
                             liveAnalysisState,
+                            importState,
                             onImageAnalyzed = { image -> cameraViewModel.liveAnalysis(image) },
                             onFinalizePressed = onExportClick,
                             cameraPermission = cameraPermission,
                             onImportClicked = {
+                                cameraViewModel.onImportClicked()
                                 pickMultiple.launch(PickVisualMediaRequest(
                                     ActivityResultContracts.PickVisualMedia.ImageOnly))
                             }

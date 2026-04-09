@@ -56,6 +56,9 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     private val _captureState = MutableStateFlow<CaptureState>(CaptureState.Idle)
     val captureState: StateFlow<CaptureState> = _captureState
 
+    private val _importState = MutableStateFlow<ImportState>(ImportState.Idle)
+    val importState: StateFlow<ImportState> = _importState
+
     private val _isTorchEnabled = MutableStateFlow(false)
     val isTorchEnabled: StateFlow<Boolean> = _isTorchEnabled
 
@@ -87,7 +90,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     }
 
     fun liveAnalysis(imageProxy: ImageProxy) {
-        if (_captureState.value !is CaptureState.Idle) {
+        if (_captureState.value !is CaptureState.Idle || _importState.value !is ImportState.Idle) {
             imageProxy.close()
             return
         }
@@ -188,15 +191,27 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     }
 
     fun importPhotos(uris: List<Uri>) {
+        if (uris.isEmpty()) {
+            _importState.value = ImportState.Idle
+            return
+        }
         viewModelScope.launch {
-            for (uri in uris) {
+            _importState.value = ImportState.Importing(0, uris.size)
+            uris.forEachIndexed { index, uri ->
                 val photoToImport = imageLoader.load(uri)
                 val page = processCapturedImage(photoToImport, 0)
                 page?.let {
                     _events.emit(CameraEvent.ImageCaptured(it))
                 }
+                _importState.value = ImportState.Importing(index + 1, uris.size)
             }
+            _importState.value = ImportState.Idle
         }
+    }
+
+    fun onImportClicked() {
+        _importState.value = ImportState.Selecting
+        resetLiveAnalysis()
     }
 }
 
