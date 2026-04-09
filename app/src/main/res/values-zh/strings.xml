@@ -43,6 +43,7 @@
     <string name="file_size_total">总大小：%1$s</string>
     <string name="filename">文件名字</string>
     <string name="grant_permission">授予权限</string>
+    <string name="import_photos">导入</string>
     <string name="last_saved_pdf_files">最近保存在此设备上的 PDF：</string>
     <string name="libraries">库</string>
     <string name="libraries_open_source">开源库</string>
@@ -76,6 +77,9 @@
     <string name="yes">是</string>
     <plurals name="files_saved_to">
         <item quantity="other">%1$d 个文件已保存到 %3$s</item>
+    </plurals>
+    <plurals name="importing_photos">
+        <item quantity="other">正在导入 %d 张照片</item>
     </plurals>
     <plurals name="page_count">
         <item quantity="other">%d 页</item>

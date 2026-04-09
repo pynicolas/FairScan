@@ -43,6 +43,7 @@
     <string name="file_size_total">Общий размер: %1$s</string>
     <string name="filename">Имя файла</string>
     <string name="grant_permission">Предоставить разрешение</string>
+    <string name="import_photos">Импорт</string>
     <string name="last_saved_pdf_files">Последние PDF, сохранённые на этом устройстве:</string>
     <string name="libraries">Библиотеки</string>
     <string name="libraries_open_source">Библиотеки с открытым исходным кодом</string>
@@ -79,6 +80,12 @@
         <item quantity="few">%1$d файла сохранены в %3$s</item>
         <item quantity="many">%1$d файлов сохранено в %3$s</item>
         <item quantity="other">%1$d файла сохранено в %3$s</item>
+    </plurals>
+    <plurals name="importing_photos">
+        <item quantity="one">Импорт %d фото</item>
+        <item quantity="few">Импорт %d фото</item>
+        <item quantity="many">Импорт %d фото</item>
+        <item quantity="other">Импорт %d фото</item>
     </plurals>
     <plurals name="page_count">
         <item quantity="one">%d страница</item>

@@ -43,6 +43,7 @@
     <string name="file_size_total">Tamaño total: %1$s</string>
     <string name="filename">Nombre del archivo</string>
     <string name="grant_permission">Conceder permiso</string>
+    <string name="import_photos">Importar</string>
     <string name="last_saved_pdf_files">PDF recientes guardados en este dispositivo:</string>
     <string name="libraries">Bibliotecas</string>
     <string name="libraries_open_source">Bibliotecas de código abierto</string>
@@ -77,6 +78,10 @@
     <plurals name="files_saved_to" tools:ignore="MissingQuantity">
         <item quantity="one">%2$s guardado en %3$s</item>
         <item quantity="other">%1$d archivos guardados en %3$s</item>
+    </plurals>
+    <plurals name="importing_photos" tools:ignore="MissingQuantity">
+        <item quantity="one">Importando 1 foto</item>
+        <item quantity="other">Importando %d fotos</item>
     </plurals>
     <plurals name="page_count" tools:ignore="MissingQuantity">
         <item quantity="one">%d página</item>

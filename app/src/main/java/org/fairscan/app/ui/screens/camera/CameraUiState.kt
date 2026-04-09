@@ -27,10 +27,17 @@ data class LiveAnalysisState(
     val stableQuad: Quad? = null,
 )
 
+sealed class ImportState {
+    object Idle : ImportState()
+    object Selecting : ImportState()
+    data class Importing(val processed: Int, val total: Int) : ImportState()
+}
+
 data class CameraUiState(
     val pageCount: Int,
     val liveAnalysisState: LiveAnalysisState,
     val captureState: CaptureState,
+    val importState: ImportState,
     val showDetectionError: Boolean,
     val isLandscape: Boolean,
     val isDebugMode: Boolean,

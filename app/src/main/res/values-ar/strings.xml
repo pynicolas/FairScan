@@ -43,6 +43,7 @@
     <string name="file_size_total">الحجم الكلي: %1$s</string>
     <string name="filename">اسم الملف</string>
     <string name="grant_permission">امنح الأذن</string>
+    <string name="import_photos">استيراد</string>
     <string name="last_saved_pdf_files">ملفات PDF المحفوظة حديثًا على هذا الجهاز:</string>
     <string name="libraries">المكتبات</string>
     <string name="libraries_open_source">مكتبات مفتوحة المصدر</string>
@@ -81,6 +82,14 @@
         <item quantity="few">حُفظ %1$d ملفات في %3$s</item>
         <item quantity="many">حُفظ %1$d ملفًا في %3$s</item>
         <item quantity="other">حُفظ %1$d ملف في %3$s</item>
+    </plurals>
+    <plurals name="importing_photos">
+        <item quantity="zero">جارٍ استيراد 0 صورة</item>
+        <item quantity="one">جارٍ استيراد صورة واحدة</item>
+        <item quantity="two">جارٍ استيراد صورتين</item>
+        <item quantity="few">جارٍ استيراد %d صور</item>
+        <item quantity="many">جارٍ استيراد %d صورة</item>
+        <item quantity="other">جارٍ استيراد %d صورة</item>
     </plurals>
     <plurals name="page_count">
         <item quantity="zero">لا صفحات</item>

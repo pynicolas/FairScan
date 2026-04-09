@@ -43,6 +43,7 @@
     <string name="file_size_total">總計大小：%1$s</string>
     <string name="filename">檔案名稱</string>
     <string name="grant_permission">授予權限</string>
+    <string name="import_photos">匯入</string>
     <string name="last_saved_pdf_files">此裝置上最近儲存的 PDF：</string>
     <string name="libraries">函式庫</string>
     <string name="libraries_open_source">開放原始碼函式庫</string>
@@ -77,6 +78,9 @@
     <plurals name="files_saved_to">
         <item quantity="one">%2$s 已儲存至 %3$s</item>
         <item quantity="other">%1$d 個檔案已儲存至 %3$s</item>
+    </plurals>
+    <plurals name="importing_photos">
+        <item quantity="other">正在匯入 %d 張照片</item>
     </plurals>
     <plurals name="page_count">
         <item quantity="one">%d 頁</item>
