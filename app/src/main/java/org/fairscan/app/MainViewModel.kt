@@ -85,7 +85,7 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
                 page?.let {
                     val isLoading = (it.id == loadingId)
                     val bitmap = imageRepository.jpegBytes(it.key())?.toBitmap()
-                    CurrentPageUiState(it.id, bitmap, it.colorMode, isLoading)
+                    CurrentPageUiState(it.key(), bitmap, it.colorMode, isLoading)
                 }
             }
             .flowOn(Dispatchers.IO)

@@ -15,6 +15,7 @@
 package org.fairscan.app.ui.screens.document
 
 import android.graphics.Bitmap
+import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.imageprocessing.ColorMode
 
@@ -25,7 +26,7 @@ data class DocumentUiState(
 )
 
 data class CurrentPageUiState(
-    val id: String,
+    val key: PageViewKey,
     val bitmap: Bitmap?,
     val colorMode: ColorMode?,
     val isLoading: Boolean = false,

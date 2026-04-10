@@ -73,6 +73,8 @@ import kotlinx.collections.immutable.toImmutableList
 import net.engawapg.lib.zoomable.ZoomState
 import net.engawapg.lib.zoomable.zoomable
 import org.fairscan.app.R
+import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.components.CommonPageListState
 import org.fairscan.app.ui.components.ConfirmationDialog
@@ -160,10 +162,10 @@ private fun DocumentPreview(
             modifier = Modifier.fillMaxSize()
         ) {
             val bitmap = uiState.currentPage?.bitmap
-            val pageId = uiState.currentPage?.id
-            if (bitmap != null && pageId != null) {
+            val pageKey = uiState.currentPage?.key
+            if (bitmap != null && pageKey != null) {
                 val imageBitmap = bitmap.asImageBitmap()
-                val zoomState = remember(pageId) {
+                val zoomState = remember(pageKey) {
                     ZoomState(
                         contentSize = Size(bitmap.width.toFloat(), bitmap.height.toFloat())
                     )
@@ -344,8 +346,9 @@ fun DocumentScreenPreview() {
             listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it" }.toImmutableList(),
             LocalContext.current
         )
+        val key = PageViewKey("123", Rotation.R0, null)
         DocumentScreen(
-            uiState = DocumentUiState(1, CurrentPageUiState("123",image, COLOR), document),
+            uiState = DocumentUiState(1, CurrentPageUiState(key,image, COLOR), document),
             navigation = dummyNavigation(),
             onExportClick = {},
             onDeleteImage = { },
