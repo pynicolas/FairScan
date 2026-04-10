@@ -21,6 +21,8 @@ import androidx.camera.core.ImageProxy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,6 +60,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
     private val _importState = MutableStateFlow<ImportState>(ImportState.Idle)
     val importState: StateFlow<ImportState> = _importState
+    private var importJob: Job? = null
 
     private val _isTorchEnabled = MutableStateFlow(false)
     val isTorchEnabled: StateFlow<Boolean> = _isTorchEnabled
@@ -191,15 +194,19 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     }
 
     fun importPhotos(uris: List<Uri>) {
+        importJob?.cancel()
         if (uris.isEmpty()) {
             _importState.value = ImportState.Idle
             return
         }
-        viewModelScope.launch {
+        importJob = viewModelScope.launch {
             _importState.value = ImportState.Importing(0, uris.size)
             uris.forEachIndexed { index, uri ->
+                ensureActive()
                 val photoToImport = imageLoader.load(uri)
+                ensureActive()
                 val page = processCapturedImage(photoToImport, 0)
+                ensureActive()
                 page?.let {
                     _events.emit(CameraEvent.ImageCaptured(it))
                 }
@@ -212,6 +219,12 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     fun onImportClicked() {
         _importState.value = ImportState.Selecting
         resetLiveAnalysis()
+    }
+
+    fun cancelImport() {
+        importJob?.cancel()
+        importJob = null
+        _importState.value = ImportState.Idle
     }
 }
 
