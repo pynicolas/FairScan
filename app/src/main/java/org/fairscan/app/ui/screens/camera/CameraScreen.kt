@@ -176,6 +176,12 @@ fun CameraScreen(
         cameraViewModel.resetLiveAnalysis()
     }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraViewModel.cancelImport()
+        }
+    }
+
     val listState = rememberLazyListState()
     LaunchedEffect(document.pageCount()) {
         if (!document.isEmpty()) {
