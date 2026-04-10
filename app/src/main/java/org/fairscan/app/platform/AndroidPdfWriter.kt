@@ -34,10 +34,27 @@ class AndroidPdfWriter : PdfWriter {
         doc.use { document ->
             for (jpegBytes in jpegs) {
                 val image = JPEGFactory.createFromByteArray(document, jpegBytes.get().bytes)
-                val page = PDPage(PDRectangle(image.width.toFloat(), image.height.toFloat()))
+
+                // Let's say that the physical dimensions of the page are close to US Letter
+                // US Letter: 215.9×279.4 mm (A4: 210×297 mm)
+                val maxDimInMm = 279.4f
+                // PDF has 72 points (units) per inch, 1 inch = 25.4 mm
+                val pointsPerMm = 72f / 25.4f
+
+                val widthPx = image.width.toFloat()
+                val heightPx = image.height.toFloat()
+
+                val maxPx = maxOf(widthPx, heightPx)
+                val scalePxToMm = maxDimInMm / maxPx
+
+                val widthPoints = widthPx * scalePxToMm * pointsPerMm
+                val heightPoints = heightPx * scalePxToMm * pointsPerMm
+
+                val page = PDPage(PDRectangle(widthPoints, heightPoints))
                 document.addPage(page)
+
                 val contentStream = PDPageContentStream(document, page, AppendMode.OVERWRITE, false)
-                contentStream.drawImage(image, 0f, 0f)
+                contentStream.drawImage(image, 0f, 0f, widthPoints, heightPoints)
                 contentStream.close()
             }
             // TODO So the whole document is in memory before this line...
