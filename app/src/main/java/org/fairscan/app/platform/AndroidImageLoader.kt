@@ -26,6 +26,7 @@ import androidx.core.util.component2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.fairscan.app.domain.ImageLoader
+import java.io.IOException
 
 class AndroidImageLoader(
     private val contentResolver: ContentResolver
@@ -64,10 +65,13 @@ private fun decodeWithImageDecoder(
 }
 
 private fun decodeWithBitmapFactory(contentResolver: ContentResolver, uri: Uri, ): Bitmap {
-    val decodeOptions = BitmapFactory.Options()
-    return contentResolver.openInputStream(uri).use {
-        BitmapFactory.decodeStream(it, null, decodeOptions)
-    }!!
+    val options = BitmapFactory.Options()
+    val inputStream = contentResolver.openInputStream(uri)
+        ?: throw IOException("Cannot open input stream for uri: $uri")
+    return inputStream.use {
+        BitmapFactory.decodeStream(it, null, options)
+            ?: throw IOException("Failed to decode bitmap for uri: $uri")
+    }
 }
 
 private fun computeScale(width: Int, height: Int, maxPixels: Int): Float {
