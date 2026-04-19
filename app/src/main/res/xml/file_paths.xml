@@ -10,4 +10,8 @@
     <files-path
         name="sources"
         path="sources/" />
+    <!-- source images, when scanning via Intent (to send the last captured image) -->
+    <cache-path
+        name="session_sources"
+        path="sessions/" />
 </paths>
