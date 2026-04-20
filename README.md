@@ -32,6 +32,12 @@ And **respectful**: open source, minimal permissions, no tracking, no ads.
 
 ---
 
+## Contributing
+
+Contributions are welcome, but please read the guidelines first: [CONTRIBUTING.md](CONTRIBUTING.md)
+
+---
+
 ## Screenshots
 
 | Scan | Preview | Save & Share |
@@ -52,6 +58,15 @@ And **respectful**: open source, minimal permissions, no tracking, no ads.
 - **Minimal permissions**
 - **Open source**, GPLv3
 
+---
+
+## What FairScan is not
+
+FairScan is **not** intended to:
+- provide fine-grained manual control over document processing
+- replicate all features found in other scanning apps
+- optimize for highly specific use cases at the expense of simplicity
+ 
 ---
 
 ## Compatibility
