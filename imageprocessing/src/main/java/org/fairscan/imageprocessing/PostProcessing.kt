@@ -253,7 +253,7 @@ fun enhanceGrayscaleImage(img: Mat): Mat {
     val sorted = Mat()
     Core.sort(flat, sorted, Core.SORT_ASCENDING)
     val n = sorted.cols()
-    val pLow  = sorted.get(0, (n * 0.01).toInt())[0]
+    val pLow  = sorted.get(0, (n * 0.004).toInt())[0]
     val pHigh = sorted.get(0, (n * 0.99).toInt())[0]
     flat.release(); sorted.release()
 
