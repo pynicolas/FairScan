@@ -157,13 +157,7 @@ fun extractDocument(
     colorMode: ColorMode,
     maxPixels: Long,
 ): Mat {
-    val widthTop = norm(quad.topLeft, quad.topRight)
-    val widthBottom = norm(quad.bottomLeft, quad.bottomRight)
-    val targetWidth = (widthTop + widthBottom) / 2
-
-    val heightLeft = norm(quad.topLeft, quad.bottomLeft)
-    val heightRight = norm(quad.topRight, quad.bottomRight)
-    val targetHeight = (heightLeft + heightRight) / 2
+    val (targetWidth, targetHeight) = estimateRealDimensions(quad, inputMat.cols(), inputMat.rows())
 
     val srcPoints = MatOfPoint2f(
         quad.topLeft.toCv(),
