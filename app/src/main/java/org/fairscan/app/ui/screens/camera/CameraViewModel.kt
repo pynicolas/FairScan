@@ -36,6 +36,7 @@ import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.platform.extractDocumentFromBitmap
 import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.detectDocumentQuad
+import java.util.concurrent.CancellationException
 
 sealed interface CameraEvent {
     data class ImageCaptured(val page: CapturedPage) : CameraEvent
@@ -203,12 +204,18 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
             _importState.value = ImportState.Importing(0, uris.size)
             uris.forEachIndexed { index, uri ->
                 ensureActive()
-                val photoToImport = imageLoader.load(uri)
-                ensureActive()
-                val page = processCapturedImage(photoToImport, 0)
-                ensureActive()
-                page?.let {
-                    _events.emit(CameraEvent.ImageCaptured(it))
+                try {
+                    val photoToImport = imageLoader.load(uri)
+                    ensureActive()
+                    val page = processCapturedImage(photoToImport, 0)
+                    ensureActive()
+                    page?.let {
+                        _events.emit(CameraEvent.ImageCaptured(it))
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    logger.e("Import", "Failed to import image: $uri", e)
                 }
                 _importState.value = ImportState.Importing(index + 1, uris.size)
             }
