@@ -120,6 +120,7 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
+            val logger = appContainer.logger
             val context = LocalContext.current
             val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
             val liveAnalysisState by cameraViewModel.liveAnalysisState.collectAsStateWithLifecycle()
@@ -164,7 +165,7 @@ class MainActivity : ComponentActivity() {
                             navigation = navigation,
                             onClearScan = { viewModel.startNewDocument() },
                             recentDocuments = recentDocs,
-                            onOpenPdf = { fileUri -> openUri(fileUri, ExportFormat.PDF.mimeType) }
+                            onOpenPdf = { fileUri -> openUri(fileUri, ExportFormat.PDF.mimeType, logger) }
                         )
                     }
                     is Screen.Main.Camera -> {
@@ -210,7 +211,7 @@ class MainActivity : ComponentActivity() {
                                 setFilename = exportViewModel::setFilename,
                                 share = { exportViewModel.onShareClicked() },
                                 save = { exportViewModel.onSaveClicked() },
-                                open = { item -> openUri(item.uri, item.format.mimeType) },
+                                open = { item -> openUri(item.uri, item.format.mimeType, logger) },
                             ),
                             onCloseScan = {
                                 exportViewModel.resetFilename()
@@ -236,7 +237,7 @@ class MainActivity : ComponentActivity() {
                         LibrariesScreen(onBack = navigation.back)
                     }
                     is Screen.Overlay.Settings -> {
-                        SettingsScreenWrapper(settingsViewModel, navigation, appContainer.logger)
+                        SettingsScreenWrapper(settingsViewModel, navigation, logger)
                     }
                 }
             }
@@ -428,7 +429,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun openUri(fileUri: Uri?, mimeType: String) {
+    private fun openUri(fileUri: Uri?, mimeType: String, logger: FileLogger) {
         if (fileUri == null) return
         val uriToOpen: Uri =
             if (fileUri.scheme == ContentResolver.SCHEME_CONTENT) {
@@ -446,6 +447,11 @@ class MainActivity : ComponentActivity() {
         }
         try {
             startActivity(chooser)
+        } catch (e: SecurityException) {
+            val errorMessage =
+                "Failed to open URI, scheme=${uriToOpen.scheme}, authority=${uriToOpen.authority}"
+            logger.e("OpenUri", errorMessage, e)
+            throw OpenUriException(errorMessage, e)
         } catch (_: ActivityNotFoundException) {
             showToast(getString(R.string.error_no_app))
         }
@@ -485,3 +491,4 @@ class MainActivity : ComponentActivity() {
     )
 }
 
+class OpenUriException(message: String, cause: Throwable) : RuntimeException(message, cause)
