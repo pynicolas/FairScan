@@ -15,9 +15,9 @@
 package org.fairscan.evaluation
 
 import org.fairscan.imageprocessing.Mask
+import org.fairscan.imageprocessing.autoColorMode
 import org.fairscan.imageprocessing.detectDocumentQuad
 import org.fairscan.imageprocessing.extractDocument
-import org.fairscan.imageprocessing.autoColorMode
 import org.fairscan.imageprocessing.scaledTo
 import org.fairscan.imageprocessing.toImageSize
 import org.opencv.core.Mat
@@ -53,7 +53,7 @@ object DatasetEvaluator {
             ?.mapNotNull { img ->
                 val mask = File(maskDir, img.nameWithoutExtension + ".png")
                 if (mask.exists()) Entry(img.nameWithoutExtension, img, mask) else null
-            }
+            }?.sortedBy { e -> e.name }
             ?: emptyList()
 
         val htmlFragments = mutableListOf<String>()
@@ -73,18 +73,16 @@ object DatasetEvaluator {
             val quad = detectDocumentQuad(mask, originalSize, isLiveAnalysis = false)
                 ?.scaledTo(mask.width, mask.height, inputMat.width(), inputMat.height())
 
-            val corrected: Mat? = if (quad != null) {
-                val colorMode = autoColorMode(inputMat, mask, quad)
-                extractDocument(inputMat, quad = quad, rotationDegrees = 0, colorMode, 2_000_000)
-            } else null
+            if (quad == null) continue
+
+            val colorMode = autoColorMode(inputMat, mask, quad)
+            val corrected = extractDocument(inputMat, quad = quad, rotationDegrees = 0, colorMode, 2_000_000)
 
             val inputOut = File(outputDir, "${e.name}_input.jpg")
             Imgcodecs.imwrite(inputOut.absolutePath, inputMat)
 
             val outputOut = File(outputDir, "${e.name}_output.jpg")
-            if (corrected != null) {
-                Imgcodecs.imwrite(outputOut.absolutePath, corrected)
-            }
+            Imgcodecs.imwrite(outputOut.absolutePath, corrected)
 
             htmlFragments += """
                 <div class="entry">
