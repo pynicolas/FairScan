@@ -123,7 +123,6 @@ fun DocumentScreen(
             listState = listState,
             showPageNumbers = true,
         ),
-        onBack = navigation.back,
         bottomBar = {
             BottomBar(onExportClick, navigation.toCameraScreen)
         },

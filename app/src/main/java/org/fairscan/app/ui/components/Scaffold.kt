@@ -54,15 +54,20 @@ import org.fairscan.app.ui.Navigation
 @Composable
 fun MyScaffold(
     navigation: Navigation,
-    pageListState: CommonPageListState,
+    pageListState: CommonPageListState? = null,
     bottomBar: @Composable () -> Unit,
-    onBack: (() -> Unit)? = null,
     content: @Composable (Modifier) -> Unit,
 ) {
     Box {
         if (!isLandscape(LocalConfiguration.current)) {
             Scaffold(
-                bottomBar = { DocumentBar(pageListState, bottomBar, Modifier) }
+                bottomBar = {
+                    if (pageListState == null) {
+                        bottomBar
+                    } else {
+                        DocumentBar(pageListState, bottomBar, Modifier)
+                    }
+                }
             ) { innerPadding ->
                 content(Modifier.padding(innerPadding).fillMaxSize())
             }
@@ -72,18 +77,20 @@ fun MyScaffold(
                     modifier = Modifier.padding(innerPadding).fillMaxSize()
                 ) {
                     content(Modifier.weight(2f))
-                    DocumentBar(pageListState, bottomBar, Modifier.weight(1f))
+                    if (pageListState == null) {
+                        bottomBar
+                    } else {
+                        DocumentBar(pageListState, bottomBar, Modifier.weight(1f))
+                    }
                 }
             }
         }
-        if (onBack != null) {
-            BackButton(
-                onBack,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
-            )
-        }
+        BackButton(
+            navigation.back,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+        )
         AppOverflowMenu(
             navigation,
             modifier = Modifier

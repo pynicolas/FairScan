@@ -29,12 +29,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -55,9 +53,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.fairscan.app.R
 import org.fairscan.app.ui.Navigation
-import org.fairscan.app.ui.components.AppOverflowMenu
-import org.fairscan.app.ui.components.BackButton
 import org.fairscan.app.ui.components.MainActionButton
+import org.fairscan.app.ui.components.MyScaffold
 import org.fairscan.app.ui.components.isLandscape
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.theme.FairScanTheme
@@ -90,11 +87,12 @@ fun EditPageScreen(
 
     val isLandscape = isLandscape(LocalConfiguration.current)
 
-    Scaffold { _ ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.statusBars)
-        ) {
+    MyScaffold(
+        navigation = navigation,
+        bottomBar = {},
+    ) { modifier ->
+
+        Box(modifier = modifier.fillMaxSize()) {
             state.bitmap?.let { bmp ->
                 val imageBitmap = remember(bmp) { bmp.asImageBitmap() }
 
@@ -118,19 +116,6 @@ fun EditPageScreen(
                     DragQuadOverlay(state, quadHandler, bmp)
                 }
             }
-
-            BackButton(
-                onClick = navigation.back,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
-            )
-            AppOverflowMenu(
-                navigation,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .windowInsetsPadding(WindowInsets.safeDrawing),
-            )
 
             DragMagnifyingGlass(state)
 
