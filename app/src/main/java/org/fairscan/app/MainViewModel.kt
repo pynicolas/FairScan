@@ -14,12 +14,16 @@
  */
 package org.fairscan.app
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,14 +38,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.CapturedPage
+import org.fairscan.app.domain.Rotation
 import org.fairscan.app.domain.ScanPage
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.screens.document.CurrentPageUiState
 import org.fairscan.app.ui.screens.document.DocumentUiState
+import org.fairscan.app.ui.screens.edit.CropInitState
 import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.state.PageThumbnail
 import org.fairscan.imageprocessing.ColorMode
+import org.fairscan.imageprocessing.ImageSize
 import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -95,7 +102,8 @@ class MainViewModel(val imageRepository: ImageRepository): ViewModel() {
                 page?.let {
                     val isLoading = (it.id == loadingId)
                     val bitmap = imageRepository.jpegBytes(it.key())?.toBitmap()
-                    CurrentPageUiState(it.key(), bitmap, it.colorMode, isLoading)
+                    val canBeCropped = page.metadata != null
+                    CurrentPageUiState(it.key(), bitmap, it.colorMode, canBeCropped, isLoading)
                 }
             }
             .flowOn(Dispatchers.IO)
@@ -210,6 +218,49 @@ class MainViewModel(val imageRepository: ImageRepository): ViewModel() {
                 imageRepository.pages()
             }
             _pages.value = pages
+        }
+    }
+
+    private val _cropInitState = MutableStateFlow<CropInitState>(CropInitState.Loading)
+    val cropInitState: StateFlow<CropInitState> = _cropInitState
+
+    private var cropInitialStateJob: Job? = null
+    fun loadCropInitialState(pageId: String) {
+        cropInitialStateJob?.cancel()
+        cropInitialStateJob = viewModelScope.launch {
+            _cropInitState.value = CropInitState.Loading
+
+            val page = _pages.value.find { it.id == pageId }
+                ?: return@launch
+
+            val metadata = page.metadata
+            val baseRotation = metadata?.baseRotation ?: Rotation.R0
+            val rotation = baseRotation.add(page.manualRotation)
+
+            val bitmap = withContext(Dispatchers.IO) {
+                val source = imageRepository.source(page.id)
+                val bytes = source?.bytes ?: return@withContext null
+
+                val original = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                if (original != null && rotation != Rotation.R0) {
+                    val matrix = Matrix().apply { postRotate(rotation.degrees.toFloat()) }
+                    Bitmap.createBitmap(
+                        original, 0, 0, original.width, original.height, matrix, true
+                    )
+                } else {
+                    original
+                }
+            }
+
+            val quad = metadata?.normalizedQuad?.rotate90(
+                rotation.degrees / 90,
+                ImageSize(1, 1)
+            )
+
+            _cropInitState.value = if (bitmap == null || quad == null)
+                CropInitState.Error
+            else
+                CropInitState.Ready(page.id, bitmap, quad)
         }
     }
 }

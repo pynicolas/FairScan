@@ -16,8 +16,8 @@ package org.fairscan.app.ui.screens.edit
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -39,7 +39,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -50,100 +49,43 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import org.fairscan.app.R
-import org.fairscan.app.data.ImageRepository
-import org.fairscan.app.data.ImageTransformations
-import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.components.AppOverflowMenu
 import org.fairscan.app.ui.components.BackButton
-import org.fairscan.app.ui.components.ConfirmationDialog
 import org.fairscan.app.ui.components.MainActionButton
 import org.fairscan.app.ui.components.isLandscape
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.theme.FairScanTheme
-import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
-import java.io.File
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPageScreen(
     pageId: String,
-    imageRepository: ImageRepository,
+    onLoad: (String) -> Unit,
+    initState: CropInitState,
     navigation: Navigation,
     onUpdatePageQuad: (String, Quad, onComplete: () -> Unit) -> Unit,
-    onReportProblem: () -> Unit = {},
 ) {
-    val showDiscardChangesDialog = rememberSaveable { mutableStateOf(false) }
     val state = remember { EditPageScreenState() }
     val quadHandler = remember { QuadEditingHandler() }
 
-    val handleBack = {
-        if (state.hasUnsavedChanges()) {
-            showDiscardChangesDialog.value = true
-        } else {
-            navigation.back()
-        }
+    if (initState is CropInitState.Ready && initState.pageId == pageId) {
+        state.bitmap = initState.bitmap
+        state.setInitialQuad(initState.quad)
     }
 
-    BackHandler { handleBack() }
-
-    val isPreview = LocalInspectionMode.current
-    if (isPreview) {
-        val dummyImage = LocalContext.current.assets.open("gallica.bnf.fr-bpt6k5530456s-1.jpg").use { input ->
-            BitmapFactory.decodeStream(input)
-        }
-        state.bitmap = dummyImage
-        state.setInitialQuad(Quad(Point(.1, .1), Point(.9, .1), Point(.9, .9), Point(.1, .9)))
-    }
-
-    val totalRotation = remember { mutableStateOf(Rotation.R0) }
+    BackHandler { navigation.back() }
 
     LaunchedEffect(pageId) {
-        val metadata = imageRepository.getPageMetadata(pageId)
-        val baseRotation = metadata?.baseRotation ?: Rotation.R0
-        val manualRotation = imageRepository.getManualRotation(pageId)
-        val rotation = baseRotation.add(manualRotation)
-        totalRotation.value = rotation
-
-        val bitmap = withContext(Dispatchers.IO) {
-            val sourceJpegBytes = imageRepository.sourceJpegBytes(pageId)
-            if (sourceJpegBytes != null) {
-                val original = BitmapFactory.decodeByteArray(sourceJpegBytes, 0, sourceJpegBytes.size)
-                if (original != null && rotation != Rotation.R0) {
-                    // Adjust the displayed bitmap's rotation to what is in the metadata
-                    val matrix = Matrix().apply { postRotate(rotation.degrees.toFloat()) }
-                    val rotated = android.graphics.Bitmap.createBitmap(
-                        original, 0, 0, original.width, original.height, matrix, true
-                    )
-                    if (rotated !== original) {
-                        original.recycle()
-                    }
-                    rotated
-                } else {
-                    original
-                }
-            } else null
-        }
-        state.bitmap = bitmap  // assigned on the main thread after withContext returns
-        if (metadata?.normalizedQuad != null) {
-            // Rotate the quad to match the rotated bitmap display
-            val rotatedQuad = metadata.normalizedQuad.rotate90(
-                rotation.degrees / 90,
-                ImageSize(1, 1)
-            )
-            state.setInitialQuad(rotatedQuad)
-        }
+        onLoad(pageId)
     }
 
     val isLandscape = isLandscape(LocalConfiguration.current)
@@ -178,7 +120,7 @@ fun EditPageScreen(
             }
 
             BackButton(
-                onClick = handleBack,
+                onClick = navigation.back,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .windowInsetsPadding(WindowInsets.safeDrawing)
@@ -198,6 +140,7 @@ fun EditPageScreen(
                     .padding(16.dp)
                     .windowInsetsPadding(WindowInsets.safeDrawing),
                 onConfirm = {
+                    /*
                     val quad = state.editableQuad
                     if (quad != null) {
                         // Reverse the total rotation to get back to original source image coordinates
@@ -210,19 +153,9 @@ fun EditPageScreen(
                     } else {
                         navigation.back()
                     }
+                     */
                 }
             )
-        }
-    }
-
-    if (showDiscardChangesDialog.value) {
-        ConfirmationDialog(
-            title = stringResource(R.string.discard_changes),
-            message = stringResource(R.string.discard_changes_warning),
-            showDialog = showDiscardChangesDialog
-        ) {
-            state.revertToInitial()
-            navigation.back()
         }
     }
 }
@@ -246,7 +179,7 @@ private fun ActionButtons(
 private fun DragQuadOverlay(
     state: EditPageScreenState,
     quadHandler: QuadEditingHandler,
-    bmp: android.graphics.Bitmap
+    bmp: Bitmap
 ) {
     if (state.editableQuad == null || state.containerSize == null) return
 
@@ -409,22 +342,16 @@ private fun DragMagnifyingGlass(state: EditPageScreenState) {
 @Preview(name = "RTL", locale = "ar", showSystemUi = true)
 fun EditPageScreenPreview() {
     FairScanTheme {
-
-        // Minimal no-op ImageTransformations implementation used only for preview.
-        val dummyTransformations = object : ImageTransformations {
-            override fun rotate(inputFile: File, outputFile: File, rotationDegrees: Int, jpegQuality: Int) = Unit
-            override fun resize(inputFile: File, outputFile: File, maxSize: Int) = Unit
+        val dummyImage = LocalContext.current.assets.open("gallica.bnf.fr-bpt6k5530456s-1.jpg").use { input ->
+            BitmapFactory.decodeStream(input)
         }
-
-        // Use a temporary directory for the repository in preview.
-        val tempDir = File(System.getProperty("java.io.tmpdir") ?: "/tmp")
-        val dummyImageRepo = ImageRepository(tempDir, dummyTransformations, 128)
-
+        val quad = Quad(Point(.1, .1), Point(.9, .1), Point(.9, .9), Point(.1, .9))
         EditPageScreen(
-            pageId = "preview-page-id",
-            imageRepository = dummyImageRepo,
+            pageId = "123",
+            onLoad = {},
+            initState = CropInitState.Ready("123",dummyImage, quad),
             navigation = dummyNavigation(),
-            onUpdatePageQuad = { _, _, onComplete -> onComplete() }
+            onUpdatePageQuad = { _,_,_ -> },
         )
     }
 }

@@ -14,6 +14,7 @@
  */
 package org.fairscan.app.ui.screens.edit
 
+import android.graphics.Bitmap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntSize
 import org.fairscan.imageprocessing.Quad
+
+sealed interface CropInitState {
+    object Loading : CropInitState
+    object Error : CropInitState
+    data class Ready(
+        val pageId: String,
+        val bitmap: Bitmap,
+        val quad: Quad
+    ) : CropInitState
+}
 
 class EditPageScreenState {
     companion object {
@@ -115,13 +126,5 @@ class EditPageScreenState {
     fun setInitialQuad(quad: Quad) {
         initialQuad = quad
         editableQuad = quad
-    }
-
-    fun hasUnsavedChanges(): Boolean {
-        return editableQuad != initialQuad
-    }
-
-    fun revertToInitial() {
-        editableQuad = initialQuad
     }
 }

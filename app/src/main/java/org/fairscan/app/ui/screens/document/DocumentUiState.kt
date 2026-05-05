@@ -29,5 +29,6 @@ data class CurrentPageUiState(
     val key: PageViewKey,
     val bitmap: Bitmap?,
     val colorMode: ColorMode?,
+    val canBeCropped: Boolean = false,
     val isLoading: Boolean = false,
 )
