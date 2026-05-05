@@ -34,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Contrast
+import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RotateLeft
@@ -132,6 +133,7 @@ fun DocumentScreen(
             { showDeletePageDialog.value = true },
             onRotateImage,
             onToggleColorMode,
+            navigation,
             modifier
         )
         if (showDeletePageDialog.value) {
@@ -150,6 +152,7 @@ private fun DocumentPreview(
     onDeleteImage: () -> Unit,
     onRotateImage: (Boolean) -> Unit,
     onToggleColorMode: () -> Unit,
+    navigation: Navigation,
     modifier: Modifier,
 ) {
     val currentPageIndex = uiState.currentPageIndex
@@ -194,15 +197,12 @@ private fun DocumentPreview(
                     CircularProgressIndicator()
                 }
             }
-            uiState.currentPage?.colorMode?.let {
-                ColorModeButton(
-                    currentColorMode = it,
-                    onToggle = { onToggleColorMode() },
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(8.dp)
-                )
-            }
+            EditButtons(
+                uiState,
+                onToggleColorMode,
+                navigation,
+                modifier = Modifier.align(Alignment.BottomStart)
+            )
             RotationButtons(onRotateImage, Modifier.align(Alignment.BottomCenter))
             SecondaryActionButton(
                 Icons.Outlined.Delete,
@@ -248,6 +248,31 @@ fun RotationButtons(
                 icon = Icons.Default.RotateRight,
                 contentDescription = stringResource(R.string.rotate_right),
                 onClick = { onRotateImage(true) }
+            )
+        }
+    }
+}
+
+@Composable
+fun EditButtons(
+    uiState: DocumentUiState,
+    onToggleColorMode: () -> Unit,
+    navigation: Navigation,
+    modifier: Modifier
+) {
+    Row(modifier = modifier.padding(8.dp)) {
+        uiState.currentPage?.colorMode?.let {
+            ColorModeButton(
+                currentColorMode = it,
+                onToggle = { onToggleColorMode() },
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        if (uiState.currentPage?.canBeCropped ?: false) {
+            SecondaryActionButton(
+                icon = Icons.Default.Crop,
+                contentDescription = "Crop", // TODO externalize string
+                onClick = navigation.toEditImageScreen,
             )
         }
     }
@@ -348,7 +373,7 @@ fun DocumentScreenPreview() {
         )
         val key = PageViewKey("123", Rotation.R0, null)
         DocumentScreen(
-            uiState = DocumentUiState(1, CurrentPageUiState(key,image, COLOR), document),
+            uiState = DocumentUiState(1, CurrentPageUiState(key,image, COLOR, true), document),
             navigation = dummyNavigation(),
             onExportClick = {},
             onDeleteImage = { },

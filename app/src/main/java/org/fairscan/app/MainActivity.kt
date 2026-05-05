@@ -124,6 +124,7 @@ class MainActivity : ComponentActivity() {
             val importState by cameraViewModel.importState.collectAsStateWithLifecycle()
             val document by viewModel.documentUiModel.collectAsStateWithLifecycle()
             val documentUiState by viewModel.documentUiState.collectAsStateWithLifecycle()
+            val cropInitialState by viewModel.cropInitState.collectAsStateWithLifecycle()
             val exportUiState by exportViewModel.uiState.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
@@ -179,10 +180,10 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     is Screen.Main.EditImage -> {
-                        val pageIndex = (currentScreen as Screen.Main.EditImage).pageIndex
                         EditPageScreen(
-                            pageId = documentUiState.document.pages[pageIndex].key.pageId,
-                            imageRepository = imageRepository,
+                            pageId = documentUiState.currentPage?.key?.pageId ?: "",
+                            onLoad = { id -> viewModel.loadCropInitialState(id)},
+                            initState = cropInitialState,
                             navigation = navigation,
                             onUpdatePageQuad = { id, quad, onComplete ->  },
                         )
@@ -467,7 +468,7 @@ class MainActivity : ComponentActivity() {
 
     private fun navigation(viewModel: MainViewModel, launchMode: LaunchMode): Navigation = Navigation(
         toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
-        toEditImageScreen = { pageIndex -> viewModel.navigateTo(Screen.Main.EditImage(pageIndex)) },
+        toEditImageScreen = { viewModel.navigateTo(Screen.Main.EditImage) },
         toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
         toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },
         toAboutScreen = { viewModel.navigateTo(Screen.Overlay.About) },
