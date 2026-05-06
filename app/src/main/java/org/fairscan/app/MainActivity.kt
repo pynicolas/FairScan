@@ -182,7 +182,6 @@ class MainActivity : ComponentActivity() {
                     is Screen.Main.EditImage -> {
                         EditPageScreen(
                             pageId = documentUiState.currentPage?.key?.pageId ?: "",
-                            onLoad = { id -> viewModel.loadCropInitialState(id)},
                             initState = cropInitialState,
                             navigation = navigation,
                             onUpdatePageQuad = { quad -> viewModel.setCurrentPageUserQuad(quad) },
@@ -196,6 +195,7 @@ class MainActivity : ComponentActivity() {
                             onDeleteImage =  { viewModel.deleteCurrentPage() },
                             onRotateImage = { clockwise -> viewModel.rotateCurrentPage(clockwise) },
                             onToggleColorMode = { viewModel.toggleCurrentPageColorMode() },
+                            onCropClick = { viewModel.onClickOnCropButton() },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
                             onPageSelected = viewModel::onPageSelected
                         )
