@@ -66,24 +66,19 @@ import org.fairscan.imageprocessing.Quad
 @Composable
 fun EditPageScreen(
     pageId: String,
-    onLoad: (String) -> Unit,
     initState: CropInitState,
     navigation: Navigation,
     onUpdatePageQuad: (Quad) -> Unit,
 ) {
-    val state = remember { EditPageScreenState() }
+    val state = remember(pageId) { EditPageScreenState() }
     val quadHandler = remember { QuadEditingHandler() }
 
-    if (initState is CropInitState.Ready && initState.pageId == pageId) {
+    if (initState is CropInitState.Ready && initState.pageId == pageId && state.bitmap == null) {
         state.bitmap = initState.bitmap
         state.setInitialQuad(initState.quad)
     }
 
     BackHandler { navigation.back() }
-
-    LaunchedEffect(pageId) {
-        onLoad(pageId)
-    }
 
     val isLandscape = isLandscape(LocalConfiguration.current)
 
@@ -321,7 +316,6 @@ fun EditPageScreenPreview() {
         val quad = Quad(Point(.1, .1), Point(.9, .1), Point(.9, .9), Point(.1, .9))
         EditPageScreen(
             pageId = "123",
-            onLoad = {},
             initState = CropInitState.Ready("123",dummyImage, quad),
             navigation = dummyNavigation(),
             onUpdatePageQuad = { _ -> },

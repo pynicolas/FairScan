@@ -242,13 +242,12 @@ class MainViewModel(val imageRepository: ImageRepository): ViewModel() {
     val cropInitState: StateFlow<CropInitState> = _cropInitState
 
     private var cropInitialStateJob: Job? = null
-    fun loadCropInitialState(pageId: String) {
+    fun onClickOnCropButton() {
         cropInitialStateJob?.cancel()
         cropInitialStateJob = viewModelScope.launch {
             _cropInitState.value = CropInitState.Loading
 
-            val page = _pages.value.find { it.id == pageId }
-                ?: return@launch
+            val page = currentPage()
 
             val metadata = page.metadata
             val rotation = page.totalRotation()
@@ -277,6 +276,8 @@ class MainViewModel(val imageRepository: ImageRepository): ViewModel() {
                 CropInitState.Error
             else
                 CropInitState.Ready(page.id, bitmap, quad)
+            navigateTo(Screen.Main.EditImage)
         }
+
     }
 }

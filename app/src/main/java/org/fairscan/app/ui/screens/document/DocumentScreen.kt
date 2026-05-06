@@ -99,6 +99,7 @@ fun DocumentScreen(
     onDeleteImage: () -> Unit,
     onRotateImage: (Boolean) -> Unit,
     onToggleColorMode: () -> Unit,
+    onCropClick: () -> Unit,
     onPageReorder: (String, Int) -> Unit,
     onPageSelected: (Int) -> Unit,
 ) {
@@ -132,7 +133,7 @@ fun DocumentScreen(
             { showDeletePageDialog.value = true },
             onRotateImage,
             onToggleColorMode,
-            navigation,
+            onCropClick,
             modifier
         )
         if (showDeletePageDialog.value) {
@@ -151,7 +152,7 @@ private fun DocumentPreview(
     onDeleteImage: () -> Unit,
     onRotateImage: (Boolean) -> Unit,
     onToggleColorMode: () -> Unit,
-    navigation: Navigation,
+    onCropClick: () -> Unit,
     modifier: Modifier,
 ) {
     val currentPageIndex = uiState.currentPageIndex
@@ -199,7 +200,7 @@ private fun DocumentPreview(
             EditButtons(
                 uiState,
                 onToggleColorMode,
-                navigation,
+                onCropClick,
                 modifier = Modifier.align(Alignment.BottomStart)
             )
             RotationButtons(onRotateImage, Modifier.align(Alignment.BottomCenter))
@@ -256,7 +257,7 @@ fun RotationButtons(
 fun EditButtons(
     uiState: DocumentUiState,
     onToggleColorMode: () -> Unit,
-    navigation: Navigation,
+    onCropClick: () -> Unit,
     modifier: Modifier
 ) {
     Row(modifier = modifier.padding(8.dp)) {
@@ -271,7 +272,7 @@ fun EditButtons(
             SecondaryActionButton(
                 icon = Icons.Default.Crop,
                 contentDescription = "Crop", // TODO externalize string
-                onClick = navigation.toEditImageScreen,
+                onClick = onCropClick,
             )
         }
     }
@@ -378,6 +379,7 @@ fun DocumentScreenPreview() {
             onDeleteImage = { },
             onRotateImage = { _ -> },
             onToggleColorMode = { },
+            onCropClick = { },
             onPageReorder = { _,_ -> },
             onPageSelected = { _ -> },
         )
