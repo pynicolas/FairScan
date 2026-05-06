@@ -69,7 +69,7 @@ fun EditPageScreen(
     onLoad: (String) -> Unit,
     initState: CropInitState,
     navigation: Navigation,
-    onUpdatePageQuad: (String, Quad, onComplete: () -> Unit) -> Unit,
+    onUpdatePageQuad: (Quad) -> Unit,
 ) {
     val state = remember { EditPageScreenState() }
     val quadHandler = remember { QuadEditingHandler() }
@@ -125,20 +125,8 @@ fun EditPageScreen(
                     .padding(16.dp)
                     .windowInsetsPadding(WindowInsets.safeDrawing),
                 onConfirm = {
-                    /*
-                    val quad = state.editableQuad
-                    if (quad != null) {
-                        // Reverse the total rotation to get back to original source image coordinates
-                        val rotateIterations = (4 - totalRotation.value.degrees / 90) % 4
-                        val originalQuad = quad.rotate90(rotateIterations, ImageSize(1, 1))
-                        onUpdatePageQuad(pageId, originalQuad) {
-                            navigation.back()
-                        }
-                        state.setInitialQuad(quad)
-                    } else {
-                        navigation.back()
-                    }
-                     */
+                    state.editableQuad?.let { onUpdatePageQuad(it) }
+                    navigation.back()
                 }
             )
         }
@@ -336,7 +324,7 @@ fun EditPageScreenPreview() {
             onLoad = {},
             initState = CropInitState.Ready("123",dummyImage, quad),
             navigation = dummyNavigation(),
-            onUpdatePageQuad = { _,_,_ -> },
+            onUpdatePageQuad = { _ -> },
         )
     }
 }

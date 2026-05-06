@@ -40,6 +40,8 @@ data class PageV2(
     val baseRotationDegrees: Int = 0,
     val manualRotationDegrees: Int = 0,
     val quad: NormalizedQuad? = null,
+    val quadVersion: Int = 0,
+    val userQuad: NormalizedQuad? = null,
     val isColored: Boolean? = null,
     val colorMode: ColorMode? = null,
 )

@@ -370,7 +370,7 @@ fun DocumentScreenPreview() {
             listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it" }.toImmutableList(),
             LocalContext.current
         )
-        val key = PageViewKey("123", Rotation.R0, null)
+        val key = PageViewKey("123", Rotation.R0, null, 0)
         DocumentScreen(
             uiState = DocumentUiState(1, CurrentPageUiState(key,image, COLOR, true), document),
             navigation = dummyNavigation(),

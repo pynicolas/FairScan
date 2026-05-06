@@ -15,8 +15,9 @@
 package org.fairscan.app.data
 
 import org.fairscan.app.domain.Jpeg
-import org.fairscan.app.domain.PageMetadata
+import org.fairscan.app.domain.Rotation
 import org.fairscan.imageprocessing.ColorMode
+import org.fairscan.imageprocessing.Quad
 
 interface ImageTransformations {
 
@@ -24,6 +25,11 @@ interface ImageTransformations {
 
     fun resizeToThumbnail(input: Jpeg): Jpeg
 
-    fun process(source: Jpeg, metadata: PageMetadata, colorMode: ColorMode): Jpeg
+    fun process(
+        source: Jpeg,
+        normalizedQuad: Quad,
+        baseRotation: Rotation,
+        colorMode: ColorMode
+    ): Jpeg
 
 }

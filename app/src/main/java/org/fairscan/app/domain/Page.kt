@@ -27,19 +27,19 @@ data class ScanPage(
     val id: String,
     val manualRotation: Rotation,
     val colorMode: ColorMode?,
+    val quadVersion: Int,
     val metadata: PageMetadata?,
 ) {
-    fun key(): PageViewKey = PageViewKey(id, manualRotation, colorMode)
+    fun key() = PageViewKey(id, manualRotation, colorMode, quadVersion)
+    fun totalRotation() = manualRotation.add(metadata?.baseRotation ?: Rotation.R0)
 }
 
 data class PageViewKey(
     val pageId: String,
     val rotation: Rotation,
     val colorMode: ColorMode?,
-) {
-    val saveKey: String get() = "$pageId-${rotation.degrees}-$colorMode"
-}
-
+    val quadVersion: Int,
+)
 enum class Rotation(val degrees: Int) {
     R0(0),
     R90(90),
