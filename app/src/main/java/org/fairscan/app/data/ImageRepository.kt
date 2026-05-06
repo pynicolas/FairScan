@@ -27,7 +27,6 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.PageViewKey
@@ -91,7 +90,7 @@ class ImageRepository(
         return when {
             metadataPages != null ->
                 metadataPages
-                    .filter { processedImageFileName(it.id, it.colorMode) in filesOnDisk }
+                    .filter { processedImageFileName(it.id, it.colorMode, it.quadVersion) in filesOnDisk }
                     .toMutableList()
             else ->
                 filesOnDisk
@@ -135,7 +134,7 @@ class ImageRepository(
         pages.pages().mapNotNull {
             runCatching {
                 val manualRotation = Rotation.fromDegrees(it.manualRotationDegrees)
-                ScanPage(it.id, manualRotation, it.colorMode, it.toMetadata())
+                ScanPage(it.id, manualRotation, it.colorMode, it.quadVersion, it.toMetadata())
             }.getOrNull()
         }
     }
@@ -143,7 +142,7 @@ class ImageRepository(
     suspend fun add(processed: Jpeg, source: Jpeg, metadata: PageMetadata, colorMode: ColorMode) =
         mutex.withLock {
             val id = "${System.currentTimeMillis()}"
-            val key = PageViewKey(id, Rotation.R0, colorMode)
+            val key = PageViewKey(id, Rotation.R0, colorMode, 0)
             processedImageFile(key).writeBytes(processed.bytes)
             sourceFile(id).writeBytes(source.bytes)
             pages.addOrReplace(
@@ -162,18 +161,64 @@ class ImageRepository(
         }
 
     suspend fun setColorMode(id: String, colorMode: ColorMode) {
-        val key = PageViewKey(id, Rotation.R0, colorMode)
-        val processedFile = processedImageFile(key)
-        val metadata = mutex.withLock { pages.get(id)?.toMetadata() }
+        updatePage(id) { page, metadata ->
+            PageUpdate(
+                updatedPage = page.copy(colorMode = colorMode),
+                normalizedQuad = metadata.normalizedQuad,
+                colorMode = colorMode,
+            )
+        }
+    }
+
+    suspend fun setUserQuad(id: String, newQuad: Quad) {
+        updatePage(id) { page, metadata ->
+            PageUpdate(
+                updatedPage = page.copy(
+                    quadVersion = page.quadVersion + 1,
+                    userQuad = newQuad.toSerializable(),
+                ),
+                normalizedQuad = newQuad,
+                colorMode = page.colorMode ?: metadata.autoColorMode,
+            )
+        }
+    }
+
+    private data class PageUpdate(
+        val updatedPage: PageV2,
+        val normalizedQuad: Quad,
+        val colorMode: ColorMode,
+    )
+
+    private suspend fun updatePage(
+        id: String,
+        buildUpdate: (PageV2, PageMetadata) -> PageUpdate
+    ) {
+        val page = mutex.withLock { pages.get(id) }
+        val metadata = page?.toMetadata() ?: return
         val sourceFile = sourceFile(id)
-        if (metadata == null || !sourceFile.exists())
+        if (!sourceFile.exists())
             return
 
+        val update = buildUpdate(page, metadata)
+        val key = PageViewKey(
+            pageId = id,
+            rotation = Rotation.R0,
+            colorMode = update.colorMode,
+            quadVersion = update.updatedPage.quadVersion
+        )
+
+        val processedFile = processedImageFile(key)
         val job = processingJobs.computeIfAbsent(key) {
             scope.async(Dispatchers.IO) {
                 if (!processedFile.exists()) {
                     val sourceJpeg = Jpeg(sourceFile.readBytes())
-                    val processedJpeg = transformations.process(sourceJpeg, metadata, colorMode)
+                    val processedJpeg =
+                        transformations.process(
+                            sourceJpeg,
+                            normalizedQuad = update.normalizedQuad,
+                            baseRotation = metadata.baseRotation,
+                            colorMode = update.colorMode
+                        )
                     processedFile.writeBytes(processedJpeg.bytes)
                 }
             }
@@ -185,7 +230,7 @@ class ImageRepository(
         }
 
         mutex.withLock {
-            pages.update(id) { it.copy(colorMode = colorMode) }
+            pages.update(id) { update.updatedPage }
             saveMetadata()
         }
     }
@@ -248,14 +293,18 @@ class ImageRepository(
 
     // --- Other operations ---
 
-    private fun processedImageFileName(id: String, colorMode: ColorMode?) : String =
-        if (colorMode == null)
-            "${id}.jpg"
-        else
-            "${id}.${colorMode.name.lowercase()}.jpg"
+    private fun processedImageFileName(id: String, colorMode: ColorMode?, quadVersion: Int) : String {
+        val sb = StringBuilder(id)
+        if (colorMode != null)
+            sb.append(".").append(colorMode.name.lowercase())
+        if (quadVersion > 0)
+            sb.append(".q").append(quadVersion)
+        sb.append(".jpg")
+        return sb.toString()
+    }
 
     private fun processedImageFile(key: PageViewKey) : File =
-        File(processedDir, processedImageFileName(key.pageId, key.colorMode))
+        File(processedDir, processedImageFileName(key.pageId, key.colorMode, key.quadVersion))
 
     private fun sourceFile(id: String): File =
         File(sourceDir, "$id.jpg")
@@ -352,7 +401,7 @@ fun NormalizedQuad.toQuad(): Quad =
 fun PageV2.toMetadata(): PageMetadata? {
     if (quad == null || isColored == null) return null
     return PageMetadata(
-        quad.toQuad(),
+        (userQuad ?: quad).toQuad(),
         Rotation.fromDegrees(baseRotationDegrees),
         if (isColored) ColorMode.COLOR else ColorMode.GRAYSCALE
     )

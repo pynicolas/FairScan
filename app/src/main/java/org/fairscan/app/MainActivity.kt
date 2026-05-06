@@ -185,7 +185,7 @@ class MainActivity : ComponentActivity() {
                             onLoad = { id -> viewModel.loadCropInitialState(id)},
                             initState = cropInitialState,
                             navigation = navigation,
-                            onUpdatePageQuad = { id, quad, onComplete ->  },
+                            onUpdatePageQuad = { quad -> viewModel.setCurrentPageUserQuad(quad) },
                         )
                     }
                     is Screen.Main.Document -> {

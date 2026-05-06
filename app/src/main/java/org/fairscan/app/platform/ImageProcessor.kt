@@ -73,14 +73,19 @@ class ImageProcessor(private val thumbnailSizePx: Int) : ImageTransformations {
         }
     }
 
-    override fun process(source: Jpeg, metadata: PageMetadata, colorMode: ColorMode): Jpeg {
-        return processedImage(source, metadata, metadata.baseRotation, colorMode, ExportQuality.BALANCED)
+    override fun process(
+        source: Jpeg,
+        normalizedQuad: Quad,
+        baseRotation: Rotation,
+        colorMode: ColorMode
+    ): Jpeg {
+        return processedImage(source, normalizedQuad, baseRotation, colorMode, ExportQuality.BALANCED)
     }
 }
 
 fun processedImage(
     source: Jpeg,
-    metadata: PageMetadata,
+    normalizedQuad: Quad,
     rotation: Rotation,
     colorMode: ColorMode,
     exportQuality: ExportQuality,
@@ -90,7 +95,7 @@ fun processedImage(
     var page: Mat? = null
     try {
         sourceMat = source.toMat()
-        val quad = metadata.normalizedQuad.scaledTo(1, 1, sourceMat.width(), sourceMat.height())
+        val quad = normalizedQuad.scaledTo(1, 1, sourceMat.width(), sourceMat.height())
         page = extractDocument(sourceMat, quad, rotationDegrees, colorMode, exportQuality.maxPixels)
         return Jpeg.fromMat(page, exportQuality.jpegQuality)
     } finally {

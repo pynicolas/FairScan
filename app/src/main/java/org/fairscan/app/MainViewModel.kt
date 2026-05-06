@@ -49,6 +49,7 @@ import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.state.PageThumbnail
 import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.ImageSize
+import org.fairscan.imageprocessing.Quad
 import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -189,6 +190,22 @@ class MainViewModel(val imageRepository: ImageRepository): ViewModel() {
         }
     }
 
+    fun setCurrentPageUserQuad(userQuad: Quad) {
+        viewModelScope.launch {
+            val currentPage = currentPage()
+            val totalRotation = currentPage.totalRotation()
+            val rotateIterations = (4 - totalRotation.degrees / 90) % 4
+            val newQuad = userQuad.rotate90(rotateIterations, ImageSize(1, 1))
+            _loadingPageId.value = currentPage.id
+            val pages = withContext(Dispatchers.IO) {
+                imageRepository.setUserQuad(currentPage.id, newQuad)
+                imageRepository.pages()
+            }
+            _pages.value = pages
+            _loadingPageId.value = null
+        }
+    }
+
     private fun currentPage(): ScanPage {
         val index = _currentPageIndex.value
         val pages = _pages.value
@@ -234,8 +251,7 @@ class MainViewModel(val imageRepository: ImageRepository): ViewModel() {
                 ?: return@launch
 
             val metadata = page.metadata
-            val baseRotation = metadata?.baseRotation ?: Rotation.R0
-            val rotation = baseRotation.add(page.manualRotation)
+            val rotation = page.totalRotation()
 
             val bitmap = withContext(Dispatchers.IO) {
                 val source = imageRepository.source(page.id)

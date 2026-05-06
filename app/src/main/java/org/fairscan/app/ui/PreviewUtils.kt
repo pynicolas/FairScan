@@ -30,7 +30,7 @@ fun dummyNavigation(): Navigation {
 
 fun fakeDocument(pageIds: ImmutableList<String>, context: Context): DocumentUiModel {
     val pageKeys = pageIds.map {
-        PageThumbnail(PageViewKey(it, Rotation.R0, ColorMode.COLOR), fakeImage(it, context))
+        PageThumbnail(PageViewKey(it, Rotation.R0, ColorMode.COLOR, 0), fakeImage(it, context))
     }.toImmutableList()
     return DocumentUiModel(pageKeys)
 }
