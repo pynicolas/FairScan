@@ -207,48 +207,6 @@ fun MagnifyingGlass(
                     normalizedToLoupe(quad.bottomLeft.x, quad.bottomLeft.y),
                 )
 
-                // Striped overlay outside the quad to distinguish document from background
-                val quadPath = Path().apply {
-                    moveTo(loupeCorners[0].x, loupeCorners[0].y)
-                    for (corner in loupeCorners.drop(1)) {
-                        lineTo(corner.x, corner.y)
-                    }
-                    close()
-                }
-                clipPath(quadPath, clipOp = ClipOp.Difference) {
-                    // Clip to actual image bounds so stripes only appear over
-                    // image content, not in the background area near edges.
-                    val imgLeft = -bitmapOriginX * scale
-                    val imgTop = -bitmapOriginY * scale
-                    val imgRight = (bitmap.width - bitmapOriginX) * scale
-                    val imgBottom = (bitmap.height - bitmapOriginY) * scale
-
-                    clipRect(
-                        left = imgLeft, top = imgTop,
-                        right = imgRight, bottom = imgBottom
-                    ) {
-                        val stripeSpacing = 50f
-                        val stripeWidth = 10f
-                        val stripeColor = Color.Gray.copy(alpha = 0.35f)
-
-                        // Stripes are placed at fixed positions in bitmap coordinate
-                        // space so they scroll with the image as the loupe pans.
-                        val originShift = (bitmapOriginX + bitmapOriginY) * scale
-                        val kMin = floor(originShift / stripeSpacing).toInt() - 1
-                        val kMax = ceil((originShift + 2f * loupeDiameter) / stripeSpacing).toInt() + 1
-
-                        for (k in kMin..kMax) {
-                            val loupeSum = k * stripeSpacing - originShift
-                            drawLine(
-                                color = stripeColor,
-                                start = Offset(loupeSum, 0f),
-                                end = Offset(0f, loupeSum),
-                                strokeWidth = stripeWidth,
-                            )
-                        }
-                    }
-                }
-
                 // Draw quad edge lines on top
                 for (i in 0 until 4) {
                     drawLine(
