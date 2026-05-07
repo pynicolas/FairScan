@@ -2,6 +2,7 @@
     <string name="about">Sobre</string>
     <string name="add_page">Engadir páxina</string>
     <string name="app_tagline">Unha aplicación sinxela e respectuosa para escanear os teus documentos.</string>
+    <string name="apply">Aplicar</string>
     <string name="back">Atrás</string>
     <string name="camera_permission_denied">Permiso da cámara denegado</string>
     <string name="camera_permission_rationale">A aplicación precisa acceso á cámara para escanear documentos. As imaxes capturadas gárdanse só neste dispositivo e eliminaranse ao pechar o documento actual.</string>

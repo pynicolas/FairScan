@@ -2,6 +2,7 @@
     <string name="about">À propos</string>
     <string name="add_page">Ajouter une page</string>
     <string name="app_tagline">Une application simple et respectueuse pour scanner vos documents.</string>
+    <string name="apply">Appliquer</string>
     <string name="back">Retour</string>
     <string name="camera_permission_denied">L\'autorisation d\'accès à la caméra a été refusée</string>
     <string name="camera_permission_rationale">L’application a besoin d’accéder à l’appareil photo pour scanner des documents. Les images capturées sont enregistrées uniquement sur cet appareil et seront supprimées lorsque vous fermerez le document en cours.</string>

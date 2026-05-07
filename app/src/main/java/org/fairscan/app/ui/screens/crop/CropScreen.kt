@@ -135,9 +135,9 @@ private fun ActionButtons(
 ) {
     MainActionButton(
         onClick = onConfirm,
-        text = stringResource(R.string.confirm),
+        text = stringResource(R.string.apply),
         icon = Icons.Filled.Check,
-        iconDescription = stringResource(R.string.confirm),
+        iconDescription = stringResource(R.string.apply),
         modifier = modifier
     )
 }

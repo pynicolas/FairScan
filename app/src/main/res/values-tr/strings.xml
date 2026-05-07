@@ -2,6 +2,7 @@
     <string name="about">Hakkında</string>
     <string name="add_page">Sayfa ekle</string>
     <string name="app_tagline">Belgelerinizi taramak için basit ve saygılı bir uygulama.</string>
+    <string name="apply">Uygula</string>
     <string name="back">Geri</string>
     <string name="camera_permission_denied">Kamera izni reddedildi</string>
     <string name="camera_permission_rationale">Uygulama, belgeleri taramak için kamera erişimi gerektirir. Yakalanan görüntüler yalnızca bu cihazda saklanır ve mevcut belgeyi kapattığınızda silinir.</string>
