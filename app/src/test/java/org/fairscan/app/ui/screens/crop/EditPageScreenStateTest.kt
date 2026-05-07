@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui.screens.edit
+package org.fairscan.app.ui.screens.crop
 
 import androidx.compose.ui.geometry.Offset
 import org.assertj.core.api.Assertions.assertThat
@@ -42,7 +42,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun initialState_hasCorrectDefaults() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
 
         assertThat(state.bitmap).isNull()
         assertThat(state.containerSize).isNull()
@@ -57,7 +57,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun quadUpdates_workCorrectly() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
 
         state.updateQuad(testQuad)
         assertThat(state.editableQuad).isEqualTo(testQuad)
@@ -68,7 +68,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun cornerDragging_managesStateCorrectly() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
 
         // Corner drag starts correctly
         for (i in 0 until 4) {
@@ -91,7 +91,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun fullDragCycle_preservesQuadAfterDragEnds() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
 
         assertThat(state.isDragging()).isFalse()
         state.startCornerDrag(1)
@@ -108,7 +108,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun onTouchDown_setsIsTouchingAndDragPosition() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         val pos = Offset(100f, 200f)
 
         state.onTouchDown(pos)
@@ -120,7 +120,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun onTouchDown_withCornerIndex_storesCornerIndex() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
 
         state.onTouchDown(Offset(50f, 50f), cornerIndex = 2)
 
@@ -131,7 +131,7 @@ class EditPageScreenStateTest {
     @Test
     fun onTouchDown_withEdgeIndex_storesEdgeIndex() {
         // Edge index no longer exists; onTouchDown with no corner index leaves touchDownCornerIndex as -1.
-        val state = EditPageScreenState()
+        val state = CropScreenState()
 
         state.onTouchDown(Offset(50f, 50f))
 
@@ -141,7 +141,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun onTouchDown_overwritesPreviousTouchDown() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.onTouchDown(Offset(10f, 10f), cornerIndex = 0)
 
         state.onTouchDown(Offset(50f, 50f), cornerIndex = 3)
@@ -154,7 +154,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun onTouchUp_clearsIsTouchingAndTouchDownIndices() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.onTouchDown(Offset(100f, 200f), cornerIndex = 1)
 
         state.onTouchUp()
@@ -165,7 +165,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun onTouchUp_preservesDragPosition() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         val pos = Offset(100f, 200f)
         state.onTouchDown(pos, cornerIndex = 1)
 
@@ -177,7 +177,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun onTouchUp_whenNotTouching_isIdempotent() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
 
         state.onTouchUp()
 
@@ -189,7 +189,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun endDrag_preservesDragPosition() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.setInitialQuad(testQuad)
         val pos = Offset(100f, 200f)
         state.onTouchDown(pos, cornerIndex = 0)
@@ -205,7 +205,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun endDrag_doesNotResetTouchDownIndices() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.setInitialQuad(testQuad)
         state.onTouchDown(Offset(100f, 200f), cornerIndex = 2)
         state.startCornerDrag(2)
@@ -218,7 +218,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun rollbackLastDragStepIfLikelyLiftWiggle_revertsRecentSmallStep() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.updateQuad(testQuad)
         state.startCornerDrag(0)
 
@@ -232,7 +232,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun rollbackLastDragStepIfLikelyLiftWiggle_keepsLargeStep() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.updateQuad(testQuad)
         state.startCornerDrag(0)
 
@@ -246,7 +246,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun rollbackLastDragStepIfLikelyLiftWiggle_keepsOldSmallStep() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.updateQuad(testQuad)
         state.startCornerDrag(0)
 
@@ -260,7 +260,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun endDrag_clearsLastDragStepTracking() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.updateQuad(testQuad)
         state.startCornerDrag(0)
 
@@ -277,7 +277,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun tapCycle_leavesStateConsistent() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         val pos = Offset(100f, 200f)
 
         state.onTouchDown(pos, cornerIndex = 3)
@@ -294,7 +294,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun dragCycle_corner_leavesStateConsistent() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.setInitialQuad(testQuad)
         val pos = Offset(100f, 200f)
 
@@ -321,7 +321,7 @@ class EditPageScreenStateTest {
     fun dragCycle_edge_leavesStateConsistent() {
         // Edge dragging is no longer supported; this test verifies that a touch
         // without a valid corner index simply does not trigger a drag.
-        val state = EditPageScreenState()
+        val state = CropScreenState()
         state.setInitialQuad(testQuad)
         val pos = Offset(150f, 80f)
 
@@ -339,7 +339,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun consecutiveTaps_eachSetsCorrectTouchDownIndex() {
-        val state = EditPageScreenState()
+        val state = CropScreenState()
 
         state.onTouchDown(Offset(10f, 10f), cornerIndex = 0)
         assertThat(state.touchDownCornerIndex).isEqualTo(0)
