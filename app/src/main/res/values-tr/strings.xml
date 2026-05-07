@@ -18,6 +18,7 @@
     <string name="copied_logs">Günlükler panoya kopyalandı</string>
     <string name="copy_logs">Günlükleri kopyala</string>
     <string name="creating_export">Dışa aktarma hazırlanıyor…</string>
+    <string name="crop">Kırp</string>
     <string name="delete_page">Sayfayı sil</string>
     <string name="delete_page_warning">Bu sayfayı silmek istiyor musunuz?</string>
     <string name="developer">Geliştirici</string>

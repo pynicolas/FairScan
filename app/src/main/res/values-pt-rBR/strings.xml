@@ -18,6 +18,7 @@
     <string name="copied_logs">Registros copiados para a área de transferência</string>
     <string name="copy_logs">Copiar registros</string>
     <string name="creating_export">Preparando exportação…</string>
+    <string name="crop">Recortar</string>
     <string name="delete_page">Excluir página</string>
     <string name="delete_page_warning">Deseja excluir esta página?</string>
     <string name="developer">Desenvolvedor</string>

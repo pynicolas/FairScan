@@ -18,6 +18,7 @@
     <string name="copied_logs">Logs copiés dans le presse-papiers</string>
     <string name="copy_logs">Copier les logs</string>
     <string name="creating_export">Préparation de l’export…</string>
+    <string name="crop">Recadrer</string>
     <string name="delete_page">Supprimer la page</string>
     <string name="delete_page_warning">Voulez-vous supprimer cette page ?</string>
     <string name="developer">Développeur</string>

@@ -18,6 +18,7 @@
     <string name="copied_logs">Log copiati negli appunti</string>
     <string name="copy_logs">Copia log</string>
     <string name="creating_export">Preparazione dell’esportazione…</string>
+    <string name="crop">Ritaglia</string>
     <string name="delete_page">Elimina pagina</string>
     <string name="delete_page_warning">Vuoi eliminare questa pagina?</string>
     <string name="developer">Sviluppatore</string>
