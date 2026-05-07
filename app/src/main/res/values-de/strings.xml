@@ -2,6 +2,7 @@
     <string name="about">Über</string>
     <string name="add_page">Seite hinzufügen</string>
     <string name="app_tagline">Eine einfache und respektvolle App zum Scannen Ihrer Dokumente.</string>
+    <string name="apply">Anwenden</string>
     <string name="back">Zurück</string>
     <string name="camera_permission_denied">Kamerazugriff wurde verweigert</string>
     <string name="camera_permission_rationale">Die App benötigt Zugriff auf die Kamera, um Dokumente zu scannen. Aufgenommene Bilder werden nur auf diesem Gerät gespeichert und beim Schließen des aktuellen Dokuments gelöscht.</string>

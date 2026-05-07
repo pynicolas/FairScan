@@ -2,6 +2,7 @@
     <string name="about">關於</string>
     <string name="add_page">新增頁面</string>
     <string name="app_tagline">一個簡單且尊重隱私的文件掃描應用程式。</string>
+    <string name="apply">套用</string>
     <string name="back">返回</string>
     <string name="camera_permission_denied">已拒絕相機權限</string>
     <string name="camera_permission_rationale">此應用程式需要相機存取權限才能掃描文件。擷取的影像僅儲存在此裝置上，並會在您關閉目前文件時刪除。</string>

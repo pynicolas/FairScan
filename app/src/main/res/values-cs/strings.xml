@@ -2,6 +2,7 @@
     <string name="about">O aplikaci</string>
     <string name="add_page">Přidat stránku</string>
     <string name="app_tagline">Jednoduchá a respektující aplikace pro skenování vašich dokumentů</string>
+    <string name="apply">Použít</string>
     <string name="back">Zpět</string>
     <string name="camera_permission_denied">Byl odepřen přístup k fotoaparátu</string>
     <string name="camera_permission_rationale">Aby bylo možné skenovat dokumenty, tato aplikace potřebuje přístup k fotoaparátu. Nasnímané obrázky jsou ukládány pouze do tohoto zařízení a budou smazány, když zavřete stávající dokument.</string>

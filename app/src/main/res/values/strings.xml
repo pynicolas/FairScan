@@ -3,11 +3,11 @@
     <string name="add_page">Add page</string>
     <string name="app_name" translatable="false">FairScan</string>
     <string name="app_tagline">A simple and respectful application to scan your documents.</string>
+    <string name="apply">Apply</string>
     <string name="back">Back</string>
     <string name="camera_permission_denied">Camera permission was denied</string>
     <string name="camera_permission_rationale">The app requires camera access to scan documents. Captured images are stored only on this device and will be deleted when you close the current document.</string>
     <string name="cancel">Cancel</string>
-    <string name="confirm">Confirm</string>
     <string name="change_directory">Change folder</string>
     <string name="clear_text">Clear text</string>
     <string name="color_mode">Filter</string>

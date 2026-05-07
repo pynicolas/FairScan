@@ -2,6 +2,7 @@
     <string name="about">Informazioni</string>
     <string name="add_page">Aggiungi pagina</string>
     <string name="app_tagline">Un\'app semplice e rispettosa per scansionare i tuoi documenti.</string>
+    <string name="apply">Applica</string>
     <string name="back">Indietro</string>
     <string name="camera_permission_denied">Autorizzazione fotocamera negata</string>
     <string name="camera_permission_rationale">L\'app richiede l\'accesso alla fotocamera per scansionare documenti. Le immagini catturate sono salvate solo in questo dispositivo e verranno eliminate quando chiudi il documento attuale.</string>

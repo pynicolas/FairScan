@@ -2,6 +2,7 @@
     <string name="about">О приложении</string>
     <string name="add_page">Добавить страницу</string>
     <string name="app_tagline">Простое и открытое приложение для сканирования Ваших документов.</string>
+    <string name="apply">Применить</string>
     <string name="back">Назад</string>
     <string name="camera_permission_denied">В доступе к камере отказано</string>
     <string name="camera_permission_rationale">Для сканирования документов приложению требуется доступ к камере. Отснятые изображения хранятся только на данном устройстве и удаляются по окончании работы с текущим документом.</string>

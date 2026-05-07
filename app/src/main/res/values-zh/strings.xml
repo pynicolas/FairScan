@@ -2,6 +2,7 @@
     <string name="about">关于</string>
     <string name="add_page">添加页面</string>
     <string name="app_tagline">一个简单且克制的文档扫描应用</string>
+    <string name="apply">应用</string>
     <string name="back">返回</string>
     <string name="camera_permission_denied">相机权限被拒绝</string>
     <string name="camera_permission_rationale">应用请求相机权限访问扫描文档。捕获的图像仅存储在此设备上，并且在关闭当前文档时将被删除。</string>
