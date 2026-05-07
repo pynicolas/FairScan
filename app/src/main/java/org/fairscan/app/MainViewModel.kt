@@ -44,7 +44,7 @@ import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.screens.document.CurrentPageUiState
 import org.fairscan.app.ui.screens.document.DocumentUiState
-import org.fairscan.app.ui.screens.edit.CropInitState
+import org.fairscan.app.ui.screens.crop.CropInitState
 import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.state.PageThumbnail
 import org.fairscan.imageprocessing.ColorMode

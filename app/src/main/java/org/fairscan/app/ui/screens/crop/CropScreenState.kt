@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui.screens.edit
+package org.fairscan.app.ui.screens.crop
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.getValue
@@ -34,7 +34,7 @@ sealed interface CropInitState {
     ) : CropInitState
 }
 
-class EditPageScreenState {
+class CropScreenState {
     companion object {
         val LIFT_WIGGLE_MAX_DISTANCE = 8.dp
         const val LIFT_WIGGLE_WINDOW_MS = 70L

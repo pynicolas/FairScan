@@ -12,7 +12,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-package org.fairscan.app.ui.screens.edit
+package org.fairscan.app.ui.screens.crop
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
@@ -64,13 +64,13 @@ import org.fairscan.imageprocessing.Quad
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditPageScreen(
+fun CropScreen(
     pageId: String,
     initState: CropInitState,
     navigation: Navigation,
     onUpdatePageQuad: (Quad) -> Unit,
 ) {
-    val state = remember(pageId) { EditPageScreenState() }
+    val state = remember(pageId) { CropScreenState() }
     val quadHandler = remember { QuadEditingHandler() }
 
     if (initState is CropInitState.Ready && initState.pageId == pageId && state.bitmap == null) {
@@ -145,7 +145,7 @@ private fun ActionButtons(
 
 @Composable
 private fun DragQuadOverlay(
-    state: EditPageScreenState,
+    state: CropScreenState,
     quadHandler: QuadEditingHandler,
     bmp: Bitmap
 ) {
@@ -154,7 +154,7 @@ private fun DragQuadOverlay(
     val containerSize = state.containerSize!!
     val displaySize = QuadCoordinateUtils.calculateDisplaySize(bmp.width, bmp.height, containerSize)
     val liftWiggleThresholdPx = with(LocalDensity.current) {
-        EditPageScreenState.LIFT_WIGGLE_MAX_DISTANCE.toPx()
+        CropScreenState.LIFT_WIGGLE_MAX_DISTANCE.toPx()
     }
 
     QuadOverlay(
@@ -238,7 +238,7 @@ private fun DragQuadOverlay(
 }
 
 @Composable
-private fun DragMagnifyingGlass(state: EditPageScreenState) {
+private fun DragMagnifyingGlass(state: CropScreenState) {
     // showLoupe becomes true immediately on touch-down and stays true for
     // one additional second after the finger is lifted.
     val showLoupe = remember { mutableStateOf(false) }
@@ -314,7 +314,7 @@ fun EditPageScreenPreview() {
             BitmapFactory.decodeStream(input)
         }
         val quad = Quad(Point(.1, .1), Point(.9, .1), Point(.9, .9), Point(.1, .9))
-        EditPageScreen(
+        CropScreen(
             pageId = "123",
             initState = CropInitState.Ready("123",dummyImage, quad),
             navigation = dummyNavigation(),

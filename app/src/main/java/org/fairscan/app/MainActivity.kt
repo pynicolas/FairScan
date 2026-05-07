@@ -55,7 +55,7 @@ import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
 import org.fairscan.app.ui.screens.document.DocumentScreen
-import org.fairscan.app.ui.screens.edit.EditPageScreen
+import org.fairscan.app.ui.screens.crop.CropScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.about.AboutEvent
 import org.fairscan.app.ui.screens.about.AboutScreen
@@ -180,7 +180,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     is Screen.Main.EditImage -> {
-                        EditPageScreen(
+                        CropScreen(
                             pageId = documentUiState.currentPage?.key?.pageId ?: "",
                             initState = cropInitialState,
                             navigation = navigation,
