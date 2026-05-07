@@ -271,7 +271,7 @@ fun EditButtons(
         if (uiState.currentPage?.canBeCropped ?: false) {
             SecondaryActionButton(
                 icon = Icons.Default.Crop,
-                contentDescription = "Crop", // TODO externalize string
+                contentDescription = stringResource(R.string.crop),
                 onClick = onCropClick,
             )
         }

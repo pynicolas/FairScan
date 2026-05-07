@@ -18,6 +18,7 @@
     <string name="copied_logs">Журналы скопированы в буфер обмена</string>
     <string name="copy_logs">Копировать журналы</string>
     <string name="creating_export">Подготовка экспорта…</string>
+    <string name="crop">Обрезать</string>
     <string name="delete_page">Удалить страницу</string>
     <string name="delete_page_warning">Вы желаете удалить эту страницу?</string>
     <string name="developer">Разработчик</string>

@@ -18,6 +18,7 @@
     <string name="copied_logs">نُسخت السجلات إلى الحافظة</string>
     <string name="copy_logs">انسخ السجلات</string>
     <string name="creating_export">يجهز التصدير…</string>
+    <string name="crop">اقتصاص</string>
     <string name="delete_page">احذف الصفحة</string>
     <string name="delete_page_warning">هل تريد حذف هذه الصفحة؟</string>
     <string name="developer">مطوّر</string>

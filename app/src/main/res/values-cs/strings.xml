@@ -18,6 +18,7 @@
     <string name="copied_logs">Protokoly zkopírovány do schránky</string>
     <string name="copy_logs">Kopírovat protokoly</string>
     <string name="creating_export">Příprava exportu…</string>
+    <string name="crop">Oříznout</string>
     <string name="delete_page">Smazat stránku</string>
     <string name="delete_page_warning">Chcete smazat tuto stránku?</string>
     <string name="developer">Vývojář</string>

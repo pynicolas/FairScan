@@ -18,6 +18,7 @@
     <string name="copied_logs">Registros copiados al portapapeles</string>
     <string name="copy_logs">Copiar registros</string>
     <string name="creating_export">Preparando la exportación…</string>
+    <string name="crop">Recortar</string>
     <string name="delete_page">Eliminar página</string>
     <string name="delete_page_warning">¿Quieres eliminar esta página?</string>
     <string name="developer">Desarrollador</string>

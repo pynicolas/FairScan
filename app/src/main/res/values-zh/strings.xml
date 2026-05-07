@@ -18,6 +18,7 @@
     <string name="copied_logs">日志已复制到剪贴板</string>
     <string name="copy_logs">复制日志</string>
     <string name="creating_export">正在准备导出…</string>
+    <string name="crop">裁剪</string>
     <string name="delete_page">删除页面</string>
     <string name="delete_page_warning">是否要删除此页面?</string>
     <string name="developer">开发者</string>
