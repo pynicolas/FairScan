@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-2026 Pierre-Yves Nicolas
+ * Copyright 2025-2026 The FairScan authors
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -12,7 +12,6 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
 package org.fairscan.app.domain
 
 import kotlinx.coroutines.Deferred
