@@ -22,7 +22,6 @@
     <string name="developer">Geliştirici</string>
     <string name="discard_scan">Taramayı at</string>
     <string name="download_dirname">İndirilenler</string>
-    <string name="end_scan">Taramayı bitir</string>
     <string name="error">Error: %1$s</string>
     <string name="error_context_folder">Dışa aktarma klasörü: %1$s</string>
     <string name="error_context_provider">Sağlayıcı: %1$s</string>

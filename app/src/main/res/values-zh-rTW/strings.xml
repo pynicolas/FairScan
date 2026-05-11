@@ -22,7 +22,6 @@
     <string name="developer">開發者</string>
     <string name="discard_scan">捨棄掃描</string>
     <string name="download_dirname">下載 (Downloads)</string>
-    <string name="end_scan">結束掃描</string>
     <string name="error">錯誤：%1$s</string>
     <string name="error_context_folder">匯出資料夾：%1$s</string>
     <string name="error_context_provider">提供者：%1$s</string>

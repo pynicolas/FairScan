@@ -22,7 +22,6 @@
     <string name="developer">Разработчик</string>
     <string name="discard_scan">Отказаться</string>
     <string name="download_dirname">Download</string>
-    <string name="end_scan">Закончить</string>
     <string name="error">Ошибка: %1$s</string>
     <string name="error_context_folder">Папка экспорта: %1$s</string>
     <string name="error_context_provider">Провайдер: %1$s</string>

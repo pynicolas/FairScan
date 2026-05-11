@@ -22,7 +22,6 @@
     <string name="developer">Entwickler</string>
     <string name="discard_scan">Löschen</string>
     <string name="download_dirname">Downloads</string>
-    <string name="end_scan">Scan beenden</string>
     <string name="error">Fehler: %1$s</string>
     <string name="error_context_folder">Exportordner: %1$s</string>
     <string name="error_context_provider">Anbieter: %1$s</string>

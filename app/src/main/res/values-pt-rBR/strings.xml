@@ -22,7 +22,6 @@
     <string name="developer">Desenvolvedor</string>
     <string name="discard_scan">Descartar digitalização</string>
     <string name="download_dirname">Downloads</string>
-    <string name="end_scan">Finalizar digitalização</string>
     <string name="error">Erro: %1$s</string>
     <string name="error_context_folder">Pasta de exportação: %1$s</string>
     <string name="error_context_provider">Provedor: %1$s</string>
