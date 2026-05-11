@@ -22,7 +22,6 @@
     <string name="developer">Desenvolvedor</string>
     <string name="discard_scan">Descartar escaneo</string>
     <string name="download_dirname">Descargas</string>
-    <string name="end_scan">Rematar escaneo</string>
     <string name="error">Erro: %1$s</string>
     <string name="error_context_folder">Cartafol de exportación: %1$s</string>
     <string name="error_context_provider">Provedor: %1$s</string>

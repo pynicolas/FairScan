@@ -22,7 +22,6 @@
     <string name="developer">Vývojář</string>
     <string name="discard_scan">Zrušit skenování</string>
     <string name="download_dirname">stažených</string>
-    <string name="end_scan">Ukončit skenování</string>
     <string name="error">Chyba: %1$s</string>
     <string name="error_context_folder">Složka exportu: %1$s</string>
     <string name="error_context_provider">Poskytovatel: %1$s</string>

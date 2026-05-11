@@ -140,7 +140,7 @@ fun ExportScreenWrapper(
         onOpen = pdfActions.open,
         onCloseScan = {
             if (!uiState.isSaving) {
-                if (uiState.hasSavedOrShared)
+                if (uiState.hasSavedOrShared || uiState.isResumedScan)
                     onCloseScan()
                 else
                     showConfirmationDialog.value = true
@@ -149,7 +149,7 @@ fun ExportScreenWrapper(
     )
 
     if (showConfirmationDialog.value) {
-        NewDocumentDialog(onCloseScan, showConfirmationDialog, stringResource(R.string.end_scan))
+        NewDocumentDialog(onCloseScan, showConfirmationDialog, stringResource(R.string.scan_button))
     }
 }
 
@@ -396,7 +396,7 @@ private fun MainActions(
         }
         ExportButton(
             icon = Icons.Default.Done,
-            text = stringResource(R.string.end_scan),
+            text = stringResource(R.string.scan_button),
             onClick = onCloseScan,
             modifier = Modifier.fillMaxWidth(),
             isPrimary = uiState.hasSavedOrShared,

@@ -22,7 +22,6 @@
     <string name="developer">开发者</string>
     <string name="discard_scan">放弃扫描</string>
     <string name="download_dirname">下载</string>
-    <string name="end_scan">结束扫描</string>
     <string name="error">错误: %1$s</string>
     <string name="error_context_folder">导出文件夹：%1$s</string>
     <string name="error_context_provider">提供方：%1$s</string>

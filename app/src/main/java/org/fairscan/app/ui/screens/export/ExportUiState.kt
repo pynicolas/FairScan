@@ -26,6 +26,7 @@ data class ExportUiState(
     val savedBundle: SavedBundle? = null,
     val hasShared: Boolean = false,
     val error: ExportError? = null,
+    val isResumedScan: Boolean = false,
 ) {
     val hasSavedOrShared get() = savedBundle != null || hasShared
 }

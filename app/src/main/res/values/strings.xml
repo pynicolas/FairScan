@@ -23,7 +23,6 @@
     <string name="developer">Developer</string>
     <string name="discard_scan">Discard scan</string>
     <string name="download_dirname">Downloads</string>
-    <string name="end_scan">End scan</string>
     <string name="error">Error: %1$s</string>
     <string name="error_context_folder">Export folder: %1$s</string>
     <string name="error_context_provider">Provider: %1$s</string>
