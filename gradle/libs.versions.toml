@@ -19,8 +19,6 @@ assertj = "3.27.7"
 pdfbox = "2.0.27.0"
 zoomable = "2.11.1"
 aboutLibraries = "13.2.1"
-protobuf = "0.9.6"
-protobufJavaLite = "4.34.1"
 kotlinSerialization = "1.10.0"
 reorderable = "3.0.0"
 jetbrainsKotlinJvm = "2.3.10"
@@ -49,10 +47,8 @@ androidx-camera-core = { group = "androidx.camera", name = "camera-core", versio
 androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
-androidx-datastore = { group = "androidx.datastore", name = "datastore" , version.ref = "datastore" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences" , version.ref = "datastore" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile" , version.ref = "documentfile" }
-protobuf-javalite = { group = "com.google.protobuf", name="protobuf-javalite", version.ref = "protobufJavaLite"}
 litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
 litert-support = { group = "com.google.ai.edge.litert", name = "litert-support", version.ref = "litert" }
 litert-metadata = { group = "com.google.ai.edge.litert", name = "litert-metadata", version.ref = "litert" }
@@ -75,5 +71,4 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 license =  { id = "com.github.hierynomus.license", version.ref = "license" }
 aboutLibrariesAndroid = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutLibraries" }
-protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }

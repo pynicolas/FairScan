@@ -33,7 +33,7 @@ data class DocumentUiModel(
         return pages.lastIndex
     }
     fun thumbnail(index: Int): Bitmap? {
-        return pages[index].thumbnail?.toBitmap()
+        return pages.getOrNull(index)?.thumbnail?.toBitmap()
     }
 }
 

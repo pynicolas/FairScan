@@ -54,7 +54,6 @@ import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
-import org.fairscan.app.ui.screens.document.DocumentScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.about.AboutEvent
 import org.fairscan.app.ui.screens.about.AboutScreen
@@ -63,14 +62,12 @@ import org.fairscan.app.ui.screens.about.createEmailWithImageIntent
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
+import org.fairscan.app.ui.screens.document.DocumentScreen
 import org.fairscan.app.ui.screens.export.ExportActions
 import org.fairscan.app.ui.screens.export.ExportEvent
 import org.fairscan.app.ui.screens.export.ExportResult
 import org.fairscan.app.ui.screens.export.ExportScreenWrapper
 import org.fairscan.app.ui.screens.export.ExportViewModel
-import org.fairscan.app.ui.screens.home.HomeScreen
-import org.fairscan.app.ui.screens.home.HomeViewModel
-import org.fairscan.app.ui.screens.settings.ExportFormat
 import org.fairscan.app.ui.screens.settings.SettingsScreen
 import org.fairscan.app.ui.screens.settings.SettingsViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
@@ -97,7 +94,7 @@ class MainActivity : ComponentActivity() {
         val imageRepository = sessionViewModel.imageRepository
         val viewModel: MainViewModel by viewModels {
             appContainer.viewModelFactory {
-                MainViewModel(imageRepository, launchMode)
+                MainViewModel(imageRepository)
             }
         }
         val exportViewModel: ExportViewModel by viewModels {
@@ -110,7 +107,6 @@ class MainActivity : ComponentActivity() {
                 AboutViewModel(appContainer, imageRepository)
             }
         }
-        val homeViewModel: HomeViewModel by viewModels { appContainer.homeViewModelFactory }
         val cameraViewModel: CameraViewModel by viewModels { appContainer.cameraViewModelFactory }
 
         val settingsViewModel: SettingsViewModel
@@ -157,16 +153,8 @@ class MainActivity : ComponentActivity() {
                 }
 
                 when (currentScreen) {
-                    is Screen.Main.Home -> {
-                        val recentDocs by homeViewModel.recentDocuments.collectAsStateWithLifecycle()
-                        HomeScreen(
-                            cameraPermission = cameraPermission,
-                            currentDocument = document,
-                            navigation = navigation,
-                            onClearScan = { viewModel.startNewDocument() },
-                            recentDocuments = recentDocs,
-                            onOpenPdf = { fileUri -> openUri(fileUri, ExportFormat.PDF.mimeType, logger) }
-                        )
+                    null -> {
+                        // waiting to load pages to get an initial screen
                     }
                     is Screen.Main.Camera -> {
                         val pickMultiple = rememberLauncherForActivityResult(
@@ -216,7 +204,7 @@ class MainActivity : ComponentActivity() {
                             onCloseScan = {
                                 exportViewModel.resetFilename()
                                 viewModel.startNewDocument()
-                                viewModel.navigateTo(Screen.Main.Home)
+                                viewModel.navigateTo(Screen.Main.Camera)
                             }
                         )
                     }
@@ -468,7 +456,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun navigation(viewModel: MainViewModel, launchMode: LaunchMode): Navigation = Navigation(
-        toHomeScreen = { viewModel.navigateTo(Screen.Main.Home) },
         toCameraScreen = { viewModel.navigateTo(Screen.Main.Camera) },
         toDocumentScreen = { viewModel.navigateTo(Screen.Main.Document()) },
         toExportScreen = { viewModel.navigateTo(Screen.Main.Export) },

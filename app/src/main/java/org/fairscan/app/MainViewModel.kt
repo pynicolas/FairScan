@@ -45,17 +45,27 @@ import org.fairscan.imageprocessing.ColorMode
 import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode): ViewModel() {
+class MainViewModel(val imageRepository: ImageRepository): ViewModel() {
 
-    private val _navigationState = MutableStateFlow(NavigationState.initial(launchMode))
-    val currentScreen: StateFlow<Screen> = _navigationState.map { it.current }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, _navigationState.value.current)
+    private val _navigationState = MutableStateFlow<NavigationState?>(null)
+    val currentScreen: StateFlow<Screen?> = _navigationState.map { it?.current }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _pages = MutableStateFlow<List<ScanPage>>(emptyList())
 
+
     init {
         viewModelScope.launch {
-            _pages.value = imageRepository.pages()
+            val pages = imageRepository.pages()
+
+            _pages.value = pages
+
+            _navigationState.value =
+                if (pages.isEmpty()) {
+                    NavigationState.initial()
+                } else {
+                    NavigationState.initial().navigateTo(Screen.Main.Export)
+                }
         }
     }
 
@@ -110,11 +120,11 @@ class MainViewModel(val imageRepository: ImageRepository, launchMode: LaunchMode
             }
             _currentPageIndex.value = min(_pages.value.size - 1, destination.initialPage)
         }
-        _navigationState.update { it.navigateTo(destination) }
+        _navigationState.update { it?.navigateTo(destination) }
     }
 
     fun navigateBack() {
-        _navigationState.update { stack -> stack.navigateBack() }
+        _navigationState.update { stack -> stack?.navigateBack() }
     }
 
     fun rotateCurrentPage(clockwise: Boolean) {
