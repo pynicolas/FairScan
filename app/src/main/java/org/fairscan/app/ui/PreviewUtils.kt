@@ -16,7 +16,6 @@ package org.fairscan.app.ui
 
 import android.content.Context
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageViewKey
@@ -26,11 +25,7 @@ import org.fairscan.app.ui.state.PageThumbnail
 import org.fairscan.imageprocessing.ColorMode
 
 fun dummyNavigation(): Navigation {
-    return Navigation({}, {}, {}, {}, {}, {}, {}, {})
-}
-
-fun fakeDocument(): DocumentUiModel {
-    return DocumentUiModel(persistentListOf())
+    return Navigation({}, {}, {}, {}, {}, {}, {})
 }
 
 fun fakeDocument(pageIds: ImmutableList<String>, context: Context): DocumentUiModel {

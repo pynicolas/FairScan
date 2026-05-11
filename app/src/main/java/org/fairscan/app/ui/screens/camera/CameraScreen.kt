@@ -141,8 +141,6 @@ fun CameraScreen(
     val isTorchEnabled by cameraViewModel.isTorchEnabled.collectAsStateWithLifecycle()
     var torchReapplied by remember { mutableStateOf(false) }
 
-    BackHandler { navigation.back() }
-
     val captureController = remember { CameraCaptureController() }
     DisposableEffect(Unit) {
         onDispose {

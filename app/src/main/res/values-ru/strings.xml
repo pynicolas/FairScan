@@ -44,7 +44,6 @@
     <string name="filename">Имя файла</string>
     <string name="grant_permission">Предоставить разрешение</string>
     <string name="import_photos">Импорт</string>
-    <string name="last_saved_pdf_files">Последние PDF, сохранённые на этом устройстве:</string>
     <string name="libraries">Библиотеки</string>
     <string name="libraries_open_source">Библиотеки с открытым исходным кодом</string>
     <string name="license">Лицензия</string>

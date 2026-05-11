@@ -42,7 +42,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.R
-import org.fairscan.app.RecentDocument
 import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.ExportQuality
@@ -69,7 +68,6 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private val preparationDir = container.preparationDir
     private val fileManager = container.fileManager
     private val settingsRepository = container.settingsRepository
-    private val recentDocumentsDataStore = container.recentDocumentsDataStore
     private val logger = container.logger
 
     private val _events = MutableSharedFlow<ExportEvent>()
@@ -310,12 +308,6 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         val bundle = SavedBundle(savedItems, saveDir)
         _uiState.update { it.copy(savedBundle = bundle) }
 
-        if (exportFormat == ExportFormat.PDF) {
-            savedItems.forEach { item ->
-                addRecentDocument(item.uri, item.fileName, result.pageCount)
-            }
-        }
-
         filesForMediaScan.forEach { f -> mediaScan(context, f, exportFormat.mimeType) }
     }
 
@@ -393,27 +385,6 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
             null
         } else {
             DocumentFile.fromTreeUri(context, exportDirUri)?.name
-        }
-    }
-
-    fun addRecentDocument(fileUri: Uri, fileName: String, pageCount: Int) {
-        viewModelScope.launch {
-            recentDocumentsDataStore.updateData { current ->
-                val newDoc = RecentDocument.newBuilder()
-                    .setFileUri(fileUri.toString())
-                    .setFileName(fileName)
-                    .setPageCount(pageCount)
-                    .setCreatedAt(System.currentTimeMillis())
-                    .build()
-                current.toBuilder()
-                    .addDocuments(0, newDoc)
-                    .also { builder ->
-                        while (builder.documentsCount > 3) {
-                            builder.removeDocuments(builder.documentsCount - 1)
-                        }
-                    }
-                    .build()
-            }
         }
     }
 }

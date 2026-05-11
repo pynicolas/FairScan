@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.aboutLibrariesAndroid)
-    alias(libs.plugins.protobuf)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -122,10 +121,8 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
-    implementation(libs.androidx.datastore)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.documentfile)
-    implementation(libs.protobuf.javalite)
     implementation(libs.litert)
     implementation(libs.litert.support)
     implementation(libs.litert.metadata)
@@ -157,21 +154,6 @@ aboutLibraries {
         duplicationMode = com.mikepenz.aboutlibraries.plugin.DuplicateMode.MERGE
         // Configure the duplication rule, to match "duplicates" with
         duplicationRule = com.mikepenz.aboutlibraries.plugin.DuplicateRule.SIMPLE
-    }
-}
-
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:4.32.0"
-    }
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                create("java") {
-                    option("lite")
-                }
-            }
-        }
     }
 }
 
