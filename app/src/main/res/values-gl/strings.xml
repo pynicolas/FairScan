@@ -29,7 +29,7 @@
     <string name="error_context_provider">Provedor: %1$s</string>
     <string name="error_export_dir_permission_lost">O cartafol de exportación seleccionado xa non é accesible. Escolle outro cartafol.</string>
     <string name="error_no_app">Non se atopou ningunha aplicación para abrir este ficheiro</string>
-    <string name="error_no_document">Non se detectou ningún documento</string>
+    <string name="error_occurred">Produciuse un erro</string>
     <string name="error_save">Produciuse un erro ao gardar o ficheiro</string>
     <string name="export">Exportar</string>
     <string name="export_as">Exportar como %1$s</string>

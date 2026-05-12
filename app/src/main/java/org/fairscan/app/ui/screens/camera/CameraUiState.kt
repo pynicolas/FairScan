@@ -38,7 +38,7 @@ data class CameraUiState(
     val liveAnalysisState: LiveAnalysisState,
     val captureState: CaptureState,
     val importState: ImportState,
-    val showDetectionError: Boolean,
+    val showCaptureError: Boolean,
     val isLandscape: Boolean,
     val isDebugMode: Boolean,
     val isTorchEnabled: Boolean,

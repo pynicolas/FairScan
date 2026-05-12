@@ -29,7 +29,7 @@
     <string name="error_context_provider">Sağlayıcı: %1$s</string>
     <string name="error_export_dir_permission_lost">Seçilen dışa aktarma dizini artık erişilebilir değil. Lütfen başka bir dizin seçin.</string>
     <string name="error_no_app">No app found to open this file</string>
-    <string name="error_no_document">No document detected</string>
+    <string name="error_occurred">Bir hata oluştu</string>
     <string name="error_save">Failed to save file</string>
     <string name="export">Dışa aktar</string>
     <string name="export_as">%1$s olarak dışa aktar</string>

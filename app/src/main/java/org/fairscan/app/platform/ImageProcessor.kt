@@ -27,9 +27,13 @@ import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.screens.settings.DefaultColorMode
 import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.Mask
+import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.autoColorMode
+import org.fairscan.imageprocessing.createQuad
 import org.fairscan.imageprocessing.extractDocument
+import org.fairscan.imageprocessing.resizeForMaxPixels
+import org.fairscan.imageprocessing.rotate
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.android.Utils
 import org.opencv.core.Mat
@@ -106,28 +110,43 @@ fun processedImage(
 
 fun extractDocumentFromBitmap(
     source: Bitmap,
-    quadInMask: Quad,
+    quadInMask: Quad?,
     rotationDegrees: Int,
-    mask: Mask,
+    mask: Mask?,
     viewModelScope: CoroutineScope,
     defaultColorMode: DefaultColorMode = DefaultColorMode.AUTO
 ): CapturedPage {
     val exportQuality = ExportQuality.BALANCED
-    val quad = quadInMask.scaledTo(mask.width, mask.height, source.width, source.height)
+    var colorMode = ColorMode.COLOR
+    var autoColorMode = colorMode
+    var normalizedQuad = createQuad(listOf(
+        Point(0.0, 0.0), Point(0.0, 1.0), Point(1.0, 1.0), Point(1.0, 0.0))
+    )
+    var page: Mat
 
     val rgba = Mat()
     Utils.bitmapToMat(source, rgba)
     val bgr = Mat()
     Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR)
     rgba.release()
-    val autoColorMode = autoColorMode(bgr, mask, quad)
-    val colorMode = defaultColorMode.colorMode ?: autoColorMode
-    val page = extractDocument(bgr, quad, rotationDegrees, colorMode, exportQuality.maxPixels)
+
+    if (mask == null || quadInMask == null) {
+        // No document detected
+        val resized = resizeForMaxPixels(bgr, exportQuality.maxPixels.toDouble())
+        page = rotate(resized, rotationDegrees)
+        resized.release()
+    } else {
+        val quad = quadInMask.scaledTo(mask.width, mask.height, source.width, source.height)
+        normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
+        autoColorMode = autoColorMode(bgr, mask, quad)
+        colorMode = defaultColorMode.colorMode ?: autoColorMode
+        page = extractDocument(bgr, quad, rotationDegrees, colorMode, exportQuality.maxPixels)
+    }
+
     val pageJpeg = Jpeg.fromMat(page, exportQuality.jpegQuality)
     bgr.release()
     page.release()
 
-    val normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
     val baseRotation = Rotation.fromDegrees(rotationDegrees)
     val metadata = PageMetadata(normalizedQuad, baseRotation, autoColorMode)
     val sourceJpegDeferred = viewModelScope.async(Dispatchers.IO) {

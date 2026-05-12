@@ -29,7 +29,7 @@
     <string name="error_context_provider">Провайдер: %1$s</string>
     <string name="error_export_dir_permission_lost">Выбранная папка экспорта больше недоступна. Пожалуйста, выберите другую папку.</string>
     <string name="error_no_app">Не найдено приложение для открытия этого файла</string>
-    <string name="error_no_document">Документ не обнаружен</string>
+    <string name="error_occurred">Произошла ошибка</string>
     <string name="error_save">Не удалось сохранить файл</string>
     <string name="export">Экспорт</string>
     <string name="export_as">Экспортировать как %1$s</string>

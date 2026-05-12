@@ -29,7 +29,7 @@
     <string name="error_context_provider">المزود: %1$s</string>
     <string name="error_export_dir_permission_lost">لم يعد من الممكن الوصول إلى مجلد التصدير المحدّد. يُرجى اختيار مجلد آخر.</string>
     <string name="error_no_app">لم يُعثر على تطبيق لفتح هذا الملف</string>
-    <string name="error_no_document">لم يكتشف أي مستند</string>
+    <string name="error_occurred">حدث خطأ</string>
     <string name="error_save">فشل حفظ الملف</string>
     <string name="export">صدِّر</string>
     <string name="export_as">صدِّر ك %1$s</string>

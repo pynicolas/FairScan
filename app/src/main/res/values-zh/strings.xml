@@ -29,7 +29,7 @@
     <string name="error_context_provider">提供方：%1$s</string>
     <string name="error_export_dir_permission_lost">所选的导出目录已无法访问。请选择其他目录。</string>
     <string name="error_no_app">未找到可打开此文件的应用</string>
-    <string name="error_no_document">未检测到任何文档</string>
+    <string name="error_occurred">发生错误</string>
     <string name="error_save">无法保存文件</string>
     <string name="export">导出</string>
     <string name="export_as">导出为 %1$s</string>

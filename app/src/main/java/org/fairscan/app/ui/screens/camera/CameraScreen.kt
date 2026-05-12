@@ -16,7 +16,6 @@ package org.fairscan.app.ui.screens.camera
 
 import android.content.res.Configuration
 import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloat
@@ -526,7 +525,7 @@ private fun CameraPreviewWithOverlay(
                     .background(Color.Black.copy(alpha = 0.6f))
             )
         }
-        if (cameraUiState.showDetectionError) {
+        if (cameraUiState.showCaptureError) {
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -534,7 +533,7 @@ private fun CameraPreviewWithOverlay(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.error_no_document),
+                    text = stringResource(R.string.error_occurred),
                     color = Color.White,
                     fontSize = 16.sp
                 )
