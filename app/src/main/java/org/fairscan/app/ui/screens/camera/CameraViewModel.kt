@@ -154,19 +154,14 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     private suspend fun processCapturedImage(
         source: Bitmap,
         rotationDegrees: Int,
-    ): CapturedPage? = withContext(Dispatchers.IO) {
-        var result: CapturedPage? = null
+    ): CapturedPage = withContext(Dispatchers.IO) {
         val segmentation = imageSegmentationService.runSegmentationAndReturn(source)
-        if (segmentation != null) {
-            val mask = segmentation.segmentation
-            val originalSize = ImageSize(source.width, source.height)
-            val quad = detectDocumentQuad(mask, originalSize, isLiveAnalysis = false)
-            if (quad != null) {
-                val defaultColorMode = settingsRepository.defaultColorMode.first()
-                result = extractDocumentFromBitmap(
-                    source, quad, rotationDegrees, mask, viewModelScope, defaultColorMode)
-            }
-        }
+        val mask = segmentation?.segmentation
+        val originalSize = ImageSize(source.width, source.height)
+        val quad = mask?.let { detectDocumentQuad(mask, originalSize, isLiveAnalysis = false) }
+        val defaultColorMode = settingsRepository.defaultColorMode.first()
+        val result = extractDocumentFromBitmap(
+            source, quad, rotationDegrees, mask, viewModelScope, defaultColorMode)
         return@withContext result
     }
 

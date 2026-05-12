@@ -33,7 +33,7 @@
     <string name="error_file_picker_launch" translatable="false">Failed to launch system file picker on this device</string>
     <string name="error_file_picker_result" translatable="false">Failed to set export directory</string>
     <string name="error_no_app">No app found to open this file</string>
-    <string name="error_no_document">No document detected</string>
+    <string name="error_occurred">An error occurred</string>
     <string name="error_save">Failed to save file</string>
     <string name="export">Export</string>
     <string name="export_as">Export as %1$s</string>
