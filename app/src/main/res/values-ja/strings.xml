@@ -1,0 +1,87 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="about">このアプリについて</string>
+    <string name="add_page">ページを追加</string>
+    <string name="app_tagline">シンプルで安心なドキュメントスキャナーです。</string>
+    <string name="apply">適用</string>
+    <string name="back">戻る</string>
+    <string name="camera_permission_denied">カメラの権限が拒否されました</string>
+    <string name="camera_permission_rationale">ドキュメントをスキャンするためにカメラへのアクセスが必要です。撮影した画像はこのデバイスにのみ保存され、現在のドキュメントを閉じると削除されます。</string>
+    <string name="cancel">キャンセル</string>
+    <string name="change_directory">フォルダを変更</string>
+    <string name="clear_text">テキストを消去</string>
+    <string name="color_mode">フィルター</string>
+    <string name="color_mode_auto">自動</string>
+    <string name="color_mode_color">カラー</string>
+    <string name="color_mode_default">デフォルトフィルター</string>
+    <string name="color_mode_grayscale">グレースケール</string>
+    <string name="contact">連絡先</string>
+    <string name="copied_logs">ログをクリップボードにコピーしました</string>
+    <string name="copy_logs">ログをコピー</string>
+    <string name="creating_export">エクスポートを準備中…</string>
+    <string name="crop">トリミング</string>
+    <string name="delete_page">ページを削除</string>
+    <string name="delete_page_warning">このページを削除しますか？</string>
+    <string name="developer">開発者</string>
+    <string name="discard_scan">スキャンを破棄</string>
+    <string name="download_dirname">ダウンロード</string>
+    <string name="error">エラー: %1$s</string>
+    <string name="error_context_folder">エクスポートフォルダ: %1$s</string>
+    <string name="error_context_provider">プロバイダー: %1$s</string>
+    <string name="error_export_dir_permission_lost">選択したエクスポートフォルダにアクセスできなくなりました。別のフォルダを選択してください。</string>
+    <string name="error_no_app">このファイルを開けるアプリが見つかりません</string>
+    <string name="error_occurred">エラーが発生しました</string>
+    <string name="error_save">ファイルの保存に失敗しました</string>
+    <string name="export">エクスポート</string>
+    <string name="export_as">%1$s としてエクスポート</string>
+    <string name="export_directory">エクスポートフォルダ</string>
+    <string name="export_folder_permission_lost">フォルダへのアクセスが失われました</string>
+    <string name="export_format">エクスポート形式</string>
+    <string name="export_quality">エクスポート品質</string>
+    <string name="export_quality_low">低</string>
+    <string name="export_quality_balanced">バランス</string>
+    <string name="export_quality_high">高</string>
+    <string name="file_size">ファイルサイズ: %1$s</string>
+    <string name="file_size_total">合計サイズ: %1$s</string>
+    <string name="filename">ファイル名</string>
+    <string name="grant_permission">権限を許可</string>
+    <string name="import_photos">インポート</string>
+    <string name="libraries">ライブラリ</string>
+    <string name="libraries_open_source">オープンソースライブラリ</string>
+    <string name="license">ライセンス</string>
+    <string name="licensed_under">このアプリは GNU General Public License v3.0 の下でライセンスされています。</string>
+    <string name="menu">メニュー</string>
+    <string name="new_document_warning">現在のスキャンは失われます。続けますか？</string>
+    <string name="open">開く</string>
+    <string name="open_file">ファイルを開く</string>
+    <string name="reset_to_default">デフォルトに戻す</string>
+    <string name="resume">再開</string>
+    <string name="rotate_left">左に回転</string>
+    <string name="rotate_right">右に回転</string>
+    <string name="save">保存</string>
+    <string name="scan_button">新規スキャン</string>
+    <string name="scan_in_progress">スキャン中</string>
+    <string name="settings">設定</string>
+    <string name="settings_section_scan">スキャン</string>
+    <string name="settings_section_export">エクスポート</string>
+    <string name="share">共有</string>
+    <string name="share_document">ドキュメントを共有</string>
+    <string name="storage_permission_denied">権限が拒否されたため、ファイルを保存できません</string>
+    <string name="support">サポート</string>
+    <string name="support_last_image">最後に撮影した画像の問題を報告</string>
+    <string name="turn_off_torch">ライトをオフ</string>
+    <string name="turn_on_torch">ライトをオン</string>
+    <string name="unknown_size">サイズ不明</string>
+    <string name="version">バージョン</string>
+    <string name="view_full_list">全リストを表示</string>
+    <string name="view_the_full_license">ライセンス全文を表示</string>
+    <string name="yes">はい</string>
+    <plurals name="files_saved_to" tools:ignore="MissingQuantity">
+        <item quantity="other">%3$s に %1$d 件のファイルを保存しました</item>
+    </plurals>
+    <plurals name="importing_photos" tools:ignore="MissingQuantity">
+        <item quantity="other">%d 枚の写真をインポート中</item>
+    </plurals>
+    <plurals name="page_count" tools:ignore="MissingQuantity">
+        <item quantity="other">%d ページ</item>
+    </plurals>
+</resources>
