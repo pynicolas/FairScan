@@ -85,12 +85,14 @@ fun MyScaffold(
                 }
             }
         }
-        BackButton(
-            navigation.back,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-        )
+        if (navigation.shouldDisplayBackButton()) {
+            BackButton(
+                navigation.back,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+            )
+        }
         AppOverflowMenu(
             navigation,
             modifier = Modifier

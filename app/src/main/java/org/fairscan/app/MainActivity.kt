@@ -486,6 +486,10 @@ class MainActivity : ComponentActivity() {
                 setResult(RESULT_CANCELED)
                 finish()
             }
+        },
+        shouldDisplayBackButton = {
+            viewModel.currentScreen.value !is Screen.Main.Camera
+                    || launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF
         }
     )
 }
