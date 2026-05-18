@@ -37,6 +37,7 @@ data class Navigation(
     val toLibrariesScreen: () -> Unit,
     val toSettingsScreen: (() -> Unit)?,
     val back: () -> Unit,
+    val shouldDisplayBackButton: () -> Boolean,
 )
 
 @ConsistentCopyVisibility
