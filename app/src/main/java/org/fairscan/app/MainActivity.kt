@@ -481,10 +481,18 @@ class MainActivity : ComponentActivity() {
         back = {
             val origin = viewModel.currentScreen.value
             viewModel.navigateBack()
+
+            // If there is nothing to navigate back to, exit the app.
             val destination = viewModel.currentScreen.value
-            if (destination == origin && launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
-                setResult(RESULT_CANCELED)
-                finish()
+            if (destination == origin) {
+                if (launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF) {
+                    setResult(RESULT_CANCELED)
+                    finish()
+                } else {
+                    // Delegate to OS back handler instead of finishing
+                    // to benefit from activity caching for the next start.
+                    onBackPressedDispatcher.onBackPressed()
+                }
             }
         }
     )
