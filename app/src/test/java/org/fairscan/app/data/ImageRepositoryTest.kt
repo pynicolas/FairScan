@@ -31,6 +31,7 @@ import org.fairscan.app.domain.Rotation.R0
 import org.fairscan.app.domain.Rotation.R180
 import org.fairscan.app.domain.Rotation.R270
 import org.fairscan.app.domain.Rotation.R90
+import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.ColorMode.COLOR
 import org.fairscan.imageprocessing.ColorMode.GRAYSCALE
@@ -51,7 +52,8 @@ class ImageRepositoryTest {
     private val testScope = TestScope()
 
     val quad1 = Quad(Point(.01, .02), Point(.1, .03), Point(.11, .12), Point(.03, .09))
-    val metadata1 = PageMetadata(quad1, R90, COLOR)
+    val intrinsics = CameraIntrinsics(42.0f, 43.0f)
+    val metadata1 = PageMetadata(quad1, R90, COLOR, intrinsics)
 
     fun getFilesDir(): File {
         if (_filesDir == null) {
@@ -63,7 +65,7 @@ class ImageRepositoryTest {
     fun repo(
         rotate: (Jpeg, Int) -> Jpeg = { input, _ -> input },
         resizeToThumbnail: (Jpeg) -> Jpeg = { input -> jpeg(input.bytes[0]) },
-        process: (Jpeg, Quad, Rotation, ColorMode) -> Jpeg = { _, _, _, _ ->
+        process: (Jpeg, PageMetadata, ColorMode) -> Jpeg = { _, _, _ ->
             throw UnsupportedOperationException()
         }
     ): ImageRepository {
@@ -74,10 +76,9 @@ class ImageRepositoryTest {
                 resizeToThumbnail(input)
             override fun process(
                 source: Jpeg,
-                normalizedQuad: Quad,
-                baseRotation: Rotation,
+                metadata: PageMetadata,
                 colorMode: ColorMode
-            ): Jpeg = process(source, normalizedQuad, baseRotation, colorMode)
+            ): Jpeg = process(source, metadata, colorMode)
         }
 
         return ImageRepository(getFilesDir(), transformations, testScope)
@@ -244,7 +245,7 @@ class ImageRepositoryTest {
     fun setColorMode_should_process_and_update_metadata() = runTest {
         val jpeg1 = jpeg(10)
         val repo = repo(
-            process = { _, _ , _, mode ->
+            process = { _,  _, mode ->
                 assertThat(mode).isEqualTo(GRAYSCALE)
                 jpeg(41)
             }
@@ -262,7 +263,7 @@ class ImageRepositoryTest {
     fun setColorMode_should_not_run_twice_in_parallel() = runTest {
         var processCalls = 0
         val repo = repo(
-            process = { _, _, _, _ ->
+            process = { _, _, _ ->
                 processCalls++
                 runBlocking { delay(10) }
                 jpeg(1)

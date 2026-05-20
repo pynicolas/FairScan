@@ -25,6 +25,7 @@ import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.screens.settings.DefaultColorMode
+import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Point
@@ -79,17 +80,17 @@ class ImageProcessor(private val thumbnailSizePx: Int) : ImageTransformations {
 
     override fun process(
         source: Jpeg,
-        normalizedQuad: Quad,
-        baseRotation: Rotation,
+        metadata: PageMetadata,
         colorMode: ColorMode
     ): Jpeg {
-        return processedImage(source, normalizedQuad, baseRotation, colorMode, ExportQuality.BALANCED)
+        val baseRotation = metadata.baseRotation
+        return processedImage(source, metadata, baseRotation, colorMode, ExportQuality.BALANCED)
     }
 }
 
 fun processedImage(
     source: Jpeg,
-    normalizedQuad: Quad,
+    metadata: PageMetadata,
     rotation: Rotation,
     colorMode: ColorMode,
     exportQuality: ExportQuality,
@@ -99,8 +100,9 @@ fun processedImage(
     var page: Mat? = null
     try {
         sourceMat = source.toMat()
-        val quad = normalizedQuad.scaledTo(1, 1, sourceMat.width(), sourceMat.height())
-        page = extractDocument(sourceMat, quad, rotationDegrees, colorMode, exportQuality.maxPixels)
+        val quad = metadata.normalizedQuad.scaledTo(1, 1, sourceMat.width(), sourceMat.height())
+        page = extractDocument(sourceMat, quad, rotationDegrees, colorMode, exportQuality.maxPixels,
+            metadata.cameraIntrinsics)
         return Jpeg.fromMat(page, exportQuality.jpegQuality)
     } finally {
         sourceMat?.release()
@@ -114,7 +116,8 @@ fun extractDocumentFromBitmap(
     rotationDegrees: Int,
     mask: Mask?,
     viewModelScope: CoroutineScope,
-    defaultColorMode: DefaultColorMode = DefaultColorMode.AUTO
+    defaultColorMode: DefaultColorMode = DefaultColorMode.AUTO,
+    cameraIntrinsics: CameraIntrinsics?,
 ): CapturedPage {
     val exportQuality = ExportQuality.BALANCED
     var colorMode = ColorMode.COLOR
@@ -140,7 +143,8 @@ fun extractDocumentFromBitmap(
         normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
         autoColorMode = autoColorMode(bgr, mask, quad)
         colorMode = defaultColorMode.colorMode ?: autoColorMode
-        page = extractDocument(bgr, quad, rotationDegrees, colorMode, exportQuality.maxPixels)
+        page = extractDocument(bgr, quad, rotationDegrees, colorMode, exportQuality.maxPixels,
+            cameraIntrinsics)
     }
 
     val pageJpeg = Jpeg.fromMat(page, exportQuality.jpegQuality)
@@ -148,7 +152,7 @@ fun extractDocumentFromBitmap(
     page.release()
 
     val baseRotation = Rotation.fromDegrees(rotationDegrees)
-    val metadata = PageMetadata(normalizedQuad, baseRotation, autoColorMode)
+    val metadata = PageMetadata(normalizedQuad, baseRotation, autoColorMode, cameraIntrinsics)
     val sourceJpegDeferred = viewModelScope.async(Dispatchers.IO) {
         compressSource(source)
     }

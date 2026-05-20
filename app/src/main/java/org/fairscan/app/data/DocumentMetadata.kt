@@ -15,6 +15,7 @@
 package org.fairscan.app.data
 
 import kotlinx.serialization.Serializable
+import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ColorMode
 
 @Serializable
@@ -44,6 +45,8 @@ data class PageV2(
     val userQuad: NormalizedQuad? = null,
     val isColored: Boolean? = null,
     val colorMode: ColorMode? = null,
+    val focalLength: Float? = null,
+    val sensorWidth: Float? = null,
 )
 
 @Serializable

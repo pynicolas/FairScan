@@ -32,6 +32,21 @@ data class Vector3D(val x: Double, val y: Double, val z: Double) {
     fun norm() = sqrt(x * x + y * y + z * z)
 }
 
+data class CameraIntrinsics(
+    // in millimeters
+    val focalLength: Float,
+    val sensorWidth: Float,
+) {
+    fun focalLengthInPixels(imageWidthInPixels: Int) =
+        focalLength / sensorWidth * imageWidthInPixels
+}
+
+fun cameraIntrinsics(focalLengthInMm: Float?, sensorWidthInMm: Float?): CameraIntrinsics? {
+    if (focalLengthInMm == null || sensorWidthInMm == null)
+        return null
+    return CameraIntrinsics(focalLengthInMm, sensorWidthInMm)
+}
+
 /**
  * Estimates the true width and height of the document in the output image,
  * correcting for perspective distortion using projective geometry.
@@ -44,7 +59,12 @@ data class Vector3D(val x: Double, val y: Double, val z: Double) {
  * - https://www.robots.ox.ac.uk/~vgg/publications/1999/Criminisi99/criminisi99.pdf
  * - https://web.stanford.edu/class/cs231a/course_notes/02-single-view-metrology.pdf
 */
-fun estimateRealDimensions(quad: Quad, imageWidth: Int, imageHeight: Int): Pair<Double, Double> {
+fun estimateRealDimensions(
+    quad: Quad,
+    imageWidth: Int,
+    imageHeight: Int,
+    cameraIntrinsics: CameraIntrinsics?
+): Pair<Double, Double> {
 
     fun averageSides(): Pair<Double, Double> {
         val w = (norm(quad.topLeft, quad.topRight) + norm(quad.bottomLeft, quad.bottomRight)) / 2
@@ -77,14 +97,18 @@ fun estimateRealDimensions(quad: Quad, imageWidth: Int, imageHeight: Int): Pair<
     val v1 = Point(v1h.x / v1h.z - cx, v1h.y / v1h.z - cy)
     val v2 = Point(v2h.x / v2h.z - cx, v2h.y / v2h.z - cy)
 
-    // Focal length estimated assuming zero skew and principal point at image center.
-    // Under these assumptions, the Image of the Absolute Conic (IAC) simplifies,
-    // and orthogonal directions satisfy v1 · ω · v2 = 0,
-    // which reduces to: f² = -(v1x·v2x + v1y·v2y)
-    val f2 = -(v1.x * v2.x + v1.y * v2.y)
-    if (f2 <= 0)
-        return averageSides()
-    val f = sqrt(f2)
+    val f = if (cameraIntrinsics != null) {
+        cameraIntrinsics.focalLengthInPixels(max(imageWidth, imageHeight)).toDouble()
+    } else {
+        // Focal length estimated assuming zero skew and principal point at image center.
+        // Under these assumptions, the Image of the Absolute Conic (IAC) simplifies,
+        // and orthogonal directions satisfy v1 · ω · v2 = 0,
+        // which reduces to: f² = -(v1x·v2x + v1y·v2y)
+        val f2 = -(v1.x * v2.x + v1.y * v2.y)
+        if (f2 <= 0)
+            return averageSides()
+        sqrt(f2)
+    }
 
     // Fall back when f is too large: document nearly fronto-parallel,
     // vanishing points are far away, making the focal length estimate unstable.

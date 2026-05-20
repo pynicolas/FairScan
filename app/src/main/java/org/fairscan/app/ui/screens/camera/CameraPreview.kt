@@ -19,6 +19,9 @@ import android.util.Log
 import android.util.Size
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
+import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
@@ -65,12 +68,15 @@ import androidx.core.graphics.scale
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.fairscan.app.ui.components.CameraPermissionState
+import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
+import org.fairscan.imageprocessing.cameraIntrinsics
 import org.fairscan.imageprocessing.scaledTo
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.math.max
 
 @Composable
 fun CameraPreview(
@@ -162,6 +168,7 @@ fun CameraPreview(
 
 }
 
+@OptIn(ExperimentalCamera2Interop::class)
 fun bindCameraUseCases(
     lifecycleOwner: LifecycleOwner,
     cameraProvider: ProcessCameraProvider,
@@ -207,6 +214,7 @@ fun bindCameraUseCases(
     val camera = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector,
         imageAnalysis, preview, imageCapture)
     captureController.cameraControl = camera.cameraControl
+    captureController.setCameraCharacteristics(Camera2CameraInfo.from(camera.cameraInfo))
 }
 
 @Composable
@@ -287,21 +295,22 @@ class CameraCaptureController {
     var imageCapture: ImageCapture? = null
     private val executor = Executors.newSingleThreadExecutor()
     var previewView: PreviewView? = null
+    var cameraIntrinsics: CameraIntrinsics? = null
 
     fun shutdown() {
         executor.shutdown()
     }
 
-    fun takePicture(onImageCaptured: (ImageProxy?) -> Unit) {
+    fun takePicture(onImageCaptured: (ImageProxy?, CameraIntrinsics?) -> Unit) {
         imageCapture?.takePicture(
             executor,
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(imageProxy: ImageProxy) {
-                    onImageCaptured(imageProxy)
+                    onImageCaptured(imageProxy, cameraIntrinsics)
                 }
                 override fun onError(exception: ImageCaptureException) {
                     Log.e("CameraCapture", "Image capture failed: ${exception.message}", exception)
-                    onImageCaptured(null)
+                    onImageCaptured(null, cameraIntrinsics)
                 }
             }
         )
@@ -319,6 +328,22 @@ class CameraCaptureController {
             .build()
 
         control.startFocusAndMetering(action)
+    }
+
+    @OptIn(ExperimentalCamera2Interop::class)
+    fun setCameraCharacteristics(cameraInfo: Camera2CameraInfo) {
+        val focalLengths = cameraInfo.getCameraCharacteristic(
+            android.hardware.camera2.CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS
+        )
+        val sensorSize = cameraInfo.getCameraCharacteristic(
+            android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE
+        )
+        cameraIntrinsics =
+            if (focalLengths == null || focalLengths.size != 1 || sensorSize == null) {
+                null
+            } else {
+                cameraIntrinsics(focalLengths[0], max(sensorSize.width, sensorSize.height))
+            }
     }
 }
 

@@ -34,6 +34,7 @@ import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.platform.extractDocumentFromBitmap
+import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.detectDocumentQuad
 import java.util.concurrent.CancellationException
@@ -133,12 +134,13 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         }
     }
 
-    fun onImageCaptured(imageProxy: ImageProxy?) {
+    fun onImageCaptured(imageProxy: ImageProxy?, cameraIntrinsics: CameraIntrinsics?) {
         if (imageProxy != null) {
             viewModelScope.launch {
                 try {
                     val source = imageProxy.toBitmap()
-                    val page = processCapturedImage(source, imageProxy.imageInfo.rotationDegrees)
+                    val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+                    val page = processCapturedImage(source, rotationDegrees, cameraIntrinsics)
                     imageProxy.close()
                     onCaptureProcessed(page)
                 } catch (e: RuntimeException) {
@@ -154,6 +156,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     private suspend fun processCapturedImage(
         source: Bitmap,
         rotationDegrees: Int,
+        cameraIntrinsics: CameraIntrinsics?,
     ): CapturedPage = withContext(Dispatchers.IO) {
         val segmentation = imageSegmentationService.runSegmentationAndReturn(source)
         val mask = segmentation?.segmentation
@@ -161,7 +164,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         val quad = mask?.let { detectDocumentQuad(mask, originalSize, isLiveAnalysis = false) }
         val defaultColorMode = settingsRepository.defaultColorMode.first()
         val result = extractDocumentFromBitmap(
-            source, quad, rotationDegrees, mask, viewModelScope, defaultColorMode)
+            source, quad, rotationDegrees, mask, viewModelScope, defaultColorMode, cameraIntrinsics)
         return@withContext result
     }
 
@@ -202,11 +205,9 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
                 try {
                     val photoToImport = imageLoader.load(uri)
                     ensureActive()
-                    val page = processCapturedImage(photoToImport, 0)
+                    val page = processCapturedImage(photoToImport, 0, null)
                     ensureActive()
-                    page?.let {
-                        _events.emit(CameraEvent.ImageCaptured(it))
-                    }
+                    _events.emit(CameraEvent.ImageCaptured(page))
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {

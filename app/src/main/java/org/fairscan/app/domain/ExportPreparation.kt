@@ -51,8 +51,7 @@ suspend fun jpegsForExport(
                 val colorMode = page.colorMode
                 if (source != null && metadata != null && colorMode != null) {
                     val rotation = page.totalRotation()
-                    val normalizedQuad = metadata.normalizedQuad
-                    processedImage(source, normalizedQuad, rotation, colorMode, exportQuality)
+                    processedImage(source, metadata, rotation, colorMode, exportQuality)
                 }
                 else
                     jpeg(page, imageRepository)
