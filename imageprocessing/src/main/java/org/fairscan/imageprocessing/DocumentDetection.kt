@@ -156,9 +156,14 @@ fun extractDocument(
     rotationDegrees: Int,
     colorMode: ColorMode,
     maxPixels: Long,
+    cameraIntrinsics: CameraIntrinsics? = null,
 ): Mat {
-    val (targetWidth, targetHeight) = estimateRealDimensions(quad, inputMat.cols(), inputMat.rows())
-
+    val (targetWidth, targetHeight) = estimateRealDimensions(
+        quad,
+        inputMat.cols(),
+        inputMat.rows(),
+        cameraIntrinsics
+    )
     val srcPoints = MatOfPoint2f(
         quad.topLeft.toCv(),
         quad.topRight.toCv(),

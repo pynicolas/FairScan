@@ -35,6 +35,7 @@ import org.fairscan.app.domain.ScanPage
 import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
+import org.fairscan.imageprocessing.cameraIntrinsics
 import java.io.File
 import java.util.Collections.synchronizedMap
 
@@ -153,6 +154,8 @@ class ImageRepository(
                     manualRotationDegrees = Rotation.R0.degrees,
                     isColored = metadata.autoColorMode == ColorMode.COLOR,
                     colorMode = colorMode,
+                    focalLength = metadata.cameraIntrinsics?.focalLength,
+                    sensorWidth = metadata.cameraIntrinsics?.sensorWidth,
                 )
             )
             saveMetadata()
@@ -215,8 +218,7 @@ class ImageRepository(
                     val processedJpeg =
                         transformations.process(
                             sourceJpeg,
-                            normalizedQuad = update.normalizedQuad,
-                            baseRotation = metadata.baseRotation,
+                            metadata = metadata.copy(normalizedQuad = update.normalizedQuad),
                             colorMode = update.colorMode
                         )
                     processedFile.writeBytes(processedJpeg.bytes)
@@ -403,6 +405,7 @@ fun PageV2.toMetadata(): PageMetadata? {
     return PageMetadata(
         (userQuad ?: quad).toQuad(),
         Rotation.fromDegrees(baseRotationDegrees),
-        if (isColored) ColorMode.COLOR else ColorMode.GRAYSCALE
+        if (isColored) ColorMode.COLOR else ColorMode.GRAYSCALE,
+        cameraIntrinsics(focalLength, sensorWidth)
     )
 }
