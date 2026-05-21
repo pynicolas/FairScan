@@ -22,9 +22,7 @@
     <string name="delete_page">احذف الصفحة</string>
     <string name="delete_page_warning">هل تريد حذف هذه الصفحة؟</string>
     <string name="developer">مطوّر</string>
-    <string name="discard_scan">أهمِل المسح</string>
     <string name="download_dirname">التنزيلات</string>
-    <string name="error">خطأ: %1$s</string>
     <string name="error_context_folder">مجلد التصدير: %1$s</string>
     <string name="error_context_provider">المزود: %1$s</string>
     <string name="error_export_dir_permission_lost">لم يعد من الممكن الوصول إلى مجلد التصدير المحدّد. يُرجى اختيار مجلد آخر.</string>
@@ -54,12 +52,10 @@
     <string name="open">افتح</string>
     <string name="open_file">افتح الملف</string>
     <string name="reset_to_default">صفّر للإعدادات المبدئية</string>
-    <string name="resume">استكمل</string>
     <string name="rotate_left">تدوير إلى اليسار</string>
     <string name="rotate_right">تدوير إلى اليمين</string>
     <string name="save">احفظ</string>
     <string name="scan_button">مسح جديد</string>
-    <string name="scan_in_progress">المسح قيد التقدم</string>
     <string name="settings">الإعدادات</string>
     <string name="settings_section_scan">المسح</string>
     <string name="settings_section_export">التصدير</string>

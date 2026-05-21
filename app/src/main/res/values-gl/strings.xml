@@ -22,9 +22,7 @@
     <string name="delete_page">Eliminar páxina</string>
     <string name="delete_page_warning">Queres eliminar esta páxina?</string>
     <string name="developer">Desenvolvedor</string>
-    <string name="discard_scan">Descartar escaneo</string>
     <string name="download_dirname">Descargas</string>
-    <string name="error">Erro: %1$s</string>
     <string name="error_context_folder">Cartafol de exportación: %1$s</string>
     <string name="error_context_provider">Provedor: %1$s</string>
     <string name="error_export_dir_permission_lost">O cartafol de exportación seleccionado xa non é accesible. Escolle outro cartafol.</string>
@@ -54,12 +52,10 @@
     <string name="open">Abrir</string>
     <string name="open_file">Abrir ficheiro</string>
     <string name="reset_to_default">Restablecer valores predeterminados</string>
-    <string name="resume">Continuar</string>
     <string name="rotate_left">Xirar á esquerda</string>
     <string name="rotate_right">Xirar á dereita</string>
     <string name="save">Gardar</string>
     <string name="scan_button">Novo escaneo</string>
-    <string name="scan_in_progress">Escaneo en curso</string>
     <string name="settings">Configuración</string>
     <string name="settings_section_scan">Escaneo</string>
     <string name="settings_section_export">Exportación</string>

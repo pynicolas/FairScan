@@ -22,9 +22,7 @@
     <string name="delete_page">ページを削除</string>
     <string name="delete_page_warning">このページを削除しますか？</string>
     <string name="developer">開発者</string>
-    <string name="discard_scan">スキャンを破棄</string>
     <string name="download_dirname">ダウンロード</string>
-    <string name="error">エラー: %1$s</string>
     <string name="error_context_folder">エクスポートフォルダ: %1$s</string>
     <string name="error_context_provider">プロバイダー: %1$s</string>
     <string name="error_export_dir_permission_lost">選択したエクスポートフォルダにアクセスできなくなりました。別のフォルダを選択してください。</string>
@@ -54,12 +52,10 @@
     <string name="open">開く</string>
     <string name="open_file">ファイルを開く</string>
     <string name="reset_to_default">デフォルトに戻す</string>
-    <string name="resume">再開</string>
     <string name="rotate_left">左に回転</string>
     <string name="rotate_right">右に回転</string>
     <string name="save">保存</string>
     <string name="scan_button">新規スキャン</string>
-    <string name="scan_in_progress">スキャン中</string>
     <string name="settings">設定</string>
     <string name="settings_section_scan">スキャン</string>
     <string name="settings_section_export">エクスポート</string>

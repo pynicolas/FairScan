@@ -22,9 +22,7 @@
     <string name="delete_page">Sayfayı sil</string>
     <string name="delete_page_warning">Bu sayfayı silmek istiyor musunuz?</string>
     <string name="developer">Geliştirici</string>
-    <string name="discard_scan">Taramayı at</string>
     <string name="download_dirname">İndirilenler</string>
-    <string name="error">Error: %1$s</string>
     <string name="error_context_folder">Dışa aktarma klasörü: %1$s</string>
     <string name="error_context_provider">Sağlayıcı: %1$s</string>
     <string name="error_export_dir_permission_lost">Seçilen dışa aktarma dizini artık erişilebilir değil. Lütfen başka bir dizin seçin.</string>
@@ -54,12 +52,10 @@
     <string name="open">Aç</string>
     <string name="open_file">Dosyayı aç</string>
     <string name="reset_to_default">Varsayılana sıfırla</string>
-    <string name="resume">Devam et</string>
     <string name="rotate_left">Sola döndür</string>
     <string name="rotate_right">Sağa döndür</string>
     <string name="save">Kaydet</string>
     <string name="scan_button">Yeni Tarama</string>
-    <string name="scan_in_progress">Tarama devam ediyor</string>
     <string name="settings">Ayarlar</string>
     <string name="settings_section_scan">Tarama</string>
     <string name="settings_section_export">Dışa aktarma</string>

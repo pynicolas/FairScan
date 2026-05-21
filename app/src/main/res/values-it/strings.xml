@@ -22,9 +22,7 @@
     <string name="delete_page">Elimina pagina</string>
     <string name="delete_page_warning">Vuoi eliminare questa pagina?</string>
     <string name="developer">Sviluppatore</string>
-    <string name="discard_scan">Scarta scansione</string>
     <string name="download_dirname">Download</string>
-    <string name="error">Errore: %1$s</string>
     <string name="error_context_folder">Cartella di esportazione: %1$s</string>
     <string name="error_context_provider">Provider: %1$s</string>
     <string name="error_export_dir_permission_lost">La cartella di esportazione selezionata non è più accessibile. Scegli un’altra cartella.</string>
@@ -54,12 +52,10 @@
     <string name="open">Apri</string>
     <string name="open_file">Apri file</string>
     <string name="reset_to_default">Ripristina impostazioni predefinite</string>
-    <string name="resume">Riprendi</string>
     <string name="rotate_left">Ruota a sinistra</string>
     <string name="rotate_right">Ruota a destra</string>
     <string name="save">Salva</string>
     <string name="scan_button">Nuova scansione</string>
-    <string name="scan_in_progress">Scansione in corso</string>
     <string name="settings">Impostazioni</string>
     <string name="settings_section_scan">Scansione</string>
     <string name="settings_section_export">Esportazione</string>

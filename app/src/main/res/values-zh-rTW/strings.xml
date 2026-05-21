@@ -22,9 +22,7 @@
     <string name="delete_page">刪除頁面</string>
     <string name="delete_page_warning">確定要刪除此頁面嗎？</string>
     <string name="developer">開發者</string>
-    <string name="discard_scan">捨棄掃描</string>
     <string name="download_dirname">下載 (Downloads)</string>
-    <string name="error">錯誤：%1$s</string>
     <string name="error_context_folder">匯出資料夾：%1$s</string>
     <string name="error_context_provider">提供者：%1$s</string>
     <string name="error_export_dir_permission_lost">所選的匯出目錄已無法存取。請選擇其他目錄。</string>
@@ -54,12 +52,10 @@
     <string name="open">開啟</string>
     <string name="open_file">開啟檔案</string>
     <string name="reset_to_default">重設為預設值</string>
-    <string name="resume">繼續</string>
     <string name="rotate_left">向左旋轉</string>
     <string name="rotate_right">向右旋轉</string>
     <string name="save">儲存</string>
     <string name="scan_button">開始掃描</string>
-    <string name="scan_in_progress">掃描進行中</string>
     <string name="settings">設定</string>
     <string name="settings_section_scan">掃描</string>
     <string name="settings_section_export">匯出</string>

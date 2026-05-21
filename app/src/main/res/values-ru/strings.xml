@@ -22,9 +22,7 @@
     <string name="delete_page">Удалить страницу</string>
     <string name="delete_page_warning">Вы желаете удалить эту страницу?</string>
     <string name="developer">Разработчик</string>
-    <string name="discard_scan">Отказаться</string>
     <string name="download_dirname">Download</string>
-    <string name="error">Ошибка: %1$s</string>
     <string name="error_context_folder">Папка экспорта: %1$s</string>
     <string name="error_context_provider">Провайдер: %1$s</string>
     <string name="error_export_dir_permission_lost">Выбранная папка экспорта больше недоступна. Пожалуйста, выберите другую папку.</string>
@@ -54,12 +52,10 @@
     <string name="open">Открыть</string>
     <string name="open_file">Открыть файл</string>
     <string name="reset_to_default">Сбросить по умолчанию</string>
-    <string name="resume">Продолжить</string>
     <string name="rotate_left">Повернуть влево</string>
     <string name="rotate_right">Повернуть вправо</string>
     <string name="save">Сохранить</string>
     <string name="scan_button">Начать</string>
-    <string name="scan_in_progress">Сканирование выполняется</string>
     <string name="settings">Настройки</string>
     <string name="settings_section_scan">Сканирование</string>
     <string name="settings_section_export">Экспорт</string>

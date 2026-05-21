@@ -22,9 +22,7 @@
     <string name="delete_page">Seite löschen</string>
     <string name="delete_page_warning">Möchten Sie diese Seite löschen?</string>
     <string name="developer">Entwickler</string>
-    <string name="discard_scan">Löschen</string>
     <string name="download_dirname">Downloads</string>
-    <string name="error">Fehler: %1$s</string>
     <string name="error_context_folder">Exportordner: %1$s</string>
     <string name="error_context_provider">Anbieter: %1$s</string>
     <string name="error_export_dir_permission_lost">Der ausgewählte Exportordner ist nicht mehr zugänglich. Bitte wählen Sie einen anderen Ordner.</string>
@@ -54,12 +52,10 @@
     <string name="open">Öffnen</string>
     <string name="open_file">Datei öffnen</string>
     <string name="reset_to_default">Auf Standard zurücksetzen</string>
-    <string name="resume">Fortsetzen</string>
     <string name="rotate_left">Nach links drehen</string>
     <string name="rotate_right">Nach rechts drehen</string>
     <string name="save">Speichern</string>
     <string name="scan_button">Neuer Scan</string>
-    <string name="scan_in_progress">Scan läuft</string>
     <string name="settings">Einstellungen</string>
     <string name="settings_section_scan">Scan</string>
     <string name="settings_section_export">Export</string>

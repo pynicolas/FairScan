@@ -22,9 +22,7 @@
     <string name="delete_page">Smazat stránku</string>
     <string name="delete_page_warning">Chcete smazat tuto stránku?</string>
     <string name="developer">Vývojář</string>
-    <string name="discard_scan">Zrušit skenování</string>
     <string name="download_dirname">stažených</string>
-    <string name="error">Chyba: %1$s</string>
     <string name="error_context_folder">Složka exportu: %1$s</string>
     <string name="error_context_provider">Poskytovatel: %1$s</string>
     <string name="error_export_dir_permission_lost">Vybraná složka pro export již není dostupná. Vyberte prosím jinou složku.</string>
@@ -54,12 +52,10 @@
     <string name="open">Otevřít</string>
     <string name="open_file">Otevřít soubor</string>
     <string name="reset_to_default">Obnovit výchozí</string>
-    <string name="resume">Obnovit</string>
     <string name="rotate_left">Otočit doleva</string>
     <string name="rotate_right">Otočit doprava</string>
     <string name="save">Uložit</string>
     <string name="scan_button">Nové skenování</string>
-    <string name="scan_in_progress">Probíhá skenování</string>
     <string name="settings">Nastavení</string>
     <string name="settings_section_scan">Skenování</string>
     <string name="settings_section_export">Export</string>

@@ -22,9 +22,7 @@
     <string name="delete_page">Excluir página</string>
     <string name="delete_page_warning">Deseja excluir esta página?</string>
     <string name="developer">Desenvolvedor</string>
-    <string name="discard_scan">Descartar digitalização</string>
     <string name="download_dirname">Downloads</string>
-    <string name="error">Erro: %1$s</string>
     <string name="error_context_folder">Pasta de exportação: %1$s</string>
     <string name="error_context_provider">Provedor: %1$s</string>
     <string name="error_export_dir_permission_lost">A pasta de exportação selecionada não está mais acessível. Escolha outra pasta.</string>
@@ -54,12 +52,10 @@
     <string name="open">Abrir</string>
     <string name="open_file">Abrir arquivo</string>
     <string name="reset_to_default">Restaurar padrão</string>
-    <string name="resume">Retomar</string>
     <string name="rotate_left">Girar para a esquerda</string>
     <string name="rotate_right">Girar para a direita</string>
     <string name="save">Salvar</string>
     <string name="scan_button">Nova digitalização</string>
-    <string name="scan_in_progress">Digitalização em andamento</string>
     <string name="settings">Configurações</string>
     <string name="settings_section_scan">Digitalização</string>
     <string name="settings_section_export">Exportação</string>
