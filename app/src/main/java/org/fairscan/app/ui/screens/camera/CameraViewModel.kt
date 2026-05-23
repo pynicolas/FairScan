@@ -36,6 +36,7 @@ import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.platform.extractDocumentFromBitmap
 import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ImageSize
+import org.fairscan.imageprocessing.OpticalMeasures
 import org.fairscan.imageprocessing.detectDocumentQuad
 import java.util.concurrent.CancellationException
 
@@ -134,13 +135,13 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         }
     }
 
-    fun onImageCaptured(imageProxy: ImageProxy?, cameraIntrinsics: CameraIntrinsics?) {
+    fun onImageCaptured(imageProxy: ImageProxy?, opticalMeasures: OpticalMeasures?) {
         if (imageProxy != null) {
             viewModelScope.launch {
                 try {
                     val source = imageProxy.toBitmap()
                     val rotationDegrees = imageProxy.imageInfo.rotationDegrees
-                    val page = processCapturedImage(source, rotationDegrees, cameraIntrinsics)
+                    val page = processCapturedImage(source, rotationDegrees, opticalMeasures)
                     imageProxy.close()
                     onCaptureProcessed(page)
                 } catch (e: RuntimeException) {
@@ -156,7 +157,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     private suspend fun processCapturedImage(
         source: Bitmap,
         rotationDegrees: Int,
-        cameraIntrinsics: CameraIntrinsics?,
+        opticalMeasures: OpticalMeasures?,
     ): CapturedPage = withContext(Dispatchers.IO) {
         val segmentation = imageSegmentationService.runSegmentationAndReturn(source)
         val mask = segmentation?.segmentation
@@ -164,7 +165,7 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
         val quad = mask?.let { detectDocumentQuad(mask, originalSize, isLiveAnalysis = false) }
         val defaultColorMode = settingsRepository.defaultColorMode.first()
         val result = extractDocumentFromBitmap(
-            source, quad, rotationDegrees, mask, viewModelScope, defaultColorMode, cameraIntrinsics)
+            source, quad, rotationDegrees, mask, viewModelScope, defaultColorMode, opticalMeasures)
         return@withContext result
     }
 

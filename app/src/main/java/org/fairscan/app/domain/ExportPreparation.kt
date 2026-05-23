@@ -16,26 +16,55 @@ package org.fairscan.app.domain
 
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.platform.processedImage
+import org.fairscan.imageprocessing.EstimatedDimensions
+import org.fairscan.imageprocessing.estimateRealDimensions
 import org.fairscan.imageprocessing.resizeForMaxPixels
+import org.fairscan.imageprocessing.scaledTo
 import org.opencv.core.Mat
 
 fun interface JpegProvider {
     suspend fun get(): Jpeg
 }
 
-suspend fun jpegsForExport(
+data class PageToExport(
+    val metadata: PageMetadata?,
+    val jpeg: JpegProvider,
+) {
+    fun estimatedDimensions(): EstimatedDimensions? {
+        if (metadata == null)
+            return null
+        val size = metadata.sourceSize
+        if (size == null)
+            return null
+        val quad = metadata.normalizedQuad.scaledTo(1.0, 1.0, size.width, size.height)
+        val realDimensions = estimateRealDimensions(
+            quad, size.width.toInt(), size.height.toInt(), metadata.opticalMeasures
+        )
+        return realDimensions.applyRotation(metadata.baseRotation)
+    }
+}
+
+private fun EstimatedDimensions.applyRotation(rotation: Rotation): EstimatedDimensions {
+    if ((rotation == Rotation.R90 || rotation == Rotation.R270)
+        && this is EstimatedDimensions.Physical) {
+        return EstimatedDimensions.Physical(heightMm, widthMm)
+    }
+    return this
+}
+
+suspend fun pagesToExport(
     imageRepository: ImageRepository,
     exportQuality: ExportQuality
-): List<JpegProvider> {
+): List<PageToExport> {
 
     val pages = imageRepository.pages()
     return when (exportQuality) {
         ExportQuality.BALANCED -> pages.map {
-            JpegProvider { jpeg(it, imageRepository) }
+            PageToExport(it.metadata) { jpeg(it, imageRepository) }
         }
 
         ExportQuality.LOW -> pages.map { page ->
-            JpegProvider {
+            PageToExport(page.metadata) {
                 resizeJpegBytesForMaxPixels(
                     jpeg = jpeg(page, imageRepository),
                     maxPixels = exportQuality.maxPixels.toDouble(),
@@ -45,7 +74,7 @@ suspend fun jpegsForExport(
         }
 
         ExportQuality.HIGH -> pages.map { page ->
-            JpegProvider {
+            PageToExport(page.metadata) {
                 val source = imageRepository.source(page.id)
                 val metadata = page.metadata
                 val colorMode = page.colorMode

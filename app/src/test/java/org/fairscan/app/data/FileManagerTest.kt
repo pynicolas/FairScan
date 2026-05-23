@@ -17,7 +17,7 @@ package org.fairscan.app.data
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.fairscan.app.domain.Jpeg
-import org.fairscan.app.domain.JpegProvider
+import org.fairscan.app.domain.PageToExport
 import org.junit.Test
 import java.io.File
 import java.io.OutputStream
@@ -73,15 +73,16 @@ class FileManagerTest {
     @Test
     fun generatePdf() = runTest {
         val fakePdfWriter = object : PdfWriter {
-            override suspend fun writePdfFromJpegs(jpegs: List<JpegProvider>, outputStream: OutputStream): Int {
-                val list = jpegs.toList()
-                list.forEach { bytes -> outputStream.write(bytes.get().bytes) }
+            override suspend fun writePdfFromJpegs(pages: List<PageToExport>, outputStream: OutputStream): Int {
+                val list = pages.toList()
+                list.forEach { page -> outputStream.write(page.jpeg.get().bytes) }
                 return list.size
             }
         }
         val manager = FileManager(pdfDir, externalDir, fakePdfWriter)
-        val jpegs = listOf(byteArrayOf(0x01, 0x02), byteArrayOf(0x11)).map { JpegProvider { Jpeg(it) } }
-        val pdf = manager.generatePdf(jpegs)
+        val pages = listOf(byteArrayOf(0x01, 0x02), byteArrayOf(0x11))
+            .map { PageToExport(null) { Jpeg(it) } }
+        val pdf = manager.generatePdf(pages)
         assertThat(pdf.pageCount).isEqualTo(2)
         assertThat(pdf.sizeInBytes).isEqualTo(3)
         assertThat(pdf.file.readBytes()).isEqualTo(byteArrayOf(0x01, 0x02, 0x11))

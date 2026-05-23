@@ -229,8 +229,8 @@ fun CameraScreen(
                 Log.i("FairScan", "Pressed <Capture>")
                 cameraViewModel.onCapturePressed(it)
                 captureController.takePicture(
-                    onImageCaptured = { imageProxy, cameraCharacteristics ->
-                        cameraViewModel.onImageCaptured(imageProxy, cameraCharacteristics) }
+                    onImageCaptured = { imageProxy, opticalMeasures ->
+                        cameraViewModel.onImageCaptured(imageProxy, opticalMeasures) }
                 )
             }
         },
@@ -648,7 +648,7 @@ fun CameraScreenPreviewWithProcessedImage() {
         CapturedPage(
             debugImage("gallica.bnf.fr-bpt6k5530456s-1.jpg"),
             CompletableDeferred(Jpeg(ByteArray(0))),
-            PageMetadata(quad, R0, ColorMode.COLOR, null),
+            PageMetadata(quad, R0, ColorMode.COLOR, null, null),
             ColorMode.COLOR)))
 }
 

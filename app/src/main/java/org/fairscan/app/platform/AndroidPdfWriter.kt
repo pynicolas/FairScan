@@ -22,33 +22,38 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
 import org.fairscan.app.BuildConfig
 import org.fairscan.app.data.PdfWriter
-import org.fairscan.app.domain.JpegProvider
+import org.fairscan.app.domain.PageToExport
+import org.fairscan.imageprocessing.EstimatedDimensions
 import java.io.OutputStream
 import java.util.Calendar
 
 class AndroidPdfWriter : PdfWriter {
-    override suspend fun writePdfFromJpegs(jpegs: List<JpegProvider>, outputStream: OutputStream): Int {
+    override suspend fun writePdfFromJpegs(pages: List<PageToExport>, outputStream: OutputStream): Int {
         val doc = PDDocument()
         doc.documentInformation.creationDate = Calendar.getInstance()
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
-            for (jpegBytes in jpegs) {
-                val image = JPEGFactory.createFromByteArray(document, jpegBytes.get().bytes)
+            for (page in pages) {
+                val image = JPEGFactory.createFromByteArray(document, page.jpeg.get().bytes)
 
-                // Let's say that the physical dimensions of the page are close to US Letter
-                // US Letter: 215.9×279.4 mm (A4: 210×297 mm)
-                val maxDimInMm = 279.4f
                 // PDF has 72 points (units) per inch, 1 inch = 25.4 mm
                 val pointsPerMm = 72f / 25.4f
 
                 val widthPx = image.width.toFloat()
                 val heightPx = image.height.toFloat()
 
-                val maxPx = maxOf(widthPx, heightPx)
-                val scalePxToMm = maxDimInMm / maxPx
-
-                val widthPoints = widthPx * scalePxToMm * pointsPerMm
-                val heightPoints = heightPx * scalePxToMm * pointsPerMm
+                val dimensions = page.estimatedDimensions()
+                val (widthPoints, heightPoints) = when (dimensions) {
+                    is EstimatedDimensions.Physical -> {
+                        dimensions.widthMm.toFloat() * pointsPerMm to dimensions.heightMm.toFloat() * pointsPerMm
+                    }
+                    else -> {
+                        // No physical dimensions available: approximate using US Letter max dimension
+                        val maxDimInMm = 279.4f
+                        val scalePxToMm = maxDimInMm / maxOf(widthPx, heightPx)
+                        widthPx * scalePxToMm * pointsPerMm to heightPx * scalePxToMm * pointsPerMm
+                    }
+                }
 
                 val page = PDPage(PDRectangle(widthPoints, heightPoints))
                 document.addPage(page)

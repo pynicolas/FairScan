@@ -14,7 +14,7 @@
  */
 package org.fairscan.app.data
 
-import org.fairscan.app.domain.JpegProvider
+import org.fairscan.app.domain.PageToExport
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -26,7 +26,7 @@ data class GeneratedPdf(
 )
 
 fun interface PdfWriter {
-    suspend fun writePdfFromJpegs(jpegs: List<JpegProvider>, outputStream: OutputStream): Int
+    suspend fun writePdfFromJpegs(pages: List<PageToExport>, outputStream: OutputStream): Int
 }
 
 class FileManager(
@@ -43,12 +43,12 @@ class FileManager(
         }
     }
 
-    suspend fun generatePdf(jpegs: List<JpegProvider>): GeneratedPdf {
+    suspend fun generatePdf(pages: List<PageToExport>): GeneratedPdf {
         pdfDir.mkdirs()
         require(pdfDir.exists() && pdfDir.isDirectory) { "Invalid pdfDir: $pdfDir" }
         val file = File(pdfDir, "${System.currentTimeMillis()}.pdf")
         val pageCount = FileOutputStream(file).use {
-            pdfWriter.writePdfFromJpegs(jpegs, it)
+            pdfWriter.writePdfFromJpegs(pages, it)
         }
         val sizeBytes = file.length()
         return GeneratedPdf(file, sizeBytes, pageCount)

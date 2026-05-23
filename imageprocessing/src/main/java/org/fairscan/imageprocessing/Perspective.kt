@@ -47,6 +47,24 @@ fun cameraIntrinsics(focalLengthInMm: Float?, sensorWidthInMm: Float?): CameraIn
     return CameraIntrinsics(focalLengthInMm, sensorWidthInMm)
 }
 
+data class OpticalMeasures(
+    val cameraIntrinsics: CameraIntrinsics,
+    // in millimeters
+    val subjectDistance: Float?,
+)
+
+sealed class EstimatedDimensions {
+    // Dimensions in mm, when subject distance is available
+    data class Physical(val widthMm: Double, val heightMm: Double) : EstimatedDimensions()
+    // Dimensions in arbitrary units, only ratio is meaningful
+    data class Ratio(val width: Double, val height: Double) : EstimatedDimensions()
+
+    val aspectRatio: Double get() = when (this) {
+        is Physical -> heightMm / widthMm
+        is Ratio -> height / width
+    }
+}
+
 /**
  * Estimates the true width and height of the document in the output image,
  * correcting for perspective distortion using projective geometry.
@@ -63,13 +81,13 @@ fun estimateRealDimensions(
     quad: Quad,
     imageWidth: Int,
     imageHeight: Int,
-    cameraIntrinsics: CameraIntrinsics?
-): Pair<Double, Double> {
+    opticalMeasures: OpticalMeasures?,
+): EstimatedDimensions {
 
-    fun averageSides(): Pair<Double, Double> {
+    fun averageSides(): EstimatedDimensions.Ratio {
         val w = (norm(quad.topLeft, quad.topRight) + norm(quad.bottomLeft, quad.bottomRight)) / 2
         val h = (norm(quad.topLeft, quad.bottomLeft) + norm(quad.topRight, quad.bottomRight)) / 2
-        return Pair(w, h)
+        return EstimatedDimensions.Ratio(w, h)
     }
 
     // Homogeneous 2D point
@@ -97,8 +115,9 @@ fun estimateRealDimensions(
     val v1 = Point(v1h.x / v1h.z - cx, v1h.y / v1h.z - cy)
     val v2 = Point(v2h.x / v2h.z - cx, v2h.y / v2h.z - cy)
 
-    val f = if (cameraIntrinsics != null) {
-        cameraIntrinsics.focalLengthInPixels(max(imageWidth, imageHeight)).toDouble()
+    val f = if (opticalMeasures != null) {
+        opticalMeasures.cameraIntrinsics
+            .focalLengthInPixels(max(imageWidth, imageHeight)).toDouble()
     } else {
         // Focal length estimated assuming zero skew and principal point at image center.
         // Under these assumptions, the Image of the Absolute Conic (IAC) simplifies,
@@ -131,26 +150,37 @@ fun estimateRealDimensions(
     // Camera ray through a corner: K⁻¹ · (u, v, 1)
     fun ray(p: Point) = Vector3D((p.x - cx) / f, (p.y - cy) / f, 1.0)
 
-    // Intersect ray with document plane: X = t·r where t = 1 / (n·r)
-    // We assume an arbitrary plane distance (d = 1). Absolute scale is wrong,
-    // but cancels out when computing length ratios.
+    // Scale factor: either from subject distance, or arbitrary (ratio only)
+    val subjectDistance = opticalMeasures?.subjectDistance?.toDouble()
+    val scale: Double? = if (subjectDistance != null) {
+        // Project subject distance onto the plane normal to get perpendicular distance
+        val centerX = (quad.topLeft.x + quad.topRight.x + quad.bottomLeft.x + quad.bottomRight.x) / 4.0
+        val centerY = (quad.topLeft.y + quad.topRight.y + quad.bottomLeft.y + quad.bottomRight.y) / 4.0
+        val centerRay = ray(Point(centerX, centerY)).let { it * (1.0 / it.norm()) }
+        val cosAngle = centerRay.dotProduct(n).absoluteValue
+        if (cosAngle < 0.1) null  // document too tilted, unreliable
+        else subjectDistance * cosAngle
+    } else null
+
+    // Intersect ray with document plane: X = t·r where t = d / (n·r)
+    // When subjectDistance is unavailable, we assume an arbitrary plane distance (d = 1): absolute
+    // scale is wrong, but cancels out when computing length ratios.
     fun corner3D(p: Point): Vector3D {
         val r = ray(p)
-        return r * (1.0 / n.dotProduct(r))
+        val t = if (scale != null) scale / n.dotProduct(r) else 1.0 / n.dotProduct(r)
+        return r * t
     }
 
     val xTL = corner3D(quad.topLeft);  val xTR = corner3D(quad.topRight)
     val xBR = corner3D(quad.bottomRight); val xBL = corner3D(quad.bottomLeft)
 
-    // Side lengths in reconstructed 3D space (up to an unknown global scale)
+    // Side lengths in reconstructed 3D space
     val realW = ((xTR - xTL).norm() + (xBR - xBL).norm()) / 2
     val realH = ((xBL - xTL).norm() + (xBR - xTR).norm()) / 2
 
-    // Output dimensions: preserve projected area, apply corrected aspect ratio
-    val ratio = realH / realW
-    val (projW, projH) = averageSides()
-    val targetWidth = sqrt(projW * projH / ratio)
-    val targetHeight = targetWidth * ratio
-
-    return Pair(targetWidth, targetHeight)
+    return if (opticalMeasures != null && scale != null) {
+        EstimatedDimensions.Physical(realW, realH)
+    } else {
+        EstimatedDimensions.Ratio(realW, realH)
+    }
 }
