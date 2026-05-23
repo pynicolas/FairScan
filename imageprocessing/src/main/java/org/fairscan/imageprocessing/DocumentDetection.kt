@@ -25,6 +25,7 @@ import org.opencv.core.MatOfPoint2f
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 interface Mask {
     val width: Int
@@ -156,14 +157,15 @@ fun extractDocument(
     rotationDegrees: Int,
     colorMode: ColorMode,
     maxPixels: Long,
-    cameraIntrinsics: CameraIntrinsics? = null,
+    opticalMeasures: OpticalMeasures? = null,
 ): Mat {
-    val (targetWidth, targetHeight) = estimateRealDimensions(
+    val estimatedDimensions = estimateRealDimensions(
         quad,
         inputMat.cols(),
         inputMat.rows(),
-        cameraIntrinsics
+        opticalMeasures,
     )
+    val (targetWidth, targetHeight) = estimatedDimensions.toPixelDimensions(quad)
     val srcPoints = MatOfPoint2f(
         quad.topLeft.toCv(),
         quad.topRight.toCv(),
@@ -191,6 +193,17 @@ fun extractDocument(
     enhanced.release()
 
     return rotated
+}
+
+fun EstimatedDimensions.toPixelDimensions(quad: Quad): Pair<Double, Double> {
+    val w = (norm(quad.topLeft, quad.topRight) + norm(quad.bottomLeft, quad.bottomRight)) / 2
+    val h = (norm(quad.topLeft, quad.bottomLeft) + norm(quad.topRight, quad.bottomRight)) / 2
+    val projectedArea = w * h
+
+    val ratio = aspectRatio
+    val targetWidth = sqrt(projectedArea / ratio)
+    val targetHeight = targetWidth * ratio
+    return Pair(targetWidth, targetHeight)
 }
 
 fun rotate(input: Mat, degrees: Int): Mat {

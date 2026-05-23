@@ -15,12 +15,18 @@
 package org.fairscan.app.ui.screens.camera
 
 import android.graphics.Bitmap
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraMetadata
+import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.CaptureResult
+import android.hardware.camera2.TotalCaptureResult
 import android.util.Log
 import android.util.Size
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.LinearLayout
 import androidx.annotation.OptIn
 import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
@@ -69,6 +75,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.fairscan.app.ui.components.CameraPermissionState
 import org.fairscan.imageprocessing.CameraIntrinsics
+import org.fairscan.imageprocessing.OpticalMeasures
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.cameraIntrinsics
@@ -193,7 +200,7 @@ fun bindCameraUseCases(
         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888).build()
     imageAnalysis.setAnalyzer(executor, onImageAnalyzed)
 
-    val imageCapture = ImageCapture.Builder()
+    val imageCaptureBuilder = ImageCapture.Builder()
         .setResolutionSelector(
             ResolutionSelector.Builder()
                 .setResolutionStrategy(
@@ -208,7 +215,21 @@ fun bindCameraUseCases(
                 .build()
         )
         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-        .build()
+
+    Camera2Interop.Extender(imageCaptureBuilder)
+        .setSessionCaptureCallback(object : CameraCaptureSession.CaptureCallback() {
+            override fun onCaptureCompleted(
+                session: CameraCaptureSession,
+                request: CaptureRequest,
+                result: TotalCaptureResult
+            ) {
+                result.get(CaptureResult.LENS_FOCUS_DISTANCE)?.let {
+                    captureController.lastFocusDistanceDiopters = it
+                }
+            }
+        })
+
+    val imageCapture = imageCaptureBuilder.build()
     captureController.imageCapture = imageCapture
 
     val camera = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector,
@@ -296,21 +317,34 @@ class CameraCaptureController {
     private val executor = Executors.newSingleThreadExecutor()
     var previewView: PreviewView? = null
     var cameraIntrinsics: CameraIntrinsics? = null
+    var canUseFocusDistance = false
+
+    @Volatile
+    var lastFocusDistanceDiopters: Float? = null
 
     fun shutdown() {
         executor.shutdown()
     }
 
-    fun takePicture(onImageCaptured: (ImageProxy?, CameraIntrinsics?) -> Unit) {
+    fun takePicture(onImageCaptured: (ImageProxy?, OpticalMeasures?) -> Unit) {
         imageCapture?.takePicture(
             executor,
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(imageProxy: ImageProxy) {
-                    onImageCaptured(imageProxy, cameraIntrinsics)
+                    val diopters = lastFocusDistanceDiopters
+                    val subjectDistanceInMm =
+                        if (canUseFocusDistance && diopters != null && diopters != 0.0f) {
+                            1000 / diopters
+                        } else {
+                            null
+                        }
+                    onImageCaptured(
+                        imageProxy,
+                        cameraIntrinsics?.let { OpticalMeasures(it, subjectDistanceInMm) })
                 }
                 override fun onError(exception: ImageCaptureException) {
                     Log.e("CameraCapture", "Image capture failed: ${exception.message}", exception)
-                    onImageCaptured(null, cameraIntrinsics)
+                    onImageCaptured(null, null)
                 }
             }
         )
@@ -344,6 +378,12 @@ class CameraCaptureController {
             } else {
                 cameraIntrinsics(focalLengths[0], max(sensorSize.width, sensorSize.height))
             }
+        val calibration = cameraInfo.getCameraCharacteristic(
+            android.hardware.camera2.CameraCharacteristics.LENS_INFO_FOCUS_DISTANCE_CALIBRATION
+        )
+        canUseFocusDistance =
+               calibration == CameraMetadata.LENS_INFO_FOCUS_DISTANCE_CALIBRATION_CALIBRATED
+            || calibration == CameraMetadata.LENS_INFO_FOCUS_DISTANCE_CALIBRATION_APPROXIMATE
     }
 }
 

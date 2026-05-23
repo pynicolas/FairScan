@@ -46,7 +46,7 @@ import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.PageViewKey
-import org.fairscan.app.domain.jpegsForExport
+import org.fairscan.app.domain.pagesToExport
 import org.fairscan.app.ui.screens.settings.ExportFormat
 import java.io.File
 import java.io.FileInputStream
@@ -76,8 +76,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private suspend fun generatePdf(
         exportQuality: ExportQuality
     ): ExportResult.Pdf = withContext(Dispatchers.IO) {
-        val jpegs = jpegsForExport(imageRepository, exportQuality)
-        val pdf = fileManager.generatePdf(jpegs)
+        val pageToExports = pagesToExport(imageRepository, exportQuality)
+        val pdf = fileManager.generatePdf(pageToExports)
         return@withContext ExportResult.Pdf(pdf.file, pdf.sizeInBytes, pdf.pageCount)
     }
 
@@ -181,12 +181,12 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private suspend fun generateJpegs(
         exportQuality: ExportQuality
     ): ExportResult.Jpeg = withContext(Dispatchers.IO) {
-        val jpegs = jpegsForExport(imageRepository, exportQuality)
+        val pageToExports = pagesToExport(imageRepository, exportQuality)
         val timestamp = System.currentTimeMillis()
         preparationDir.mkdirs()
-        val files = jpegs.mapIndexed { index, jpeg ->
+        val files = pageToExports.mapIndexed { index, page ->
             val file = File(preparationDir, "$timestamp-${index + 1}.jpg")
-            file.writeBytes(jpeg.get().bytes)
+            file.writeBytes(page.jpeg.get().bytes)
             file
         }.toList()
         val sizeInBytes = files.sumOf { it.length() }

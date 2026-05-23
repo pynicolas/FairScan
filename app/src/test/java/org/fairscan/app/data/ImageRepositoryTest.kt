@@ -26,7 +26,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.PageViewKey
-import org.fairscan.app.domain.Rotation
 import org.fairscan.app.domain.Rotation.R0
 import org.fairscan.app.domain.Rotation.R180
 import org.fairscan.app.domain.Rotation.R270
@@ -35,6 +34,8 @@ import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.ColorMode.COLOR
 import org.fairscan.imageprocessing.ColorMode.GRAYSCALE
+import org.fairscan.imageprocessing.ImageSize
+import org.fairscan.imageprocessing.OpticalMeasures
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.junit.Rule
@@ -52,8 +53,9 @@ class ImageRepositoryTest {
     private val testScope = TestScope()
 
     val quad1 = Quad(Point(.01, .02), Point(.1, .03), Point(.11, .12), Point(.03, .09))
-    val intrinsics = CameraIntrinsics(42.0f, 43.0f)
-    val metadata1 = PageMetadata(quad1, R90, COLOR, intrinsics)
+    val opticalMeasures = OpticalMeasures(CameraIntrinsics(42.0f, 43.0f), 44.0f)
+    val sourceSize = ImageSize(1600, 1200)
+    val metadata1 = PageMetadata(quad1, R90, COLOR, sourceSize, opticalMeasures)
 
     fun getFilesDir(): File {
         if (_filesDir == null) {

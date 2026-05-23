@@ -14,15 +14,17 @@
  */
 package org.fairscan.app.domain
 
-import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ColorMode
+import org.fairscan.imageprocessing.ImageSize
+import org.fairscan.imageprocessing.OpticalMeasures
 import org.fairscan.imageprocessing.Quad
 
 data class PageMetadata(
     val normalizedQuad: Quad,
     val baseRotation: Rotation,
     val autoColorMode: ColorMode,
-    val cameraIntrinsics: CameraIntrinsics?,
+    val sourceSize: ImageSize?,
+    val opticalMeasures: OpticalMeasures?,
 )
 
 data class ScanPage(

@@ -25,9 +25,10 @@ import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.screens.settings.DefaultColorMode
-import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ColorMode
+import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.Mask
+import org.fairscan.imageprocessing.OpticalMeasures
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.autoColorMode
@@ -102,7 +103,7 @@ fun processedImage(
         sourceMat = source.toMat()
         val quad = metadata.normalizedQuad.scaledTo(1, 1, sourceMat.width(), sourceMat.height())
         page = extractDocument(sourceMat, quad, rotationDegrees, colorMode, exportQuality.maxPixels,
-            metadata.cameraIntrinsics)
+            metadata.opticalMeasures)
         return Jpeg.fromMat(page, exportQuality.jpegQuality)
     } finally {
         sourceMat?.release()
@@ -117,7 +118,7 @@ fun extractDocumentFromBitmap(
     mask: Mask?,
     viewModelScope: CoroutineScope,
     defaultColorMode: DefaultColorMode = DefaultColorMode.AUTO,
-    cameraIntrinsics: CameraIntrinsics?,
+    opticalMeasures: OpticalMeasures?,
 ): CapturedPage {
     val exportQuality = ExportQuality.BALANCED
     var colorMode = ColorMode.COLOR
@@ -144,7 +145,7 @@ fun extractDocumentFromBitmap(
         autoColorMode = autoColorMode(bgr, mask, quad)
         colorMode = defaultColorMode.colorMode ?: autoColorMode
         page = extractDocument(bgr, quad, rotationDegrees, colorMode, exportQuality.maxPixels,
-            cameraIntrinsics)
+            opticalMeasures)
     }
 
     val pageJpeg = Jpeg.fromMat(page, exportQuality.jpegQuality)
@@ -152,7 +153,9 @@ fun extractDocumentFromBitmap(
     page.release()
 
     val baseRotation = Rotation.fromDegrees(rotationDegrees)
-    val metadata = PageMetadata(normalizedQuad, baseRotation, autoColorMode, cameraIntrinsics)
+    val sourceSize = ImageSize(source.width, source.height)
+    val metadata =
+        PageMetadata(normalizedQuad, baseRotation, autoColorMode, sourceSize, opticalMeasures)
     val sourceJpegDeferred = viewModelScope.async(Dispatchers.IO) {
         compressSource(source)
     }

@@ -33,6 +33,8 @@ import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.Rotation
 import org.fairscan.app.domain.ScanPage
 import org.fairscan.imageprocessing.ColorMode
+import org.fairscan.imageprocessing.ImageSize
+import org.fairscan.imageprocessing.OpticalMeasures
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.cameraIntrinsics
@@ -154,8 +156,11 @@ class ImageRepository(
                     manualRotationDegrees = Rotation.R0.degrees,
                     isColored = metadata.autoColorMode == ColorMode.COLOR,
                     colorMode = colorMode,
-                    focalLength = metadata.cameraIntrinsics?.focalLength,
-                    sensorWidth = metadata.cameraIntrinsics?.sensorWidth,
+                    focalLength = metadata.opticalMeasures?.cameraIntrinsics?.focalLength,
+                    sensorWidth = metadata.opticalMeasures?.cameraIntrinsics?.sensorWidth,
+                    subjectDistance = metadata.opticalMeasures?.subjectDistance,
+                    sourceWidth = metadata.sourceSize?.width?.toInt(),
+                    sourceHeight = metadata.sourceSize?.height?.toInt(),
                 )
             )
             saveMetadata()
@@ -402,10 +407,17 @@ fun NormalizedQuad.toQuad(): Quad =
 
 fun PageV2.toMetadata(): PageMetadata? {
     if (quad == null || isColored == null) return null
+    val cameraIntrinsics = cameraIntrinsics(focalLength, sensorWidth)
+    val sourceSize =
+        if (sourceWidth != null && sourceHeight != null)
+            ImageSize(sourceWidth, sourceHeight)
+        else
+            null
     return PageMetadata(
         (userQuad ?: quad).toQuad(),
         Rotation.fromDegrees(baseRotationDegrees),
         if (isColored) ColorMode.COLOR else ColorMode.GRAYSCALE,
-        cameraIntrinsics(focalLength, sensorWidth)
+        sourceSize,
+        cameraIntrinsics?.let { OpticalMeasures(it, subjectDistance) },
     )
 }
