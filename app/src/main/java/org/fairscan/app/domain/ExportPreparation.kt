@@ -39,7 +39,7 @@ data class PageToExport(
         val quad = metadata.normalizedQuad.scaledTo(1.0, 1.0, size.width, size.height)
         val realDimensions = estimateRealDimensions(
             quad, size.width.toInt(), size.height.toInt(), metadata.opticalMeasures
-        )
+        ).snapToStandardFormat()
         return realDimensions.applyRotation(metadata.baseRotation)
     }
 }

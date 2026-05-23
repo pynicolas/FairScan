@@ -14,6 +14,7 @@
  */
 package org.fairscan.imageprocessing
 
+import kotlin.math.abs
 import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -63,6 +64,40 @@ sealed class EstimatedDimensions {
         is Physical -> heightMm / widthMm
         is Ratio -> height / width
     }
+
+    fun snapToStandardFormat(
+        ratioTolerance: Double = 0.04,
+        dimensionTolerance: Double = 0.20,
+    ): EstimatedDimensions {
+        if (this !is Physical) return this
+
+        // Normalize to portrait for comparison
+        val (w, h) = if (widthMm <= heightMm) widthMm to heightMm
+        else heightMm to widthMm
+        val portrait = widthMm <= heightMm
+
+        for (format in PaperFormats.all) {
+            val (fw, fh) = format.widthMm to format.heightMm  // format is always portrait
+            val ratioError = abs((h / w) - (fh / fw)) / (fh / fw)
+            val dimError = maxOf(abs(w - fw) / fw, abs(h - fh) / fh)
+            if (ratioError < ratioTolerance && dimError < dimensionTolerance) {
+                return if (portrait) format
+                else Physical(format.heightMm, format.widthMm)
+            }
+        }
+
+        return this
+    }
+}
+
+object PaperFormats {
+    val A3     = EstimatedDimensions.Physical(297.0, 420.0)
+    val A4     = EstimatedDimensions.Physical(210.0, 297.0)
+    val A5     = EstimatedDimensions.Physical(148.0, 210.0)
+    val Letter = EstimatedDimensions.Physical(215.9, 279.4)
+    val Legal  = EstimatedDimensions.Physical(215.9, 355.6)
+
+    val all = listOf(A4, Letter, Legal, A5, A3)
 }
 
 /**
