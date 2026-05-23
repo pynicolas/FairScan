@@ -24,6 +24,7 @@ import org.fairscan.app.BuildConfig
 import org.fairscan.app.data.PdfWriter
 import org.fairscan.app.domain.PageToExport
 import org.fairscan.imageprocessing.EstimatedDimensions
+import org.fairscan.imageprocessing.PaperFormats
 import java.io.OutputStream
 import java.util.Calendar
 
@@ -43,17 +44,18 @@ class AndroidPdfWriter : PdfWriter {
                 val heightPx = image.height.toFloat()
 
                 val dimensions = page.estimatedDimensions()
-                val (widthPoints, heightPoints) = when (dimensions) {
-                    is EstimatedDimensions.Physical -> {
-                        dimensions.widthMm.toFloat() * pointsPerMm to dimensions.heightMm.toFloat() * pointsPerMm
-                    }
+                val (widthMm, heightMm) = when (dimensions) {
+                    is EstimatedDimensions.Physical ->
+                        clipToMaxFormat(dimensions.widthMm, dimensions.heightMm)
                     else -> {
-                        // No physical dimensions available: approximate using US Letter max dimension
-                        val maxDimInMm = 279.4f
-                        val scalePxToMm = maxDimInMm / maxOf(widthPx, heightPx)
-                        widthPx * scalePxToMm * pointsPerMm to heightPx * scalePxToMm * pointsPerMm
+                        // No physical dimensions available
+                        val maxDimMm = PaperFormats.A4.heightMm
+                        val scalePxToMm = maxDimMm / maxOf(widthPx, heightPx)
+                        clipToMaxFormat(widthPx * scalePxToMm, heightPx * scalePxToMm)
                     }
                 }
+                val widthPoints = widthMm.toFloat() * pointsPerMm
+                val heightPoints = heightMm.toFloat() * pointsPerMm
 
                 val page = PDPage(PDRectangle(widthPoints, heightPoints))
                 document.addPage(page)
@@ -67,4 +69,15 @@ class AndroidPdfWriter : PdfWriter {
         }
         return doc.numberOfPages
     }
+}
+
+fun clipToMaxFormat(widthMm: Double, heightMm: Double): Pair<Double, Double> {
+    // Normalize to portrait for comparison
+    val (w, h) = if (widthMm <= heightMm) widthMm to heightMm else heightMm to widthMm
+    val portrait = widthMm <= heightMm
+
+    val maxFormat = PaperFormats.A4
+    val scale = minOf(maxFormat.widthMm / w, maxFormat.heightMm / h, 1.0)
+    val clipped = w * scale to h * scale
+    return if (portrait) clipped else clipped.second to clipped.first
 }

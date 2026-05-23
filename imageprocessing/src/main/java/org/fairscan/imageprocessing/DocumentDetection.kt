@@ -164,7 +164,7 @@ fun extractDocument(
         inputMat.cols(),
         inputMat.rows(),
         opticalMeasures,
-    )
+    ).snapToStandardFormat()
     val (targetWidth, targetHeight) = estimatedDimensions.toPixelDimensions(quad)
     val srcPoints = MatOfPoint2f(
         quad.topLeft.toCv(),
