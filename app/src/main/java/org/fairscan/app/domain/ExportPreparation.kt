@@ -27,10 +27,11 @@ fun interface JpegProvider {
 }
 
 data class PageToExport(
-    val metadata: PageMetadata?,
+    val page: ScanPage,
     val jpeg: JpegProvider,
 ) {
     fun estimatedDimensions(): EstimatedDimensions? {
+        val metadata = page.metadata
         if (metadata == null)
             return null
         val size = metadata.sourceSize
@@ -40,7 +41,7 @@ data class PageToExport(
         val realDimensions = estimateRealDimensions(
             quad, size.width.toInt(), size.height.toInt(), metadata.opticalMeasures
         ).snapToStandardFormat()
-        return realDimensions.applyRotation(metadata.baseRotation)
+        return realDimensions.applyRotation(page.totalRotation())
     }
 }
 
@@ -60,11 +61,11 @@ suspend fun pagesToExport(
     val pages = imageRepository.pages()
     return when (exportQuality) {
         ExportQuality.BALANCED -> pages.map {
-            PageToExport(it.metadata) { jpeg(it, imageRepository) }
+            PageToExport(it) { jpeg(it, imageRepository) }
         }
 
         ExportQuality.LOW -> pages.map { page ->
-            PageToExport(page.metadata) {
+            PageToExport(page) {
                 resizeJpegBytesForMaxPixels(
                     jpeg = jpeg(page, imageRepository),
                     maxPixels = exportQuality.maxPixels.toDouble(),
@@ -74,7 +75,7 @@ suspend fun pagesToExport(
         }
 
         ExportQuality.HIGH -> pages.map { page ->
-            PageToExport(page.metadata) {
+            PageToExport(page) {
                 val source = imageRepository.source(page.id)
                 val metadata = page.metadata
                 val colorMode = page.colorMode

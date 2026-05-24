@@ -18,6 +18,8 @@ import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageToExport
+import org.fairscan.app.domain.Rotation
+import org.fairscan.app.domain.ScanPage
 import org.junit.Test
 import java.io.File
 import java.io.OutputStream
@@ -81,7 +83,7 @@ class FileManagerTest {
         }
         val manager = FileManager(pdfDir, externalDir, fakePdfWriter)
         val pages = listOf(byteArrayOf(0x01, 0x02), byteArrayOf(0x11))
-            .map { PageToExport(null) { Jpeg(it) } }
+            .map { PageToExport(ScanPage("1", Rotation.R0, null, 1, null)) { Jpeg(it) } }
         val pdf = manager.generatePdf(pages)
         assertThat(pdf.pageCount).isEqualTo(2)
         assertThat(pdf.sizeInBytes).isEqualTo(3)
