@@ -21,36 +21,42 @@ import org.junit.Test
 class AndroidPdfWriterTest {
 
     @Test fun `portrait smaller than A4 is unchanged`() {
-        val (w, h) = clipToMaxFormat(100.0, 150.0)
+        val (w, h) = constrainToMaxFormat(100.0, 150.0)
         assertThat(w).isEqualTo(100.0)
         assertThat(h).isEqualTo(150.0)
     }
 
-    @Test fun `portrait taller than A4 is clipped preserving ratio`() {
-        val (w, h) = clipToMaxFormat(210.0, 400.0)
+    @Test fun `portrait taller than A4 is constrained preserving ratio`() {
+        val (w, h) = constrainToMaxFormat(210.0, 400.0)
         assertThat(h).isCloseTo(297.0, offset(0.1))
         assertThat(w / h).isCloseTo(210.0 / 400.0, offset(0.001))
     }
 
-    @Test fun `landscape wider than A4 is clipped preserving ratio`() {
-        val (w, h) = clipToMaxFormat(300.0, 200.0)
+    @Test fun `landscape wider than A4 is constrained preserving ratio`() {
+        val (w, h) = constrainToMaxFormat(300.0, 200.0)
         assertThat(w).isCloseTo(297.0, offset(0.1))
         assertThat(w / h).isCloseTo(300.0 / 200.0, offset(0.001))
     }
 
     @Test fun `exactly A4 is unchanged`() {
-        val (w, h) = clipToMaxFormat(210.0, 297.0)
+        val (w, h) = constrainToMaxFormat(210.0, 297.0)
         assertThat(w).isCloseTo(210.0, offset(0.001))
         assertThat(h).isCloseTo(297.0, offset(0.001))
     }
 
-    @Test fun `landscape orientation is preserved after clip`() {
-        val (w, h) = clipToMaxFormat(400.0, 250.0)
+    @Test fun `exactly Letter is unchanged`() {
+        val (w, h) = constrainToMaxFormat(215.9, 279.4)
+        assertThat(w).isCloseTo(215.9, offset(0.001))
+        assertThat(h).isCloseTo(279.4, offset(0.001))
+    }
+
+    @Test fun `landscape orientation is preserved`() {
+        val (w, h) = constrainToMaxFormat(400.0, 250.0)
         assertThat(w).isGreaterThan(h)
     }
 
     @Test fun `landscape smaller than A4 is unchanged`() {
-        val (w, h) = clipToMaxFormat(297.0, 150.0)
+        val (w, h) = constrainToMaxFormat(297.0, 150.0)
         assertThat(w).isCloseTo(297.0, offset(0.001))
         assertThat(h).isCloseTo(150.0, offset(0.001))
     }

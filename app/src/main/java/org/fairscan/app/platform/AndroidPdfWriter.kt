@@ -46,12 +46,12 @@ class AndroidPdfWriter : PdfWriter {
                 val dimensions = page.estimatedDimensions()
                 val (widthMm, heightMm) = when (dimensions) {
                     is EstimatedDimensions.Physical ->
-                        clipToMaxFormat(dimensions.widthMm, dimensions.heightMm)
+                        constrainToMaxFormat(dimensions.widthMm, dimensions.heightMm)
                     else -> {
                         // No physical dimensions available
                         val maxDimMm = PaperFormats.A4.heightMm
                         val scalePxToMm = maxDimMm / maxOf(widthPx, heightPx)
-                        clipToMaxFormat(widthPx * scalePxToMm, heightPx * scalePxToMm)
+                        constrainToMaxFormat(widthPx * scalePxToMm, heightPx * scalePxToMm)
                     }
                 }
                 val widthPoints = widthMm.toFloat() * pointsPerMm
@@ -71,13 +71,14 @@ class AndroidPdfWriter : PdfWriter {
     }
 }
 
-fun clipToMaxFormat(widthMm: Double, heightMm: Double): Pair<Double, Double> {
-    // Normalize to portrait for comparison
-    val (w, h) = if (widthMm <= heightMm) widthMm to heightMm else heightMm to widthMm
-    val portrait = widthMm <= heightMm
+fun constrainToMaxFormat(widthMm: Double, heightMm: Double): Pair<Double, Double> {
+    val maxDim = 297.0   // A4 height
+    val minDim = 215.9   // Letter width
 
-    val maxFormat = PaperFormats.A4
-    val scale = minOf(maxFormat.widthMm / w, maxFormat.heightMm / h, 1.0)
-    val clipped = w * scale to h * scale
-    return if (portrait) clipped else clipped.second to clipped.first
+    val scale = minOf(
+        maxDim / maxOf(widthMm, heightMm),
+        minDim / minOf(widthMm, heightMm),
+        1.0
+    )
+    return widthMm * scale to heightMm * scale
 }
