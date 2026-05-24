@@ -1,0 +1,2 @@
+- Better PDF page sizes with automatic detection of standard paper formats
+- New Japanese translation
