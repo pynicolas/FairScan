@@ -73,13 +73,6 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private val _events = MutableSharedFlow<ExportEvent>()
     val events = _events.asSharedFlow()
 
-    // FIXME ocrService is initialized here but used in AndroidPdfWriter
-    init {
-        viewModelScope.launch {
-            container.ocrService.initialize()
-        }
-    }
-
     private suspend fun generatePdf(
         exportQuality: ExportQuality
     ): ExportResult.Pdf = withContext(Dispatchers.IO) {

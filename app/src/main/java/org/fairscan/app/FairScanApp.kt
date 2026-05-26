@@ -20,6 +20,10 @@ import android.os.Environment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.fairscan.app.data.FileLogger
 import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.LogRepository
@@ -58,6 +62,12 @@ class AppContainer(context: Context) {
     val imageSegmentationService = ImageSegmentationService(context, logger)
     val imageLoader = AndroidImageLoader(context.contentResolver)
     val settingsRepository = SettingsRepository(context)
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    init {
+        scope.launch { imageSegmentationService.initialize() }
+        scope.launch { ocrService.initialize() }
+    }
 
     @Suppress("UNCHECKED_CAST")
     inline fun <reified VM : ViewModel> viewModelFactory(

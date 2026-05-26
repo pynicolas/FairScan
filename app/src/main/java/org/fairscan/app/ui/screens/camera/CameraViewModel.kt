@@ -34,7 +34,6 @@ import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.platform.extractDocumentFromBitmap
-import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ImageSize
 import org.fairscan.imageprocessing.OpticalMeasures
 import org.fairscan.imageprocessing.detectDocumentQuad
@@ -67,12 +66,6 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
 
     private val _isTorchEnabled = MutableStateFlow(false)
     val isTorchEnabled: StateFlow<Boolean> = _isTorchEnabled
-
-    init {
-        viewModelScope.launch {
-            imageSegmentationService.initialize()
-        }
-    }
 
     fun resetLiveAnalysis() {
         quadStabilizer = QuadStabilizer()
