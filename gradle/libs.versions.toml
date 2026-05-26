@@ -23,6 +23,7 @@ kotlinSerialization = "1.10.0"
 reorderable = "3.0.0"
 jetbrainsKotlinJvm = "2.3.10"
 coroutines-test = "1.10.2"
+tesseract4android = "4.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -60,7 +61,7 @@ reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reo
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines-test" }
-
+tesseract4android = { group = "cz.adaptech.tesseract4android", name = "tesseract4android-openmp", version.ref = "tesseract4android" }
 
 assertj =  { group="org.assertj", name="assertj-core", version.ref = "assertj" }
 

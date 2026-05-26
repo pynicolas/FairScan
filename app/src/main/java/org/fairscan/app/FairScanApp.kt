@@ -24,6 +24,7 @@ import org.fairscan.app.data.FileLogger
 import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.LogRepository
 import org.fairscan.app.domain.ImageSegmentationService
+import org.fairscan.app.domain.OcrService
 import org.fairscan.app.platform.AndroidImageLoader
 import org.fairscan.app.platform.AndroidPdfWriter
 import org.fairscan.app.ui.screens.camera.CameraViewModel
@@ -46,10 +47,11 @@ const val THUMBNAIL_SIZE_DP = 120
 class AppContainer(context: Context) {
     private val cacheDir = context.cacheDir
     val preparationDir = File(context.cacheDir, "pdfs")
+    val ocrService = OcrService(context)
     val fileManager = FileManager(
         preparationDir,
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-        AndroidPdfWriter()
+        AndroidPdfWriter(ocrService)
     )
     val logRepository = LogRepository(File(context.filesDir, "logs.txt"))
     val logger = FileLogger(logRepository)
