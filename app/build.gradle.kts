@@ -136,6 +136,7 @@ dependencies {
     implementation(libs.reorderable)
     implementation(libs.aboutlibraries.compose.m3)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.tesseract4android)
 
     testImplementation(libs.junit)
     testImplementation(libs.assertj)

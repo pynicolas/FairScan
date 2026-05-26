@@ -14,28 +14,35 @@
  */
 package org.fairscan.app.platform
 
+import android.graphics.Bitmap
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream.AppendMode
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
+import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
+import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
+import com.tom_roush.pdfbox.pdmodel.graphics.state.RenderingMode
 import org.fairscan.app.BuildConfig
 import org.fairscan.app.data.PdfWriter
 import org.fairscan.app.domain.PageToExport
+import org.fairscan.app.domain.OcrService
 import org.fairscan.imageprocessing.EstimatedDimensions
+import org.fairscan.imageprocessing.OcrCoordinateConverter
 import org.fairscan.imageprocessing.PaperFormats
 import java.io.OutputStream
 import java.util.Calendar
 
-class AndroidPdfWriter : PdfWriter {
+class AndroidPdfWriter(val ocrService: OcrService) : PdfWriter {
     override suspend fun writePdfFromJpegs(pages: List<PageToExport>, outputStream: OutputStream): Int {
         val doc = PDDocument()
         doc.documentInformation.creationDate = Calendar.getInstance()
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
             for (page in pages) {
-                val image = JPEGFactory.createFromByteArray(document, page.jpeg.get().bytes)
+                val jpeg = page.jpeg.get()
+                val image = JPEGFactory.createFromByteArray(document, jpeg.bytes)
 
                 // PDF has 72 points (units) per inch, 1 inch = 25.4 mm
                 val pointsPerMm = 72f / 25.4f
@@ -62,12 +69,42 @@ class AndroidPdfWriter : PdfWriter {
 
                 val contentStream = PDPageContentStream(document, page, AppendMode.OVERWRITE, false)
                 contentStream.drawImage(image, 0f, 0f, widthPoints, heightPoints)
+
+                createText(jpeg.toBitmap(), image, widthPoints, heightPoints, contentStream)
+
                 contentStream.close()
             }
             // TODO So the whole document is in memory before this line...
             document.save(outputStream)
         }
         return doc.numberOfPages
+    }
+
+    private suspend fun createText(
+        bitmap: Bitmap,
+        image: PDImageXObject,
+        widthPoints: Float,
+        heightPoints: Float,
+        contentStream: PDPageContentStream,
+    ) {
+        val ocr = ocrService.runOcr(bitmap)
+        val ocrConverter = OcrCoordinateConverter(
+            imageWidth = image.width,
+            imageHeight = image.height,
+            pageWidth = widthPoints,
+            pageHeight = heightPoints
+        )
+        val font = PDType1Font.HELVETICA
+        for (textBox in ocr) {
+            val pdfRect = ocrConverter.convert(textBox.box)
+            val fontSize = pdfRect.height * 0.8f
+            contentStream.beginText()
+            contentStream.setFont(font, fontSize)
+            contentStream.setRenderingMode(RenderingMode.NEITHER)
+            contentStream.newLineAtOffset(pdfRect.x, pdfRect.y)
+            contentStream.showText(textBox.text)
+            contentStream.endText()
+        }
     }
 }
 
