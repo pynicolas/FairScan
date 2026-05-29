@@ -8,6 +8,9 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Required (on Android 9 and lower) to save files -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+    <!-- REMOVE ACCESS_NETWORK_STATE -->
+    <!-- cameraX 1.6.1 depends on androidx.media3:media3-common which adds ACCESS_NETWORK_STATE -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
     <application
         android:allowBackup="true"
