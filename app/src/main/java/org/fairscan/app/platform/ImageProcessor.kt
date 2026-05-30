@@ -38,6 +38,7 @@ import org.fairscan.imageprocessing.resizeForMaxPixels
 import org.fairscan.imageprocessing.rotate
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.android.Utils
+import org.opencv.core.CvException
 import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
@@ -47,7 +48,7 @@ class ImageProcessor(private val thumbnailSizePx: Int) : ImageTransformations {
 
     override fun rotate(input: Jpeg, rotationDegrees: Int): Jpeg {
         return transform(input, ExportQuality.BALANCED.jpegQuality) {
-            org.fairscan.imageprocessing.rotate(it, rotationDegrees)
+            rotate(it, rotationDegrees)
         }
     }
 
@@ -58,7 +59,12 @@ class ImageProcessor(private val thumbnailSizePx: Int) : ImageTransformations {
             val newW = (src.width() * ratio).toDouble()
             val newH = (src.height() * ratio).toDouble()
             val scaled = Mat()
-            Imgproc.resize(src, scaled, Size(newW, newH))
+            try {
+                Imgproc.resize(src, scaled, Size(newW, newH))
+            } catch (e: CvException) {
+                val msg = "Resize failed. src=${src.width()}x${src.height()} dst=${newW}x${newH}"
+                throw IllegalStateException(msg, e)
+            }
             scaled
         }
     }
