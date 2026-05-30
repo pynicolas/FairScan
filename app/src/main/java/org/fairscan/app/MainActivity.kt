@@ -451,7 +451,7 @@ class MainActivity : ComponentActivity() {
             val errorMessage =
                 "Failed to open URI, scheme=${uriToOpen.scheme}, authority=${uriToOpen.authority}"
             logger.e("OpenUri", errorMessage, e)
-            throw OpenUriException(errorMessage, e)
+            showToast(getString(R.string.error_occurred))
         } catch (_: ActivityNotFoundException) {
             showToast(getString(R.string.error_no_app))
         }
@@ -494,5 +494,3 @@ class MainActivity : ComponentActivity() {
         }
     )
 }
-
-class OpenUriException(message: String, cause: Throwable) : RuntimeException(message, cause)
