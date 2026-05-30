@@ -246,6 +246,7 @@ class MainActivity : ComponentActivity() {
     private fun resolveLaunchMode(intent: Intent?): LaunchMode {
         return when (intent?.action) {
             "org.fairscan.app.action.SCAN_TO_PDF" -> LaunchMode.EXTERNAL_SCAN_TO_PDF
+            "android.intent.action.GET_CONTENT" -> LaunchMode.EXTERNAL_SCAN_TO_PDF
             else -> LaunchMode.NORMAL
         }
     }
