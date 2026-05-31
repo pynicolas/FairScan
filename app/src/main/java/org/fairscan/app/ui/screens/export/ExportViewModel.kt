@@ -82,7 +82,12 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     }
 
     suspend fun generatePdfForExternalCall(): ExportResult.Pdf {
-        return generatePdf(ExportQuality.BALANCED)
+        val pdf = generatePdf(ExportQuality.BALANCED)
+        val sourceFile = pdf.file
+        val targetFile = File(sourceFile.parentFile, defaultFilename() + ".pdf")
+        if (sourceFile.absolutePath == targetFile.absolutePath) return pdf
+        if (targetFile.exists() || !sourceFile.renameTo(targetFile)) return pdf
+        return pdf.copy(file = targetFile)
     }
 
     private val _uiState = MutableStateFlow(ExportUiState())
