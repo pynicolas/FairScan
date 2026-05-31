@@ -12,8 +12,11 @@ Recommended reading: https://fairscan.org/blog/fairscan-purpose/
 
 ### Issues
 
-- Bug reports are very welcome, especially with reproducible examples or images. When the automatic processing gives bad results, you can share the captured image by tapping "Report a problem with last captured image" in the "About" screen.
-- Before opening a "feature request", please consider whether the issue can be described more generally. Focus on describing problems rather than solutions, and provide as much context as possible. Try to explain **why** something should be changed, and the use case you face.
+You're very welcome to describe the problems you face when using FairScan.
+
+When the automatic processing gives a bad result, please share the original image whenever possible. You can get it by tapping "Report a problem with last captured image" in the "About" screen. You can either attach the image to the GitHub issue or send it privately to contact@fairscan.org. Screenshots are usually not helpful to understand image-processing issues.
+
+The most useful issues focus on the problem rather than on a proposed solution. Understanding the underlying problem is essential to finding the right solution. A detailed description of the problem and its context is therefore usually much more valuable than discussing a specific change to the app.
 
 ### Pull Requests
 
