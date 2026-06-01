@@ -19,37 +19,53 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.fairscan.app.R
+import org.fairscan.app.data.OcrLanguage
 import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.ui.components.BackButton
+import org.fairscan.app.ui.components.ConfirmationDialog
 import org.fairscan.app.ui.theme.FairScanTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +77,9 @@ fun SettingsScreen(
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
     onExportQualityChanged: (ExportQuality) -> Unit,
+    onInstallOcrLanguage: (String) -> Unit,
+    onEnableOcrLanguage: (String, Boolean) -> Unit,
+    onDeleteUnusedOcrLanguages: () -> Unit,
     onBack: () -> Unit,
 ) {
     BackHandler { onBack() }
@@ -79,10 +98,14 @@ fun SettingsScreen(
             onResetExportDirClick,
             onExportFormatChanged,
             onExportQualityChanged,
+            onInstallOcrLanguage,
+            onEnableOcrLanguage,
+            onDeleteUnusedOcrLanguages,
             modifier = Modifier.padding(paddingValues))
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsContent(
     uiState: SettingsUiState,
@@ -91,15 +114,22 @@ private fun SettingsContent(
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
     onExportQualityChanged: (ExportQuality) -> Unit,
+    onInstallOcrLanguage: (String) -> Unit,
+    onEnableOcrLanguage: (String, Boolean) -> Unit,
+    onDeleteUnusedOcrLanguages: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showAddLanguageSheet by remember { mutableStateOf(false) }
+    val showDeleteLanguageDialog = rememberSaveable { mutableStateOf(false) }
+    val displayLocale = Locale.current.platformLocale
+    val export = uiState.export
     val (folderLabel, folderLabelColor) = when {
-        uiState.exportDirUri == null ->
+        export.dirUri == null ->
             stringResource(R.string.download_dirname) to
                     MaterialTheme.colorScheme.onSurface
 
-        uiState.exportDirName != null ->
-            uiState.exportDirName to
+        export.dirName != null ->
+            export.dirName to
                     MaterialTheme.colorScheme.onSurface
 
         else ->
@@ -142,7 +172,7 @@ private fun SettingsContent(
 
         Spacer(Modifier.height(12.dp))
 
-        if (uiState.exportDirUri != null) {
+        if (export.dirUri != null) {
             OutlinedButton(
                 onClick = onResetExportDirClick,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
@@ -158,7 +188,7 @@ private fun SettingsContent(
             ExportQuality.entries.reversed(),
             onClick = onExportQualityChanged,
             label = { t -> context.getString(t.labelResource) },
-            selectedValue = uiState.exportQuality
+            selectedValue = export.quality
         )
 
         Spacer(Modifier.height(32.dp))
@@ -168,7 +198,73 @@ private fun SettingsContent(
             ExportFormat.entries,
             onClick = onExportFormatChanged,
             label = { t -> t.name},
-            selectedValue = uiState.exportFormat
+            selectedValue = export.format
+        )
+
+        Spacer(Modifier.height(16.dp))
+        HorizontalDivider()
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "OCR", // TODO externalize
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(Modifier.height(16.dp))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            uiState.installedOcrLanguages.map { OcrLanguage(it) }
+                .sortedBy { it.displayName(displayLocale) }
+                .forEach { lang ->
+                    val code = lang.code
+                    val selected = code in uiState.enabledOcrLanguages
+                    FilterChip(
+                        selected = selected,
+                        onClick = {
+                            onEnableOcrLanguage(code, code !in uiState.enabledOcrLanguages)
+                        },
+                        leadingIcon = { if (selected) Icon(Icons.Default.Check, contentDescription = null) },
+                        label = { Text(lang.displayName(displayLocale)) }
+                    )
+                }
+        }
+        Row (verticalAlignment = Alignment.CenterVertically) {
+            OutlinedButton(
+                onClick = { showAddLanguageSheet = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(Modifier.width(4.dp))
+                Text("Add language") // TODO externalize
+            }
+            if (uiState.enabledOcrLanguages != uiState.installedOcrLanguages) {
+                TextButton(onClick = { showDeleteLanguageDialog.value = true }) {
+                    Text("Clean up inactive languages…") // TODO externalize
+                }
+            }
+        }
+    }
+    if (showAddLanguageSheet) {
+        val onDismiss = { showAddLanguageSheet = false }
+        ModalBottomSheet(onDismissRequest = onDismiss) {
+            AddLanguageBottomSheetContent(uiState, onDismiss) { code ->
+                onInstallOcrLanguage(code)
+                showAddLanguageSheet = false
+            }
+        }
+    }
+    if (showDeleteLanguageDialog.value) {
+        val toRemove = uiState.installedOcrLanguages
+            .filterNot { code -> code in uiState.enabledOcrLanguages}
+            .joinToString(" • ") { OcrLanguage(it).displayName(displayLocale) }
+        ConfirmationDialog(
+            title = "Do you want to remove the following languages?",
+            message = toRemove,
+            showDialog = showDeleteLanguageDialog,
+            onConfirm = onDeleteUnusedOcrLanguages,
         )
     }
 }
@@ -248,13 +344,15 @@ fun DirectorySettingItem(
 @Preview(heightDp = 780)
 @Composable
 fun SettingsScreenPreviewWithoutDir() {
-    SettingsScreenPreview(SettingsUiState())
+    SettingsScreenPreview(SettingsUiState(installedOcrLanguages = setOf("fra", "eng")))
 }
 
 @Preview
 @Composable
 fun SettingsScreenPreviewWithDir() {
-    SettingsScreenPreview(SettingsUiState(exportDirUri = "content://root/dir"))
+    SettingsScreenPreview(
+        SettingsUiState(export= ExportSettingsUiState(dirUri = "content://root/dir"))
+    )
 }
 
 @Composable
@@ -267,6 +365,9 @@ fun SettingsScreenPreview(uiState: SettingsUiState) {
             onResetExportDirClick = {},
             onExportFormatChanged = {},
             onExportQualityChanged = {},
+            onInstallOcrLanguage = {},
+            onEnableOcrLanguage = { _,_->},
+            onDeleteUnusedOcrLanguages = {},
             onBack = {}
         )
     }

@@ -295,6 +295,9 @@ class MainActivity : ComponentActivity() {
             onResetExportDirClick = { settingsViewModel.setExportDirUri(null) },
             onExportFormatChanged = { format -> settingsViewModel.setExportFormat(format) },
             onExportQualityChanged = { quality -> settingsViewModel.setExportQuality(quality) },
+            onInstallOcrLanguage = settingsViewModel::installLanguage,
+            onEnableOcrLanguage = settingsViewModel::setOcrLanguageEnabled,
+            onDeleteUnusedOcrLanguages = settingsViewModel::deleteUnusedOcrLanguages,
             onBack = nav.back,
         )
     }

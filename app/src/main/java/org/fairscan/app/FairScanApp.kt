@@ -17,6 +17,7 @@ package org.fairscan.app
 import android.app.Application
 import android.content.Context
 import android.os.Environment
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 import org.fairscan.app.data.FileLogger
 import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.LogRepository
+import org.fairscan.app.data.OcrLanguageRepository
 import org.fairscan.app.domain.ImageSegmentationService
 import org.fairscan.app.domain.OcrService
 import org.fairscan.app.platform.AndroidImageLoader
@@ -48,10 +50,16 @@ class FairScanApp : Application() {
 
 const val THUMBNAIL_SIZE_DP = 120
 
+private val Context.dataStore by preferencesDataStore(name = "fairscan_settings")
+
 class AppContainer(context: Context) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val cacheDir = context.cacheDir
+    private val dataStore = context.dataStore
     val preparationDir = File(context.cacheDir, "pdfs")
-    val ocrService = OcrService(context)
+    val ocrLanguageRepository =
+        OcrLanguageRepository(dataStore, File(context.filesDir, "tesseract/tessdata"))
+    val ocrService = OcrService(ocrLanguageRepository, scope)
     val fileManager = FileManager(
         preparationDir,
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
@@ -61,9 +69,8 @@ class AppContainer(context: Context) {
     val logger = FileLogger(logRepository)
     val imageSegmentationService = ImageSegmentationService(context, logger)
     val imageLoader = AndroidImageLoader(context.contentResolver)
-    val settingsRepository = SettingsRepository(context)
+    val settingsRepository = SettingsRepository(context, dataStore)
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     init {
         scope.launch { imageSegmentationService.initialize() }
         scope.launch { ocrService.initialize() }

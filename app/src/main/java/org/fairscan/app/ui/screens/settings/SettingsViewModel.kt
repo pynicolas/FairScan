@@ -28,38 +28,65 @@ import org.fairscan.app.domain.ExportQuality
 
 data class SettingsUiState(
     val defaultColorMode: DefaultColorMode = DefaultColorMode.AUTO,
-    val exportDirUri: String? = null,
-    val exportDirName: String? = null,
-    val exportFormat: ExportFormat = ExportFormat.PDF,
-    val exportQuality: ExportQuality = ExportQuality.BALANCED,
+    val export: ExportSettingsUiState = ExportSettingsUiState(),
+    val installedOcrLanguages: Set<String> = emptySet(),
+    val enabledOcrLanguages: Set<String> = emptySet(),
+)
+
+data class ExportSettingsUiState(
+    val dirUri: String? = null,
+    val dirName: String? = null,
+    val format: ExportFormat = ExportFormat.PDF,
+    val quality: ExportQuality = ExportQuality.BALANCED,
 )
 
 class SettingsViewModel(container: AppContainer) : ViewModel() {
 
     private val repo = container.settingsRepository
+    private val ocrLanguageRepo = container.ocrLanguageRepository
 
+    private val _installedLanguages = MutableStateFlow<Set<String>>(emptySet())
     private val _dirName = MutableStateFlow<String?>(null)
     val dirName: StateFlow<String?> = _dirName
 
+    private val exportSettingsState =
+        combine(
+            repo.exportDirUri,
+            dirName,
+            repo.exportFormat,
+            repo.exportQuality,
+        ) {
+            dirUri, dirName, format, quality ->
+            ExportSettingsUiState(dirUri, dirName, format, quality)
+        }
     val uiState = combine(
         repo.defaultColorMode,
-        repo.exportDirUri,
-        dirName,
-        repo.exportFormat,
-        repo.exportQuality,
-    ) { colorMode, uri, name, format, quality ->
+        exportSettingsState,
+        _installedLanguages,
+        ocrLanguageRepo.enabledLanguages,
+    ) { colorMode, exportSettings, installed, enabled ->
         SettingsUiState(
             defaultColorMode = colorMode,
-            exportDirUri = uri,
-            exportDirName = name,
-            exportFormat = format,
-            exportQuality = quality,
+            export = exportSettings,
+            installedOcrLanguages = installed,
+            enabledOcrLanguages = enabled,
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         SettingsUiState()
     )
+
+    private suspend fun refreshInstalledLanguages() {
+        _installedLanguages.value =
+            ocrLanguageRepo.getInstalledLanguages()
+    }
+
+    init {
+        viewModelScope.launch {
+            refreshInstalledLanguages()
+        }
+    }
 
     fun setDefaultColorMode(pref: DefaultColorMode) {
         viewModelScope.launch {
@@ -90,6 +117,27 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             val uri = repo.exportDirUri.first()
             _dirName.value = uri?.let { repo.resolveExportDirName(it) }
+        }
+    }
+
+    fun installLanguage(code: String) {
+        viewModelScope.launch {
+            ocrLanguageRepo.downloadLanguage(code)
+            ocrLanguageRepo.setLanguageEnabled(code, true)
+            refreshInstalledLanguages()
+        }
+    }
+
+    fun setOcrLanguageEnabled(code: String, enabled: Boolean) {
+        viewModelScope.launch {
+            ocrLanguageRepo.setLanguageEnabled(code, enabled)
+        }
+    }
+
+    fun deleteUnusedOcrLanguages() {
+        viewModelScope.launch {
+            ocrLanguageRepo.deleteInactiveLanguages()
+            refreshInstalledLanguages()
         }
     }
 }

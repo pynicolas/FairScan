@@ -1,49 +1,59 @@
+/*
+ * Copyright 2025-2026 The FairScan authors
+ *
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <https://www.gnu.org/licenses/>.
+ */
 package org.fairscan.app.domain
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.googlecode.tesseract.android.TessBaseAPI
 import com.googlecode.tesseract.android.TessBaseAPI.PageIteratorLevel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.fairscan.app.data.OcrLanguageRepository
 import org.fairscan.imageprocessing.ImageRect
 import org.fairscan.imageprocessing.OcrTextBox
-import java.io.File
 
-class OcrService(private val context: Context) {
-
+class OcrService(
+    private val ocrLanguageRepository: OcrLanguageRepository,
+    private val scope: CoroutineScope,
+) {
     private var tess: TessBaseAPI? = null
     private val mutex = Mutex()
 
     fun initialize() {
-        prepareTessdata(context)
-
-        val tess = TessBaseAPI()
-
-        val dataPath: String = File(context.filesDir, "tesseract").absolutePath
-
-        // Initialize API for specified language
-        // (can be called multiple times during Tesseract lifetime)
-        if (!tess.init(dataPath, "eng")) { // could be multiple languages, like "eng+deu+fra"
-            tess.recycle()
-            return
+        scope.launch {
+            ocrLanguageRepository.enabledLanguages.collect { _ -> reinitialize() }
         }
-
-        this.tess = tess
     }
 
-    // FIXME: Tesseract language-specific data should be downloaded from the SettingsScreen
-    fun prepareTessdata(context: Context) {
-        val destDir = File(context.filesDir, "tesseract/tessdata")
-        val destFile = File(destDir, "eng.traineddata")
-        if (destFile.exists()) return
+    private suspend fun reinitialize() {
+        mutex.withLock {
+            tess?.recycle()
+            tess = null
 
-        destDir.mkdirs()
-        context.assets.open("tesseract/tessdata_fast/eng.traineddata").use { input ->
-            destFile.outputStream().use { output ->
-                input.copyTo(output)
+            val languageString = ocrLanguageRepository.buildTesseractLanguageString()
+            if (languageString.isEmpty()) return
+
+            val dataPath = ocrLanguageRepository.tessdataDir.parent!!
+            val newTess = TessBaseAPI()
+            if (!newTess.init(dataPath, languageString)) {
+                newTess.recycle()
+                return
             }
+            tess = newTess
         }
     }
 
