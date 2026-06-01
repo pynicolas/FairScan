@@ -16,9 +16,10 @@ package org.fairscan.app.ui.screens.settings
 
 import android.content.Context
 import androidx.core.net.toUri
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -26,9 +27,10 @@ import org.fairscan.app.R
 import org.fairscan.app.domain.ExportQuality
 import org.fairscan.imageprocessing.ColorMode
 
-private val Context.dataStore by preferencesDataStore(name = "fairscan_settings")
-
-class SettingsRepository(private val context: Context) {
+class SettingsRepository(
+    private val context: Context,
+    private val dataStore: DataStore<Preferences>,
+) {
 
     private val DEFAULT_COLOR_MODE = stringPreferencesKey("default_color_mode")
     private val EXPORT_DIR_URI = stringPreferencesKey("export_dir_uri")
@@ -36,7 +38,7 @@ class SettingsRepository(private val context: Context) {
     private val EXPORT_QUALITY = stringPreferencesKey("export_quality")
 
     val defaultColorMode: Flow<DefaultColorMode> =
-        context.dataStore.data.map { prefs ->
+        dataStore.data.map { prefs ->
             when (prefs[DEFAULT_COLOR_MODE]) {
                 "AUTO" -> DefaultColorMode.AUTO
                 "COLOR" -> DefaultColorMode.COLOR
@@ -46,7 +48,7 @@ class SettingsRepository(private val context: Context) {
         }
 
     val exportDirUri: Flow<String?> =
-        context.dataStore.data.map { prefs ->
+        dataStore.data.map { prefs ->
             prefs[EXPORT_DIR_URI]
         }
 
@@ -55,7 +57,7 @@ class SettingsRepository(private val context: Context) {
     }
 
     val exportFormat: Flow<ExportFormat> =
-        context.dataStore.data.map { prefs ->
+        dataStore.data.map { prefs ->
             when (prefs[EXPORT_FORMAT]) {
                 "JPEG" -> ExportFormat.JPEG
                 "PDF", null -> ExportFormat.PDF
@@ -64,7 +66,7 @@ class SettingsRepository(private val context: Context) {
         }
 
     val exportQuality: Flow<ExportQuality> =
-        context.dataStore.data.map { prefs ->
+        dataStore.data.map { prefs ->
             when (prefs[EXPORT_QUALITY]) {
                 "LOW" -> ExportQuality.LOW
                 "HIGH" -> ExportQuality.HIGH
@@ -74,13 +76,13 @@ class SettingsRepository(private val context: Context) {
         }
 
     suspend fun setDefaultColorMode(mode: DefaultColorMode) {
-        context.dataStore.edit { prefs ->
+        dataStore.edit { prefs ->
             prefs[DEFAULT_COLOR_MODE] = mode.name
         }
     }
 
     suspend fun setExportDirUri(uri: String?) {
-        context.dataStore.edit { prefs ->
+        dataStore.edit { prefs ->
             if (uri == null) {
                 prefs.remove(EXPORT_DIR_URI)
             } else {
@@ -90,13 +92,13 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setExportFormat(format: ExportFormat) {
-        context.dataStore.edit { prefs ->
+        dataStore.edit { prefs ->
             prefs[EXPORT_FORMAT] = format.name
         }
     }
 
     suspend fun setExportQuality(quality: ExportQuality) {
-        context.dataStore.edit { prefs ->
+        dataStore.edit { prefs ->
             prefs[EXPORT_QUALITY] = quality.name
         }
     }
