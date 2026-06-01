@@ -18,6 +18,9 @@ When the automatic processing gives a bad result, please share the original imag
 
 The most useful issues focus on the problem rather than on a proposed solution. Understanding the underlying problem is essential to finding the right solution. A detailed description of the problem and its context is therefore usually much more valuable than discussing a specific change to the app.
 
+- ❌ "Please add a button or an option to..."
+- ✅ "Here is the problem I face, the context in which it occurs, and why it is problematic..."
+
 ### Pull Requests
 
 - Please avoid starting any significant work without discussing it first.
