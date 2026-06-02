@@ -78,6 +78,7 @@ fun SettingsScreen(
     onExportFormatChanged: (ExportFormat) -> Unit,
     onExportQualityChanged: (ExportQuality) -> Unit,
     onInstallOcrLanguage: (String) -> Unit,
+    onCancelOcrDownload: () -> Unit,
     onEnableOcrLanguage: (String, Boolean) -> Unit,
     onDeleteUnusedOcrLanguages: () -> Unit,
     onBack: () -> Unit,
@@ -99,9 +100,11 @@ fun SettingsScreen(
             onExportFormatChanged,
             onExportQualityChanged,
             onInstallOcrLanguage,
+            onCancelOcrDownload,
             onEnableOcrLanguage,
             onDeleteUnusedOcrLanguages,
-            modifier = Modifier.padding(paddingValues))
+            modifier = Modifier.padding(paddingValues),
+        )
     }
 }
 
@@ -115,6 +118,7 @@ private fun SettingsContent(
     onExportFormatChanged: (ExportFormat) -> Unit,
     onExportQualityChanged: (ExportQuality) -> Unit,
     onInstallOcrLanguage: (String) -> Unit,
+    onCancelOcrDownload: () -> Unit,
     onEnableOcrLanguage: (String, Boolean) -> Unit,
     onDeleteUnusedOcrLanguages: () -> Unit,
     modifier: Modifier = Modifier,
@@ -267,6 +271,12 @@ private fun SettingsContent(
             onConfirm = onDeleteUnusedOcrLanguages,
         )
     }
+    uiState.currentDownload?.let { download ->
+        OcrDownloadDialog(
+            state = download,
+            onCancel = onCancelOcrDownload,
+        )
+    }
 }
 
 @Composable
@@ -366,6 +376,7 @@ fun SettingsScreenPreview(uiState: SettingsUiState) {
             onExportFormatChanged = {},
             onExportQualityChanged = {},
             onInstallOcrLanguage = {},
+            onCancelOcrDownload = {},
             onEnableOcrLanguage = { _,_->},
             onDeleteUnusedOcrLanguages = {},
             onBack = {}
