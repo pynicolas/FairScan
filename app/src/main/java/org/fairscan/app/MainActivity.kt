@@ -296,6 +296,7 @@ class MainActivity : ComponentActivity() {
             onExportFormatChanged = { format -> settingsViewModel.setExportFormat(format) },
             onExportQualityChanged = { quality -> settingsViewModel.setExportQuality(quality) },
             onInstallOcrLanguage = settingsViewModel::installLanguage,
+            onCancelOcrDownload = settingsViewModel::cancelOcrDownload,
             onEnableOcrLanguage = settingsViewModel::setOcrLanguageEnabled,
             onDeleteUnusedOcrLanguages = settingsViewModel::deleteUnusedOcrLanguages,
             onBack = nav.back,

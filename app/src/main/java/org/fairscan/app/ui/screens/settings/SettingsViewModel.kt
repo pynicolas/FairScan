@@ -16,6 +16,7 @@ package org.fairscan.app.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.fairscan.app.AppContainer
+import org.fairscan.app.data.OcrLanguage
 import org.fairscan.app.domain.ExportQuality
 
 data class SettingsUiState(
@@ -31,6 +33,7 @@ data class SettingsUiState(
     val export: ExportSettingsUiState = ExportSettingsUiState(),
     val installedOcrLanguages: Set<String> = emptySet(),
     val enabledOcrLanguages: Set<String> = emptySet(),
+    val currentDownload: OcrDownloadUiState? = null
 )
 
 data class ExportSettingsUiState(
@@ -40,12 +43,21 @@ data class ExportSettingsUiState(
     val quality: ExportQuality = ExportQuality.BALANCED,
 )
 
+data class OcrDownloadUiState(
+    val language: OcrLanguage,
+    val downloadedBytes: Long = 0,
+    val totalBytes: Long? = null,
+)
+
 class SettingsViewModel(container: AppContainer) : ViewModel() {
 
     private val repo = container.settingsRepository
     private val ocrLanguageRepo = container.ocrLanguageRepository
 
     private val _installedLanguages = MutableStateFlow<Set<String>>(emptySet())
+    private val _ocrDownload = MutableStateFlow<OcrDownloadUiState?>(null)
+    private var downloadJob: Job? = null
+
     private val _dirName = MutableStateFlow<String?>(null)
     val dirName: StateFlow<String?> = _dirName
 
@@ -64,12 +76,14 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
         exportSettingsState,
         _installedLanguages,
         ocrLanguageRepo.enabledLanguages,
-    ) { colorMode, exportSettings, installed, enabled ->
+        _ocrDownload,
+    ) { colorMode, exportSettings, installed, enabled, download ->
         SettingsUiState(
             defaultColorMode = colorMode,
             export = exportSettings,
             installedOcrLanguages = installed,
             enabledOcrLanguages = enabled,
+            currentDownload = download,
         )
     }.stateIn(
         viewModelScope,
@@ -121,11 +135,27 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
     }
 
     fun installLanguage(code: String) {
-        viewModelScope.launch {
-            ocrLanguageRepo.downloadLanguage(code)
-            ocrLanguageRepo.setLanguageEnabled(code, true)
-            refreshInstalledLanguages()
+        downloadJob?.cancel()
+        downloadJob = viewModelScope.launch {
+            _ocrDownload.value = OcrDownloadUiState(OcrLanguage(code))
+            try {
+                ocrLanguageRepo.downloadLanguage(code) { progress ->
+                    _ocrDownload.value =
+                        _ocrDownload.value?.copy(
+                            downloadedBytes = progress.downloadedBytes,
+                            totalBytes = progress.totalBytes,
+                        )
+                }
+                ocrLanguageRepo.setLanguageEnabled(code, true)
+                refreshInstalledLanguages()
+            } finally {
+                _ocrDownload.value = null
+            }
         }
+    }
+
+    fun cancelOcrDownload() {
+        downloadJob?.cancel()
     }
 
     fun setOcrLanguageEnabled(code: String, enabled: Boolean) {

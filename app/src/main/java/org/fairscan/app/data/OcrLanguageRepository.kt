@@ -19,6 +19,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -81,7 +82,12 @@ class OcrLanguageRepository(
         }
     }
 
-    suspend fun downloadLanguage(code: String) =
+    data class DownloadProgress(
+        val downloadedBytes: Long,
+        val totalBytes: Long?,
+    )
+
+    suspend fun downloadLanguage(code: String, onProgress: (DownloadProgress) -> Unit) =
         withContext(Dispatchers.IO) {
             require(code in AVAILABLE_LANGUAGE_CODES)
             tessdataDir.mkdirs()
@@ -102,7 +108,21 @@ class OcrLanguageRepository(
                 }
                 connection.inputStream.use { input ->
                     tempFile.outputStream().use { output ->
-                        input.copyTo(output)
+                        val totalBytes = connection.contentLengthLong.takeIf { it > 0 }
+                        val buffer = ByteArray(8192)
+                        var downloadedBytes = 0L
+                        input.use { input ->
+                            tempFile.outputStream().use { output ->
+                                while (true) {
+                                    coroutineContext.ensureActive()
+                                    val read = input.read(buffer)
+                                    if (read < 0) break
+                                    output.write(buffer, 0, read)
+                                    downloadedBytes += read
+                                    onProgress(DownloadProgress(downloadedBytes, totalBytes))
+                                }
+                            }
+                        }
                     }
                 }
                 if (tempFile.length() < 300_000) {
