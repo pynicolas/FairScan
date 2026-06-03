@@ -31,7 +31,11 @@ class OcrService(
     private val scope: CoroutineScope,
 ) {
     private var tess: TessBaseAPI? = null
+
     private val mutex = Mutex()
+
+    private var languageString = ""
+    fun languageString() = languageString
 
     fun initialize() {
         scope.launch {
@@ -44,7 +48,7 @@ class OcrService(
             tess?.recycle()
             tess = null
 
-            val languageString = ocrLanguageRepository.buildTesseractLanguageString()
+            languageString = ocrLanguageRepository.buildTesseractLanguageString()
             if (languageString.isEmpty()) return
 
             val dataPath = ocrLanguageRepository.tessdataDir.parent!!

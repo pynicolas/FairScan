@@ -68,6 +68,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private val preparationDir = container.preparationDir
     private val fileManager = container.fileManager
     private val settingsRepository = container.settingsRepository
+    private val ocrService = container.ocrService
     private val logger = container.logger
 
     private val _events = MutableSharedFlow<ExportEvent>()
@@ -138,9 +139,11 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         viewModelScope.launch {
             val exportQuality = settingsRepository.exportQuality.first()
             val exportFormat = settingsRepository.exportFormat.first()
+            val ocrLanguageString = ocrService.languageString()
 
             val currentPageKeys = currentPageKeys()
-            val key = ExportPreparationKey(currentPageKeys, exportFormat, exportQuality)
+            val key = ExportPreparationKey(
+                currentPageKeys, exportFormat, exportQuality, ocrLanguageString)
             if (key == lastPreparationKey) {
                 return@launch
             }
@@ -418,7 +421,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 data class ExportPreparationKey(
     val pages: ImmutableList<PageViewKey>,
     val format: ExportFormat,
-    val quality: ExportQuality
+    val quality: ExportQuality,
+    val ocrLanguageString: String,
 )
 
 sealed class ExportResult {
