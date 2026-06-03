@@ -21,6 +21,7 @@ data class ExportUiState(
     val format: ExportFormat = ExportFormat.PDF,
     val filename: String = "",
     val isGenerating: Boolean = false,
+    val progress: ExportProgress? = null,
     val isSaving: Boolean = false,
     val result: ExportResult? = null,
     val savedBundle: SavedBundle? = null,
@@ -29,6 +30,13 @@ data class ExportUiState(
     val isResumedScan: Boolean = false,
 ) {
     val hasSavedOrShared get() = savedBundle != null || hasShared
+}
+
+data class ExportProgress(
+    val completedPages: Int,
+    val totalPages: Int,
+) {
+    val progress = completedPages.toFloat() / totalPages
 }
 
 data class SavedItem(

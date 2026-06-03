@@ -29,7 +29,7 @@ class FileManagerTest {
 
     val pdfDir: File = createTempDirectory().toFile()
     val externalDir: File = createTempDirectory().toFile()
-    val dummyPdfWriter = PdfWriter { _,_ -> 42 }
+    val dummyPdfWriter = PdfWriter { _,_,_ -> }
 
     @Test
     fun copyToExternalDir() {
@@ -75,16 +75,19 @@ class FileManagerTest {
     @Test
     fun generatePdf() = runTest {
         val fakePdfWriter = object : PdfWriter {
-            override suspend fun writePdfFromJpegs(pages: List<PageToExport>, outputStream: OutputStream): Int {
+            override suspend fun writePdfFromJpegs(
+                pages: List<PageToExport>,
+                outputStream: OutputStream,
+                onProgress: (Int) -> Unit,
+            ) {
                 val list = pages.toList()
                 list.forEach { page -> outputStream.write(page.jpeg.get().bytes) }
-                return list.size
             }
         }
         val manager = FileManager(pdfDir, externalDir, fakePdfWriter)
         val pages = listOf(byteArrayOf(0x01, 0x02), byteArrayOf(0x11))
             .map { PageToExport(ScanPage("1", Rotation.R0, null, 1, null)) { Jpeg(it) } }
-        val pdf = manager.generatePdf(pages)
+        val pdf = manager.generatePdf(pages) {}
         assertThat(pdf.pageCount).isEqualTo(2)
         assertThat(pdf.sizeInBytes).isEqualTo(3)
         assertThat(pdf.file.readBytes()).isEqualTo(byteArrayOf(0x01, 0x02, 0x11))

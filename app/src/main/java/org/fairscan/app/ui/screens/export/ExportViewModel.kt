@@ -74,15 +74,16 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     val events = _events.asSharedFlow()
 
     private suspend fun generatePdf(
-        exportQuality: ExportQuality
+        exportQuality: ExportQuality,
+        onProgress: (Int) -> Unit,
     ): ExportResult.Pdf = withContext(Dispatchers.IO) {
         val pageToExports = pagesToExport(imageRepository, exportQuality)
-        val pdf = fileManager.generatePdf(pageToExports)
+        val pdf = fileManager.generatePdf(pageToExports, onProgress)
         return@withContext ExportResult.Pdf(pdf.file, pdf.sizeInBytes, pdf.pageCount)
     }
 
     suspend fun generatePdfForExternalCall(): ExportResult.Pdf {
-        val pdf = generatePdf(ExportQuality.BALANCED)
+        val pdf = generatePdf(ExportQuality.BALANCED) {}
         val sourceFile = pdf.file
         val targetFile = File(sourceFile.parentFile, defaultFilename() + ".pdf")
         if (sourceFile.absolutePath == targetFile.absolutePath) return pdf
@@ -143,6 +144,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
             if (key == lastPreparationKey) {
                 return@launch
             }
+            val pageCount = currentPageKeys.size
 
             lastPreparationKey = key
             preparationJob?.cancel()
@@ -153,19 +155,24 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                         filename = it.filename,
                         format = exportFormat,
                         isGenerating = true,
+                        progress = ExportProgress(0, pageCount),
                         isResumedScan = resumedScanKeys == currentPageKeys
                     )
+                }
+                val onProgress: (Int) -> Unit = { completedPages ->
+                    _uiState.update {
+                        it.copy(progress = ExportProgress(completedPages, pageCount))
+                    }
                 }
                 try {
                     val t1 = System.currentTimeMillis()
                     val result = if (exportFormat == ExportFormat.JPEG) {
-                        generateJpegs(exportQuality)
+                        generateJpegs(exportQuality, onProgress)
                     } else {
-                        generatePdf(exportQuality)
+                        generatePdf(exportQuality, onProgress)
                     }
                     _uiState.update { it.copy(result = result) }
                     val t2 = System.currentTimeMillis()
-                    val pageCount = result.pageCount
                     Log.i("Export", "Generation: $pageCount pages, $exportQuality, ${t2 - t1} ms")
                 } catch (e: CancellationException) {
                     // Preparation cancelled: do nothing
@@ -184,7 +191,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     }
 
     private suspend fun generateJpegs(
-        exportQuality: ExportQuality
+        exportQuality: ExportQuality,
+        onProgress: (Int) -> Unit,
     ): ExportResult.Jpeg = withContext(Dispatchers.IO) {
         val pageToExports = pagesToExport(imageRepository, exportQuality)
         val timestamp = System.currentTimeMillis()
@@ -192,6 +200,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         val files = pageToExports.mapIndexed { index, page ->
             val file = File(preparationDir, "$timestamp-${index + 1}.jpg")
             file.writeBytes(page.jpeg.get().bytes)
+            onProgress(index + 1)
             file
         }.toList()
         val sizeInBytes = files.sumOf { it.length() }
