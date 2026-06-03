@@ -17,6 +17,8 @@ package org.fairscan.imageprocessing
 data class OcrTextBox(
     val text: String,
     val box: ImageRect,
+    val lineHeight: Int,
+    val lineBottom: Int,
 )
 
 data class ImageRect(

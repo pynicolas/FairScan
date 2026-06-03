@@ -99,14 +99,21 @@ class AndroidPdfWriter(val ocrService: OcrService) : PdfWriter {
             pageWidth = widthPoints,
             pageHeight = heightPoints
         )
+        val scaleY = heightPoints / image.height
         val font = PDType1Font.HELVETICA
         for (textBox in ocr) {
             val pdfRect = ocrConverter.convert(textBox.box)
-            val fontSize = pdfRect.height * 0.8f
+            val fontSize = textBox.lineHeight * scaleY * 0.8f
+            // Measure how wide the text would be at fontSize with no scaling
+            val nominalWidth = font.getStringWidth(textBox.text) / 1000f * fontSize
+            val horizontalScaling = if (nominalWidth > 0f) (pdfRect.width / nominalWidth) * 100f else 100f
+            val baselineY = heightPoints - (textBox.lineBottom * scaleY) + fontSize * 0.2f
+
             contentStream.beginText()
             contentStream.setFont(font, fontSize)
+            contentStream.setHorizontalScaling(horizontalScaling)
             contentStream.setRenderingMode(RenderingMode.NEITHER)
-            contentStream.newLineAtOffset(pdfRect.x, pdfRect.y)
+            contentStream.newLineAtOffset(pdfRect.x, baselineY)
             contentStream.showText(textBox.text)
             contentStream.endText()
         }

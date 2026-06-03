@@ -71,10 +71,12 @@ class OcrService(
             iterator.begin()
             do {
                 val word = iterator.getUTF8Text(PageIteratorLevel.RIL_WORD) ?: continue
-                val boundingBox = iterator.getBoundingRect(PageIteratorLevel.RIL_WORD)
+                val wordBox = iterator.getBoundingRect(PageIteratorLevel.RIL_WORD)
+                val lineBox = iterator.getBoundingRect(PageIteratorLevel.RIL_TEXTLINE)
                 val confidence = iterator.confidence(PageIteratorLevel.RIL_WORD)
                 if (confidence > 50) {
-                    textBoxes.add(OcrTextBox(word, boundingBox.toImageRect()))
+                    val rect = wordBox.toImageRect()
+                    textBoxes.add(OcrTextBox(word, rect, lineBox.height(), lineBox.bottom))
                 }
             } while (iterator.next(PageIteratorLevel.RIL_WORD))
             iterator.delete()
