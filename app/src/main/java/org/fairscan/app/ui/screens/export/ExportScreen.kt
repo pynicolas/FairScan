@@ -281,16 +281,27 @@ private fun PdfInfos(
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
+            val pageCount = result?.pageCount ?: uiState.progress?.totalPages
+            pageCount?.let { count -> Text(text = pageCountText(count)) }
+
+            uiState.ocrActivation?.let { activated ->
+                Text(
+                    // TODO externalize
+                    if (activated) "Text recognition: enabled" else "Text recognition: disabled",
+                    style = MaterialTheme.typography.bodySmall,
+                    )
+            }
+
             if (uiState.isGenerating) {
                 Text(
                     text = stringResource(R.string.creating_export),
-                    fontStyle = FontStyle.Italic
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier.padding(top = 8.dp),
                 )
                 uiState.progress?.let{ p -> LinearProgressIndicator({ p.progress }) }
             } else if (result != null) {
                 val context = LocalContext.current
                 val formattedFileSize = formatFileSize(result.sizeInBytes, context)
-                Text(text = pageCountText(result.pageCount))
                 val sizeMessageKey =
                     if (result.files.size == 1) R.string.file_size else R.string.file_size_total
                 Text(
@@ -642,7 +653,11 @@ fun formatFileSize(sizeInBytes: Long?, context: Context): String {
 @Composable
 fun PreviewExportScreenDuringGeneration() {
     ExportPreviewToCustomize(
-        uiState = ExportUiState(isGenerating = true, progress = ExportProgress(1, 3))
+        uiState = ExportUiState(
+            isGenerating = true,
+            progress = ExportProgress(1, 3),
+            ocrActivation = true,
+        )
     )
 }
 
@@ -653,6 +668,7 @@ fun PreviewExportScreenAfterGeneration() {
     ExportPreviewToCustomize(
         uiState = ExportUiState(
             result = ExportResult.Pdf(file, 442897L, 3),
+            ocrActivation = false,
         ),
     )
 }
