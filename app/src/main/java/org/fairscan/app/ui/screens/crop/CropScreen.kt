@@ -27,6 +27,7 @@ import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.mandatorySystemGestures
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -81,6 +82,10 @@ fun CropScreen(
     BackHandler { navigation.back() }
 
     val isLandscape = isLandscape(LocalConfiguration.current)
+    val density = LocalDensity.current
+    val bottomInsetForSystemGestures = with(density) {
+        WindowInsets.mandatorySystemGestures.getBottom(density).toDp()
+    }
 
     MyScaffold(
         navigation = navigation,
@@ -102,6 +107,7 @@ fun CropScreen(
                         contentDescription = "Image to edit",
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(bottom = bottomInsetForSystemGestures)
                             .onGloballyPositioned { coordinates ->
                                 state.containerSize = coordinates.size
                             },

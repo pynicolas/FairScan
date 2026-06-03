@@ -16,14 +16,18 @@ package org.fairscan.app.ui.screens.crop
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.IntSize
 import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.scaledTo
+import kotlin.math.max
+import kotlin.math.min
 
 @Composable
 fun QuadOverlay(
@@ -35,7 +39,15 @@ fun QuadOverlay(
     val quadColor = MaterialTheme.colorScheme.primary
     val handleColor = quadColor.copy(alpha = 0.5f)
 
-    Canvas(modifier = modifier.fillMaxSize()) {
+    Canvas(modifier = modifier
+        .fillMaxSize()
+        // Android limits the exclusion areas, so we cannot simply exclude the whole quad/image.
+        // Instead, the corners must get excluded individually.
+        .systemGestureExclusion { cornerExclusionRect(quad.topLeft, containerSize, displaySize) }
+        .systemGestureExclusion { cornerExclusionRect(quad.topRight, containerSize, displaySize) }
+        .systemGestureExclusion { cornerExclusionRect(quad.bottomRight, containerSize, displaySize) }
+        .systemGestureExclusion { cornerExclusionRect(quad.bottomLeft, containerSize, displaySize) }
+    ) {
         val scaledQuad = quad.scaledTo(
             fromWidth = 1,
             fromHeight = 1,
@@ -74,3 +86,17 @@ fun QuadOverlay(
 }
 
 fun Point.toOffset() = Offset(x.toFloat(), y.toFloat())
+
+private fun cornerExclusionRect(
+    corner: Point,
+    containerSize: IntSize,
+    displaySize: IntSize
+): Rect {
+    val pos = QuadCoordinateUtils.normalizedToScreen(corner, containerSize, displaySize)
+    val r = QuadEditingHandler.CORNER_TOUCH_RADIUS
+    return Rect(max(.0f, pos.x - r),
+                max(.0f, pos.y - r),
+                min(containerSize.width.toFloat(), pos.x + r),
+                min(containerSize.height.toFloat(), pos.y + r)
+    )
+}
