@@ -56,6 +56,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -280,21 +281,12 @@ private fun PdfInfos(
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-
             if (uiState.isGenerating) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp
-                    )
-                    Text(
-                        text = stringResource(R.string.creating_export),
-                        fontStyle = FontStyle.Italic
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.creating_export),
+                    fontStyle = FontStyle.Italic
+                )
+                uiState.progress?.let{ p -> LinearProgressIndicator({ p.progress }) }
             } else if (result != null) {
                 val context = LocalContext.current
                 val formattedFileSize = formatFileSize(result.sizeInBytes, context)
@@ -650,7 +642,7 @@ fun formatFileSize(sizeInBytes: Long?, context: Context): String {
 @Composable
 fun PreviewExportScreenDuringGeneration() {
     ExportPreviewToCustomize(
-        uiState = ExportUiState(isGenerating = true, filename = "Scan 2025-12-15 07:00:51")
+        uiState = ExportUiState(isGenerating = true, progress = ExportProgress(1, 3))
     )
 }
 

@@ -35,12 +35,16 @@ import java.io.OutputStream
 import java.util.Calendar
 
 class AndroidPdfWriter(val ocrService: OcrService) : PdfWriter {
-    override suspend fun writePdfFromJpegs(pages: List<PageToExport>, outputStream: OutputStream): Int {
+    override suspend fun writePdfFromJpegs(
+        pages: List<PageToExport>,
+        outputStream: OutputStream,
+        onProgress: (Int) -> Unit,
+    ) {
         val doc = PDDocument()
         doc.documentInformation.creationDate = Calendar.getInstance()
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
-            for (page in pages) {
+            for ((index, page) in pages.withIndex()) {
                 val jpeg = page.jpeg.get()
                 val image = JPEGFactory.createFromByteArray(document, jpeg.bytes)
 
@@ -73,11 +77,12 @@ class AndroidPdfWriter(val ocrService: OcrService) : PdfWriter {
                 createText(jpeg.toBitmap(), image, widthPoints, heightPoints, contentStream)
 
                 contentStream.close()
+
+                onProgress(index + 1)
             }
             // TODO So the whole document is in memory before this line...
             document.save(outputStream)
         }
-        return doc.numberOfPages
     }
 
     private suspend fun createText(
