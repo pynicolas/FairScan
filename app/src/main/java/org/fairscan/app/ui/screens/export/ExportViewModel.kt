@@ -48,6 +48,7 @@ import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.pagesToExport
 import org.fairscan.app.ui.screens.settings.ExportFormat
+import org.fairscan.app.ui.screens.settings.ExportFormat.PDF
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -153,12 +154,14 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
             preparationJob?.cancel()
 
             preparationJob = launch {
+                val ocrActivation = if (exportFormat == PDF) ocrLanguageString.isNotEmpty() else null
                 _uiState.update {
                     ExportUiState(
                         filename = it.filename,
                         format = exportFormat,
                         isGenerating = true,
                         progress = ExportProgress(0, pageCount),
+                        ocrActivation = ocrActivation,
                         isResumedScan = resumedScanKeys == currentPageKeys
                     )
                 }
@@ -437,7 +440,7 @@ sealed class ExportResult {
         override val pageCount: Int,
     ) : ExportResult() {
         override val files get() = listOf(file)
-        override val format: ExportFormat = ExportFormat.PDF
+        override val format: ExportFormat = PDF
     }
 
     data class Jpeg(

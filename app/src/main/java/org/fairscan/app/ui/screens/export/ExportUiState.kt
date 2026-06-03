@@ -22,6 +22,7 @@ data class ExportUiState(
     val filename: String = "",
     val isGenerating: Boolean = false,
     val progress: ExportProgress? = null,
+    val ocrActivation: Boolean? = null,
     val isSaving: Boolean = false,
     val result: ExportResult? = null,
     val savedBundle: SavedBundle? = null,
