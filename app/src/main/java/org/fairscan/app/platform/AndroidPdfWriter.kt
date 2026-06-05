@@ -14,27 +14,30 @@
  */
 package org.fairscan.app.platform
 
+import android.content.res.AssetManager
 import android.graphics.Bitmap
+import com.tom_roush.fontbox.ttf.OTFParser
+import com.tom_roush.pdfbox.cos.COSArray
+import com.tom_roush.pdfbox.cos.COSName
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream.AppendMode
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
-import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
+import com.tom_roush.pdfbox.pdmodel.common.PDStream
+import com.tom_roush.pdfbox.pdmodel.font.PDType0Font
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
-import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
-import com.tom_roush.pdfbox.pdmodel.graphics.state.RenderingMode
 import org.fairscan.app.BuildConfig
 import org.fairscan.app.data.PdfWriter
-import org.fairscan.app.domain.PageToExport
 import org.fairscan.app.domain.OcrService
+import org.fairscan.app.domain.PageToExport
 import org.fairscan.imageprocessing.EstimatedDimensions
 import org.fairscan.imageprocessing.OcrCoordinateConverter
 import org.fairscan.imageprocessing.PaperFormats
 import java.io.OutputStream
 import java.util.Calendar
 
-class AndroidPdfWriter(val ocrService: OcrService) : PdfWriter {
+class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : PdfWriter {
     override suspend fun writePdfFromJpegs(
         pages: List<PageToExport>,
         outputStream: OutputStream,
@@ -44,6 +47,7 @@ class AndroidPdfWriter(val ocrService: OcrService) : PdfWriter {
         doc.documentInformation.creationDate = Calendar.getInstance()
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
+            val font = loadFont(document)
             for ((index, page) in pages.withIndex()) {
                 val jpeg = page.jpeg.get()
                 val image = JPEGFactory.createFromByteArray(document, jpeg.bytes)
@@ -74,7 +78,7 @@ class AndroidPdfWriter(val ocrService: OcrService) : PdfWriter {
                 val contentStream = PDPageContentStream(document, page, AppendMode.OVERWRITE, false)
                 contentStream.drawImage(image, 0f, 0f, widthPoints, heightPoints)
 
-                createText(jpeg.toBitmap(), image, widthPoints, heightPoints, contentStream)
+                createText(jpeg.toBitmap(), widthPoints, heightPoints, page, document, font)
 
                 contentStream.close()
 
@@ -87,37 +91,74 @@ class AndroidPdfWriter(val ocrService: OcrService) : PdfWriter {
 
     private suspend fun createText(
         bitmap: Bitmap,
-        image: PDImageXObject,
-        widthPoints: Float,
-        heightPoints: Float,
-        contentStream: PDPageContentStream,
+        pageWidth: Float,
+        pageHeight: Float,
+        page: PDPage,
+        document: PDDocument,
+        font: PDType0Font,
     ) {
         val ocr = ocrService.runOcr(bitmap)
+        if (ocr.isEmpty()) return
+
+        val fontResourceName = page.resources.add(font)
         val ocrConverter = OcrCoordinateConverter(
-            imageWidth = image.width,
-            imageHeight = image.height,
-            pageWidth = widthPoints,
-            pageHeight = heightPoints
+            imageWidth = bitmap.width,
+            imageHeight = bitmap.height,
+            pageWidth = pageWidth,
+            pageHeight = pageHeight
         )
-        val scaleY = heightPoints / image.height
-        val font = PDType1Font.HELVETICA
+
+        val sb = StringBuilder()
+        val scaleY = pageHeight / bitmap.height
+
         for (textBox in ocr) {
             val pdfRect = ocrConverter.convert(textBox.box)
             val fontSize = textBox.lineHeight * scaleY * 0.8f
-            // Measure how wide the text would be at fontSize with no scaling
-            val nominalWidth = font.getStringWidth(textBox.text) / 1000f * fontSize
-            val horizontalScaling = if (nominalWidth > 0f) (pdfRect.width / nominalWidth) * 100f else 100f
-            val baselineY = heightPoints - (textBox.lineBottom * scaleY) + fontSize * 0.2f
+            val nominalWidth = try {
+                font.getStringWidth(textBox.text) / 1000f * fontSize
+            } catch (_: Exception) {
+                textBox.text.length * fontSize * 0.5f
+            }
+            val horizontalScaling = if (nominalWidth > 0f)
+                (pdfRect.width / nominalWidth) * 100f
+            else 100f
 
-            contentStream.beginText()
-            contentStream.setFont(font, fontSize)
-            contentStream.setHorizontalScaling(horizontalScaling)
-            contentStream.setRenderingMode(RenderingMode.NEITHER)
-            contentStream.newLineAtOffset(pdfRect.x, baselineY)
-            contentStream.showText(textBox.text)
-            contentStream.endText()
+            val baselineY = pageHeight - (textBox.lineBottom * scaleY) + fontSize * 0.2f
+
+            val utf16Hex = textBox.text
+                .toByteArray(Charsets.UTF_16BE)
+                .joinToString("") { "%02X".format(it) }
+
+            sb.append("BT\n")
+            sb.append("/${fontResourceName.name} ${"%.2f".format(fontSize)} Tf\n")
+            sb.append("${"%.2f".format(horizontalScaling)} Tz\n")
+            sb.append("3 Tr\n")  // invisible
+            sb.append("${"%.3f".format(pdfRect.x)} ${"%.3f".format(baselineY)} Td\n")
+            sb.append("<$utf16Hex> Tj\n")
+            sb.append("ET\n")
         }
+
+        val textStream = PDStream(document)
+        textStream.createOutputStream().use { out ->
+            out.write(sb.toString().toByteArray(Charsets.US_ASCII))
+        }
+        val existingStreams = mutableListOf<PDStream>()
+        val iter = page.contentStreams
+        while (iter.hasNext()) {
+            existingStreams.add(iter.next())
+        }
+        val allStreams = existingStreams + textStream
+        val contentsArray = COSArray()
+        for (stream in allStreams) {
+            contentsArray.add(stream.cosObject)
+        }
+        page.cosObject.setItem(COSName.CONTENTS, contentsArray)
     }
+
+    private fun loadFont(document: PDDocument): PDType0Font =
+        assets.open("fonts/AND-Regular.otf").use { stream ->
+            PDType0Font.load(document, OTFParser().parse(stream ), true)
+        }
 }
 
 fun constrainToMaxFormat(widthMm: Double, heightMm: Double): Pair<Double, Double> {
