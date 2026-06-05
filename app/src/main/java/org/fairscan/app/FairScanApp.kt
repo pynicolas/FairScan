@@ -63,7 +63,7 @@ class AppContainer(context: Context) {
     val fileManager = FileManager(
         preparationDir,
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-        AndroidPdfWriter(ocrService)
+        AndroidPdfWriter(ocrService, context.assets)
     )
     val logRepository = LogRepository(File(context.filesDir, "logs.txt"))
     val logger = FileLogger(logRepository)
