@@ -9,6 +9,7 @@
     <string name="cancel">Zrušit</string>
     <string name="change_directory">Změnit složku</string>
     <string name="clear_text">Smazat text</string>
+    <string name="close">Zavřít</string>
     <string name="color_mode">Filtr</string>
     <string name="color_mode_auto">Automaticky</string>
     <string name="color_mode_color">Barva</string>
@@ -57,6 +58,13 @@
     <string name="save">Uložit</string>
     <string name="scan_button">Nové skenování</string>
     <string name="settings">Nastavení</string>
+    <string name="settings_ocr_add_language">Přidat jazyk</string>
+    <string name="settings_ocr_all_languages">Všechny jazyky</string>
+    <string name="settings_ocr_clean_up">Odstranit nepoužívané jazyky…</string>
+    <string name="settings_ocr_download_intro">Jazykové soubory jsou stahovány z oficiálního projektu Tesseract. Rozpoznávání textu zůstává zcela offline.</string>
+    <string name="settings_ocr_downloading">Stahování jazykového souboru</string>
+    <string name="settings_ocr_suggested">Doporučeno</string>
+    <string name="settings_section_ocr">Rozpoznávání textu</string>
     <string name="settings_section_scan">Skenování</string>
     <string name="settings_section_export">Export</string>
     <string name="share">Sdílet</string>
@@ -64,6 +72,8 @@
     <string name="storage_permission_denied">Nelze uložit soubor: oprávnění bylo odmítnuto</string>
     <string name="support">Podpora</string>
     <string name="support_last_image">Nahlásit problém s posledním zachyceným obrázkem</string>
+    <string name="text_recognition_disabled">Rozpoznávání textu: vypnuto</string>
+    <string name="text_recognition_enabled">Rozpoznávání textu: zapnuto</string>
     <string name="turn_off_torch">Vypnout svítilnu</string>
     <string name="turn_on_torch">Zapnout svítilnu</string>
     <string name="unknown_size">Neznámá velikost</string>

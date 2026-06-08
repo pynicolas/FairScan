@@ -9,6 +9,7 @@
     <string name="cancel">Abbrechen</string>
     <string name="change_directory">Ordner ändern</string>
     <string name="clear_text">Text löschen</string>
+    <string name="close">Schließen</string>
     <string name="color_mode">Filter</string>
     <string name="color_mode_auto">Automatisch</string>
     <string name="color_mode_color">Farbe</string>
@@ -57,6 +58,13 @@
     <string name="save">Speichern</string>
     <string name="scan_button">Neuer Scan</string>
     <string name="settings">Einstellungen</string>
+    <string name="settings_ocr_add_language">Sprache hinzufügen</string>
+    <string name="settings_ocr_all_languages">Alle Sprachen</string>
+    <string name="settings_ocr_clean_up">Nicht verwendete Sprachen bereinigen…</string>
+    <string name="settings_ocr_download_intro">Sprachdateien werden vom offiziellen Tesseract-Projekt heruntergeladen. Die Texterkennung bleibt vollständig offline.</string>
+    <string name="settings_ocr_downloading">Sprachdatei wird heruntergeladen</string>
+    <string name="settings_ocr_suggested">Empfohlen</string>
+    <string name="settings_section_ocr">Texterkennung</string>
     <string name="settings_section_scan">Scan</string>
     <string name="settings_section_export">Export</string>
     <string name="share">Teilen</string>
@@ -64,6 +72,8 @@
     <string name="storage_permission_denied">Datei kann nicht gespeichert werden: Berechtigung verweigert</string>
     <string name="support">Support</string>
     <string name="support_last_image">Problem mit dem zuletzt aufgenommenen Bild melden</string>
+    <string name="text_recognition_disabled">Texterkennung: deaktiviert</string>
+    <string name="text_recognition_enabled">Texterkennung: aktiviert</string>
     <string name="turn_off_torch">Taschenlampe ausschalten</string>
     <string name="turn_on_torch">Taschenlampe einschalten</string>
     <string name="unknown_size">Unbekannte Größe</string>

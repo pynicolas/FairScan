@@ -9,6 +9,7 @@
     <string name="cancel">Cancelar</string>
     <string name="change_directory">Alterar diretório</string>
     <string name="clear_text">Limpar texto</string>
+    <string name="close">Fechar</string>
     <string name="color_mode">Filtro</string>
     <string name="color_mode_auto">Automático</string>
     <string name="color_mode_color">Cor</string>
@@ -57,6 +58,13 @@
     <string name="save">Salvar</string>
     <string name="scan_button">Nova digitalização</string>
     <string name="settings">Configurações</string>
+    <string name="settings_ocr_add_language">Adicionar idioma</string>
+    <string name="settings_ocr_all_languages">Todos os idiomas</string>
+    <string name="settings_ocr_clean_up">Remover idiomas não utilizados…</string>
+    <string name="settings_ocr_download_intro">Os arquivos de idioma são baixados do projeto oficial Tesseract. O reconhecimento de texto permanece totalmente offline.</string>
+    <string name="settings_ocr_downloading">Baixando arquivo de idioma</string>
+    <string name="settings_ocr_suggested">Sugerido</string>
+    <string name="settings_section_ocr">Reconhecimento de texto</string>
     <string name="settings_section_scan">Digitalização</string>
     <string name="settings_section_export">Exportação</string>
     <string name="share">Compartilhar</string>
@@ -64,6 +72,8 @@
     <string name="storage_permission_denied">Não foi possível salvar o arquivo: permissão negada</string>
     <string name="support">Suporte</string>
     <string name="support_last_image">Relatar um problema com a última imagem capturada</string>
+    <string name="text_recognition_disabled">Reconhecimento de texto: desativado</string>
+    <string name="text_recognition_enabled">Reconhecimento de texto: ativado</string>
     <string name="turn_off_torch">Desligar lanterna</string>
     <string name="turn_on_torch">Ligar lanterna</string>
     <string name="unknown_size">Tamanho desconhecido</string>

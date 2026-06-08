@@ -9,6 +9,7 @@
     <string name="cancel">İptal</string>
     <string name="change_directory">Dizini değiştir</string>
     <string name="clear_text">Metni temizle</string>
+    <string name="close">Kapat</string>
     <string name="color_mode">Filtre</string>
     <string name="color_mode_auto">Otomatik</string>
     <string name="color_mode_color">Renkli</string>
@@ -57,6 +58,13 @@
     <string name="save">Kaydet</string>
     <string name="scan_button">Yeni Tarama</string>
     <string name="settings">Ayarlar</string>
+    <string name="settings_ocr_add_language">Dil ekle</string>
+    <string name="settings_ocr_all_languages">Tüm diller</string>
+    <string name="settings_ocr_clean_up">Kullanılmayan dilleri temizle…</string>
+    <string name="settings_ocr_download_intro">Dil dosyaları resmi Tesseract projesinden indirilir. Metin tanıma tamamen çevrimdışı olarak çalışır.</string>
+    <string name="settings_ocr_downloading">Dil dosyası indiriliyor</string>
+    <string name="settings_ocr_suggested">Önerilen</string>
+    <string name="settings_section_ocr">Metin tanıma</string>
     <string name="settings_section_scan">Tarama</string>
     <string name="settings_section_export">Dışa aktarma</string>
     <string name="share">Paylaş</string>
@@ -64,6 +72,8 @@
     <string name="storage_permission_denied">Dosya kaydedilemiyor: izin reddedildi</string>
     <string name="support">Destek</string>
     <string name="support_last_image">Son yakalanan görüntüyle ilgili bir sorunu bildir</string>
+    <string name="text_recognition_disabled">Metin tanıma: devre dışı</string>
+    <string name="text_recognition_enabled">Metin tanıma: etkin</string>
     <string name="turn_off_torch">El fenerini kapat</string>
     <string name="turn_on_torch">El fenerini aç</string>
     <string name="unknown_size">Bilinmeyen boyut</string>

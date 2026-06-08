@@ -9,6 +9,7 @@
     <string name="cancel">Avbryt</string>
     <string name="change_directory">Byt mapp</string>
     <string name="clear_text">Rensa text</string>
+    <string name="close">Stäng</string>
     <string name="color_mode">Filter</string>
     <string name="color_mode_auto">Automatiskt</string>
     <string name="color_mode_color">Färg</string>
@@ -57,6 +58,13 @@
     <string name="save">Spara</string>
     <string name="scan_button">Ny skanning</string>
     <string name="settings">Inställningar</string>
+    <string name="settings_ocr_add_language">Lägg till språk</string>
+    <string name="settings_ocr_all_languages">Alla språk</string>
+    <string name="settings_ocr_clean_up">Rensa oanvända språk…</string>
+    <string name="settings_ocr_download_intro">Språkfiler hämtas från det officiella Tesseract-projektet. Textigenkänning förblir helt offline.</string>
+    <string name="settings_ocr_downloading">Hämtar språkfil</string>
+    <string name="settings_ocr_suggested">Föreslagen</string>
+    <string name="settings_section_ocr">Textigenkänning</string>
     <string name="settings_section_scan">Skanning</string>
     <string name="settings_section_export">Export</string>
     <string name="share">Dela</string>
@@ -64,6 +72,8 @@
     <string name="storage_permission_denied">Det går inte att spara filen: behörighet nekades</string>
     <string name="support">Support</string>
     <string name="support_last_image">Rapportera ett problem med den senast tagna bilden</string>
+    <string name="text_recognition_disabled">Textigenkänning: inaktiverad</string>
+    <string name="text_recognition_enabled">Textigenkänning: aktiverad</string>
     <string name="turn_off_torch">Stäng av ficklampan</string>
     <string name="turn_on_torch">Tänd ficklampan</string>
     <string name="unknown_size">Okänd storlek</string>

@@ -25,9 +25,3 @@ import java.util.Date
 fun pageCountText(quantity: Int): String {
     return LocalResources.current.getQuantityString(R.plurals.page_count, quantity, quantity)
 }
-
-fun formatDate(timestamp: Long, context: Context): String {
-    val date = Date(timestamp)
-    return DateFormat.getMediumDateFormat(context).format(date) + " " +
-            DateFormat.getTimeFormat(context).format(date)
-}
