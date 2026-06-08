@@ -9,6 +9,7 @@
     <string name="cancel">Отмена</string>
     <string name="change_directory">Изменить папку</string>
     <string name="clear_text">Стереть текст</string>
+    <string name="close">Закрыть</string>
     <string name="color_mode">Фильтр</string>
     <string name="color_mode_auto">Автоматически</string>
     <string name="color_mode_color">Цвет</string>
@@ -57,6 +58,13 @@
     <string name="save">Сохранить</string>
     <string name="scan_button">Начать</string>
     <string name="settings">Настройки</string>
+    <string name="settings_ocr_add_language">Добавить язык</string>
+    <string name="settings_ocr_all_languages">Все языки</string>
+    <string name="settings_ocr_clean_up">Удалить неиспользуемые языки…</string>
+    <string name="settings_ocr_download_intro">Языковые файлы загружаются из официального проекта Tesseract. Распознавание текста остаётся полностью офлайн.</string>
+    <string name="settings_ocr_downloading">Загрузка языкового файла</string>
+    <string name="settings_ocr_suggested">Рекомендуется</string>
+    <string name="settings_section_ocr">Распознавание текста</string>
     <string name="settings_section_scan">Сканирование</string>
     <string name="settings_section_export">Экспорт</string>
     <string name="share">Поделиться</string>
@@ -64,6 +72,8 @@
     <string name="storage_permission_denied">Невозможно сохранить файл: доступ запрещён</string>
     <string name="support">Поддержка</string>
     <string name="support_last_image">Сообщить о проблеме с последним сделанным изображением</string>
+    <string name="text_recognition_disabled">Распознавание текста: отключено</string>
+    <string name="text_recognition_enabled">Распознавание текста: включено</string>
     <string name="turn_off_torch">Выключить фонарик</string>
     <string name="turn_on_torch">Включить фонарик</string>
     <string name="unknown_size">Неизвестный размер</string>

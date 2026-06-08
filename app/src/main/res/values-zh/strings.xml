@@ -9,6 +9,7 @@
     <string name="cancel">取消</string>
     <string name="change_directory">更改目录</string>
     <string name="clear_text">清除文字</string>
+    <string name="close">关闭</string>
     <string name="color_mode">滤镜</string>
     <string name="color_mode_auto">自动</string>
     <string name="color_mode_color">彩色</string>
@@ -57,6 +58,13 @@
     <string name="save">保存</string>
     <string name="scan_button">新建扫描</string>
     <string name="settings">设置</string>
+    <string name="settings_ocr_add_language">添加语言</string>
+    <string name="settings_ocr_all_languages">所有语言</string>
+    <string name="settings_ocr_clean_up">清理未使用的语言…</string>
+    <string name="settings_ocr_download_intro">语言文件从官方 Tesseract 项目下载。文本识别始终完全离线运行。</string>
+    <string name="settings_ocr_downloading">正在下载语言文件</string>
+    <string name="settings_ocr_suggested">推荐</string>
+    <string name="settings_section_ocr">文本识别</string>
     <string name="settings_section_scan">扫描</string>
     <string name="settings_section_export">导出</string>
     <string name="share">共享</string>
@@ -64,6 +72,8 @@
     <string name="storage_permission_denied">无法保存文件：权限被拒绝</string>
     <string name="support">支持</string>
     <string name="support_last_image">报告最近拍摄图像的问题</string>
+    <string name="text_recognition_disabled">文本识别：已禁用</string>
+    <string name="text_recognition_enabled">文本识别：已启用</string>
     <string name="turn_off_torch">关闭手电筒</string>
     <string name="turn_on_torch">打开手电筒</string>
     <string name="unknown_size">未知大小</string>

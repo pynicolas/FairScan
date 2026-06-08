@@ -10,6 +10,7 @@
     <string name="cancel">Cancel</string>
     <string name="change_directory">Change folder</string>
     <string name="clear_text">Clear text</string>
+    <string name="close">Close</string>
     <string name="color_mode">Filter</string>
     <string name="color_mode_auto">Automatic</string>
     <string name="color_mode_color">Color</string>
@@ -61,6 +62,13 @@
     <string name="save">Save</string>
     <string name="scan_button">New Scan</string>
     <string name="settings">Settings</string>
+    <string name="settings_ocr_add_language">Add language</string>
+    <string name="settings_ocr_all_languages">All languages</string>
+    <string name="settings_ocr_clean_up">Clean up unused languages…</string>
+    <string name="settings_ocr_download_intro">"Language files are downloaded from the official Tesseract project. Text recognition remains fully offline."</string>
+    <string name="settings_ocr_downloading">Downloading language file</string>
+    <string name="settings_ocr_suggested">Suggested</string>
+    <string name="settings_section_ocr">Text recognition</string>
     <string name="settings_section_scan">Scan</string>
     <string name="settings_section_export">Export</string>
     <string name="share">Share</string>
@@ -68,6 +76,8 @@
     <string name="storage_permission_denied">Cannot save file: permission was denied</string>
     <string name="support">Support</string>
     <string name="support_last_image">Report a problem with last captured image</string>
+    <string name="text_recognition_disabled">Text recognition: disabled</string>
+    <string name="text_recognition_enabled">Text recognition: enabled</string>
     <string name="turn_off_torch">Turn off torch</string>
     <string name="turn_on_torch">Turn on torch</string>
     <string name="unknown_size">Unknown size</string>

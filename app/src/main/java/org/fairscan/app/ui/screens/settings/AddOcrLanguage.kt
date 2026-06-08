@@ -43,8 +43,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import org.fairscan.app.R
 import org.fairscan.app.data.OcrLanguage
 
 @Composable
@@ -79,14 +81,15 @@ fun AddLanguageBottomSheetContent(
             .fillMaxWidth()
             .padding(start = 16.dp, end = 8.dp, top = 0.dp)
     ) {
-        Text( // TODO externalize
-            text = "Language files are downloaded from the official Tesseract project. " +
-                    "OCR processing remains fully offline.",
+        Text(
+            text = stringResource(R.string.settings_ocr_download_intro),
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f).padding(0.dp)
+            modifier = Modifier
+                .weight(1f)
+                .padding(0.dp)
         )
         IconButton(onDismiss) {
-            Icon(Icons.Default.Close, contentDescription = "Close") // TODO Externalize
+            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close))
         }
     }
 
@@ -94,14 +97,14 @@ fun AddLanguageBottomSheetContent(
         modifier = Modifier.fillMaxSize()
     ) {
         if (suggested != null) {
-            item { TextItem("Suggested") }
+            item { TextItem(stringResource(R.string.settings_ocr_suggested)) }
             item {
                 val displayName = suggested.displayName(locale)
                 LanguageItem(suggested, displayName, onInstallLanguage)
             }
             item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
         }
-        item { TextItem("All languages") }
+        item { TextItem(stringResource(R.string.settings_ocr_all_languages)) }
         items(
             availableLanguages.filter { (lang, _) -> lang != suggested },
             key = { (lang, _) -> lang.code }
@@ -114,7 +117,7 @@ fun AddLanguageBottomSheetContent(
 @Composable
 private fun TextItem(text: String) {
     Text(
-        text = text, // TODO externalize
+        text = text,
         style = MaterialTheme.typography.titleSmall,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
     )
@@ -142,7 +145,7 @@ fun OcrDownloadDialog(
 ) {
     AlertDialog(
         onDismissRequest = {}, // tapping outside the dialog should not cancel
-        title = { Text("Downloading OCR language") }, // TODO externalize
+        title = { Text(stringResource(R.string.settings_ocr_downloading)) },
         text = {
             Column{
                 Text(state.language.displayName(Locale.current.platformLocale))
@@ -168,7 +171,7 @@ fun OcrDownloadDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onCancel) { Text("Cancel") } // TODO externalize
+            TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
         },
         confirmButton = {}
     )

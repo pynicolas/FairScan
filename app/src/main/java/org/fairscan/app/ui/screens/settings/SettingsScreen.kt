@@ -209,7 +209,7 @@ private fun SettingsContent(
         HorizontalDivider()
         Spacer(Modifier.height(16.dp))
         Text(
-            "OCR", // TODO externalize
+            stringResource(R.string.settings_section_ocr),
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(Modifier.height(16.dp))
@@ -242,11 +242,11 @@ private fun SettingsContent(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(Modifier.width(4.dp))
-                Text("Add language") // TODO externalize
+                Text(stringResource(R.string.settings_ocr_add_language))
             }
             if (uiState.enabledOcrLanguages != uiState.installedOcrLanguages) {
                 TextButton(onClick = { showDeleteLanguageDialog.value = true }) {
-                    Text("Clean up inactive languages…") // TODO externalize
+                    Text(stringResource(R.string.settings_ocr_clean_up))
                 }
             }
         }

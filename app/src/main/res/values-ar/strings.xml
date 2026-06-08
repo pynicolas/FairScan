@@ -9,6 +9,7 @@
     <string name="cancel">ألغِ</string>
     <string name="change_directory">غيّر المجلد</string>
     <string name="clear_text">امحُ النص</string>
+    <string name="close">إغلاق</string>
     <string name="color_mode">فلتر</string>
     <string name="color_mode_auto">تلقائي</string>
     <string name="color_mode_color">ألوان</string>
@@ -57,6 +58,13 @@
     <string name="save">احفظ</string>
     <string name="scan_button">مسح جديد</string>
     <string name="settings">الإعدادات</string>
+    <string name="settings_ocr_add_language">إضافة لغة</string>
+    <string name="settings_ocr_all_languages">جميع اللغات</string>
+    <string name="settings_ocr_clean_up">تنظيف اللغات غير المستخدمة…</string>
+    <string name="settings_ocr_download_intro">يتم تنزيل ملفات اللغة من مشروع Tesseract الرسمي. تبقى عملية التعرّف على النصوص دون اتصال بالإنترنت بالكامل.</string>
+    <string name="settings_ocr_downloading">جارٍ تنزيل ملف اللغة</string>
+    <string name="settings_ocr_suggested">مقترح</string>
+    <string name="settings_section_ocr">التعرّف على النصوص</string>
     <string name="settings_section_scan">المسح</string>
     <string name="settings_section_export">التصدير</string>
     <string name="share">شارك</string>
@@ -64,6 +72,8 @@
     <string name="storage_permission_denied">تعذر حفظ الملف: رُفض الإذن</string>
     <string name="support">المساعدة</string>
     <string name="support_last_image">أبلِغ عن مشكلة في آخر صورة مُلتقطَة </string>
+    <string name="text_recognition_disabled">التعرّف على النصوص: معطّل</string>
+    <string name="text_recognition_enabled">التعرّف على النصوص: مفعّل</string>
     <string name="turn_off_torch">أطفئ الكشاف</string>
     <string name="turn_on_torch">شغّل الكشاف</string>
     <string name="unknown_size">حجم مجهول</string>

@@ -286,8 +286,10 @@ private fun PdfInfos(
 
             uiState.ocrActivation?.let { activated ->
                 Text(
-                    // TODO externalize
-                    if (activated) "Text recognition: enabled" else "Text recognition: disabled",
+                    if (activated)
+                        stringResource(R.string.text_recognition_enabled)
+                    else
+                        stringResource(R.string.text_recognition_disabled),
                     style = MaterialTheme.typography.bodySmall,
                     )
             }
