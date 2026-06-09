@@ -18,13 +18,16 @@ import android.content.res.AssetManager
 import android.graphics.Bitmap
 import com.tom_roush.fontbox.ttf.OTFParser
 import com.tom_roush.pdfbox.cos.COSArray
+import com.tom_roush.pdfbox.cos.COSDictionary
 import com.tom_roush.pdfbox.cos.COSName
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream.AppendMode
+import com.tom_roush.pdfbox.pdmodel.PDResources
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.common.PDStream
+import com.tom_roush.pdfbox.pdmodel.font.PDFontDescriptor
 import com.tom_roush.pdfbox.pdmodel.font.PDType0Font
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
 import org.fairscan.app.BuildConfig
@@ -33,11 +36,16 @@ import org.fairscan.app.domain.OcrService
 import org.fairscan.app.domain.PageToExport
 import org.fairscan.imageprocessing.EstimatedDimensions
 import org.fairscan.imageprocessing.OcrCoordinateConverter
+import org.fairscan.imageprocessing.OcrTextBox
 import org.fairscan.imageprocessing.PaperFormats
 import java.io.OutputStream
 import java.util.Calendar
+import java.util.Locale
 
 class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : PdfWriter {
+
+    private val ocrLayer = TesseractStyleOcrLayer(assets)
+
     override suspend fun writePdfFromJpegs(
         pages: List<PageToExport>,
         outputStream: OutputStream,
@@ -47,7 +55,6 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
         doc.documentInformation.creationDate = Calendar.getInstance()
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
-            val font = loadFont(document)
             for ((index, page) in pages.withIndex()) {
                 val jpeg = page.jpeg.get()
                 val image = JPEGFactory.createFromByteArray(document, jpeg.bytes)
@@ -78,7 +85,16 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
                 val contentStream = PDPageContentStream(document, page, AppendMode.OVERWRITE, false)
                 contentStream.drawImage(image, 0f, 0f, widthPoints, heightPoints)
 
-                createText(jpeg.toBitmap(), widthPoints, heightPoints, page, document, font)
+                val bitmap = jpeg.toBitmap()
+                val ocr = ocrService.runOcr(bitmap)
+                ocrLayer.addToPage(
+                    document,
+                    page,
+                    ocr,
+                    bitmap.width,
+                    bitmap.height,
+                    widthPoints,
+                    heightPoints)
 
                 contentStream.close()
 
@@ -88,77 +104,6 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
             document.save(outputStream)
         }
     }
-
-    private suspend fun createText(
-        bitmap: Bitmap,
-        pageWidth: Float,
-        pageHeight: Float,
-        page: PDPage,
-        document: PDDocument,
-        font: PDType0Font,
-    ) {
-        val ocr = ocrService.runOcr(bitmap)
-        if (ocr.isEmpty()) return
-
-        val fontResourceName = page.resources.add(font)
-        val ocrConverter = OcrCoordinateConverter(
-            imageWidth = bitmap.width,
-            imageHeight = bitmap.height,
-            pageWidth = pageWidth,
-            pageHeight = pageHeight
-        )
-
-        val sb = StringBuilder()
-        val scaleY = pageHeight / bitmap.height
-
-        for (textBox in ocr) {
-            val pdfRect = ocrConverter.convert(textBox.box)
-            val fontSize = textBox.lineHeight * scaleY * 0.8f
-            val nominalWidth = try {
-                font.getStringWidth(textBox.text) / 1000f * fontSize
-            } catch (_: Exception) {
-                textBox.text.length * fontSize * 0.5f
-            }
-            val horizontalScaling = if (nominalWidth > 0f)
-                (pdfRect.width / nominalWidth) * 100f
-            else 100f
-
-            val baselineY = pageHeight - (textBox.lineBottom * scaleY) + fontSize * 0.2f
-
-            val utf16Hex = textBox.text
-                .toByteArray(Charsets.UTF_16BE)
-                .joinToString("") { "%02X".format(it) }
-
-            sb.append("BT\n")
-            sb.append("/${fontResourceName.name} ${"%.2f".format(fontSize)} Tf\n")
-            sb.append("${"%.2f".format(horizontalScaling)} Tz\n")
-            sb.append("3 Tr\n")  // invisible
-            sb.append("${"%.3f".format(pdfRect.x)} ${"%.3f".format(baselineY)} Td\n")
-            sb.append("<$utf16Hex> Tj\n")
-            sb.append("ET\n")
-        }
-
-        val textStream = PDStream(document)
-        textStream.createOutputStream().use { out ->
-            out.write(sb.toString().toByteArray(Charsets.US_ASCII))
-        }
-        val existingStreams = mutableListOf<PDStream>()
-        val iter = page.contentStreams
-        while (iter.hasNext()) {
-            existingStreams.add(iter.next())
-        }
-        val allStreams = existingStreams + textStream
-        val contentsArray = COSArray()
-        for (stream in allStreams) {
-            contentsArray.add(stream.cosObject)
-        }
-        page.cosObject.setItem(COSName.CONTENTS, contentsArray)
-    }
-
-    private fun loadFont(document: PDDocument): PDType0Font =
-        assets.open("fonts/AND-Regular.otf").use { stream ->
-            PDType0Font.load(document, OTFParser().parse(stream ), true)
-        }
 }
 
 fun constrainToMaxFormat(widthMm: Double, heightMm: Double): Pair<Double, Double> {
@@ -171,4 +116,171 @@ fun constrainToMaxFormat(widthMm: Double, heightMm: Double): Pair<Double, Double
         1.0
     )
     return widthMm * scale to heightMm * scale
+}
+
+// Adapted from https://github.com/tesseract-ocr/tesseract/blob/main/src/api/pdfrenderer.cpp
+class TesseractStyleOcrLayer(private val assets: AssetManager) {
+
+    private val fontBytes: ByteArray by lazy {
+        assets.open("fonts/GlyphLessFont.ttf").readBytes()
+    }
+
+    private val cidToGidMap: ByteArray by lazy {
+        ByteArray(65536 * 2) { i -> if (i % 2 == 0) 0x00.toByte() else 0x01.toByte() }
+    }
+
+    fun addToPage(
+        document: PDDocument,
+        page: PDPage,
+        ocr: List<OcrTextBox>,
+        imageWidth: Int,
+        imageHeight: Int,
+        pageWidth: Float,
+        pageHeight: Float,
+    ) {
+        if (ocr.isEmpty()) return
+
+        // -- Object 1 : embedded TTF --
+        val fontFileStream = PDStream(document)
+        fontFileStream.createOutputStream().use { it.write(fontBytes) }
+        fontFileStream.cosObject.setInt(COSName.LENGTH1, fontBytes.size)
+
+        // -- Object 2 : CIDToGIDMap stream --
+        val cidToGidStream = PDStream(document)
+        cidToGidStream.createOutputStream(COSName.FLATE_DECODE).use {
+            it.write(cidToGidMap)
+        }
+
+        // -- Object 3 : FontDescriptor --
+        val fontDescriptor = PDFontDescriptor(COSDictionary())
+        fontDescriptor.fontName = "GlyphLessFont"
+        fontDescriptor.flags = 5
+        fontDescriptor.fontBoundingBox = PDRectangle(0f, 0f, 500f, 750f)
+        fontDescriptor.italicAngle = 0f
+        fontDescriptor.ascent = 750f
+        fontDescriptor.descent = 0f
+        fontDescriptor.capHeight = 750f
+        fontDescriptor.stemV = 80f
+        fontDescriptor.cosObject.setItem(COSName.FONT_FILE2, fontFileStream)
+
+        // -- Object 4 : CIDFont descendant --
+        val cidFont = COSDictionary()
+        cidFont.setName(COSName.TYPE, "Font")
+        cidFont.setName(COSName.SUBTYPE, "CIDFontType2")
+        cidFont.setName(COSName.BASE_FONT, "GlyphLessFont")
+        val cidSystemInfo = COSDictionary()
+        cidSystemInfo.setString(COSName.getPDFName("Registry"), "Adobe")
+        cidSystemInfo.setString(COSName.getPDFName("Ordering"), "Identity")
+        cidSystemInfo.setInt(COSName.getPDFName("Supplement"), 0)
+        cidFont.setItem(COSName.getPDFName("CIDSystemInfo"), cidSystemInfo)
+        cidFont.setItem(COSName.FONT_DESC, fontDescriptor)
+        cidFont.setInt(COSName.getPDFName("DW"), 500)
+        cidFont.setItem(COSName.getPDFName("CIDToGIDMap"), cidToGidStream)
+
+        // -- Object 5 : ToUnicode CMap --
+        val toUnicode = buildToUnicodeCMap()
+        val toUnicodeStream = PDStream(document)
+        toUnicodeStream.createOutputStream().use {
+            it.write(toUnicode.toByteArray(Charsets.US_ASCII))
+        }
+
+        // -- Object 6 : Font Type0 --
+        val fontDict = COSDictionary()
+        fontDict.setName(COSName.TYPE, "Font")
+        fontDict.setName(COSName.SUBTYPE, "Type0")
+        fontDict.setName(COSName.BASE_FONT, "GlyphLessFont")
+        fontDict.setName(COSName.ENCODING, "Identity-H")
+        val descendants = COSArray()
+        descendants.add(cidFont)
+        fontDict.setItem(COSName.DESCENDANT_FONTS, descendants)
+        fontDict.setItem(COSName.TO_UNICODE, toUnicodeStream)
+
+        val resources = page.resources ?: PDResources().also { page.resources = it }
+        val fontResources = resources.cosObject
+            .getDictionaryObject(COSName.FONT) as? COSDictionary
+            ?: COSDictionary().also {
+                resources.cosObject.setItem(COSName.FONT, it)
+            }
+        fontResources.setItem(COSName.getPDFName("F1"), fontDict)
+
+        // -- Text stream --
+        val textStream = buildTextStream(ocr, imageWidth, imageHeight, pageWidth, pageHeight)
+        val pdTextStream = PDStream(document)
+        pdTextStream.createOutputStream(COSName.FLATE_DECODE).use {
+            it.write(textStream.toByteArray(Charsets.US_ASCII))
+        }
+
+        // Add to page
+        val contentsArray = COSArray()
+        val iter = page.contentStreams
+        while (iter.hasNext()) contentsArray.add(iter.next().cosObject)
+        contentsArray.add(pdTextStream.cosObject)
+        page.cosObject.setItem(COSName.CONTENTS, contentsArray)
+    }
+
+    private fun buildToUnicodeCMap(): String = buildString {
+        append("/CIDInit /ProcSet findresource begin\n")
+        append("12 dict begin\n")
+        append("begincmap\n")
+        append("/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n")
+        append("/CMapName /Adobe-Identify-UCS def\n")
+        append("/CMapType 2 def\n")
+        append("1 begincodespacerange\n")
+        append("<0000> <FFFF>\n")
+        append("endcodespacerange\n")
+        append("1 beginbfrange\n")
+        append("<0000> <FFFF> <0000>\n")
+        append("endbfrange\n")
+        append("endcmap\n")
+        append("CMapName currentdict /CMap defineresource pop\n")
+        append("end\nend\n")
+    }
+
+    private fun buildTextStream(
+        ocr: List<OcrTextBox>,
+        imageWidth: Int,
+        imageHeight: Int,
+        pageWidth: Float,
+        pageHeight: Float,
+    ): String {
+        val scaleX = pageWidth / imageWidth
+        val scaleY = pageHeight / imageHeight
+        val sb = StringBuilder()
+
+        for (textBox in ocr) {
+            val x = textBox.box.left * scaleX
+            val wordWidth = textBox.box.width * scaleX
+            val fontSize = textBox.lineHeight * scaleY * 0.8f
+            // nominal width: fontSize / kCharWidth (Tesseract convention)
+            val nominalWidth = textBox.text.length * fontSize / 2f
+            val hScale = if (nominalWidth > 0f) (wordWidth / nominalWidth) * 100f else 100f
+            val baselineY = pageHeight - (textBox.lineBottom * scaleY) + fontSize * 0.2f
+
+            val utf16hex = buildString {
+                textBox.text.codePoints().forEach { cp ->
+                    append(codepointToUtf16beHex(cp))
+                }
+            }
+
+            sb.append("BT\n")
+            sb.append(String.format(Locale.US, "/F1 %.3f Tf\n", fontSize))
+            sb.append(String.format(Locale.US,"%.3f Tz\n", hScale))
+            sb.append("3 Tr\n")
+            sb.append(String.format(Locale.US,"%.3f %.3f Td\n", x, baselineY))
+            sb.append("<${utf16hex}0020> Tj\n")
+            sb.append("ET\n")
+        }
+        return sb.toString()
+    }
+
+    private fun codepointToUtf16beHex(cp: Int): String {
+        return if (cp < 0x10000) {
+            "%04X".format(cp)
+        } else {
+            val a = cp - 0x10000
+            val high = (a shr 10) + 0xD800
+            val low = (a and 0x3FF) + 0xDC00
+            "%04X%04X".format(high, low)
+        }
+    }
 }
