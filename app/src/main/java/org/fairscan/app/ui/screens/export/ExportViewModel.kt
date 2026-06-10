@@ -77,15 +77,16 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 
     private suspend fun generatePdf(
         exportQuality: ExportQuality,
+        disableOcr: Boolean,
         onProgress: (Int) -> Unit,
     ): ExportResult.Pdf = withContext(Dispatchers.IO) {
         val pageToExports = pagesToExport(imageRepository, exportQuality)
-        val pdf = fileManager.generatePdf(pageToExports, onProgress)
+        val pdf = fileManager.generatePdf(pageToExports, disableOcr, onProgress)
         return@withContext ExportResult.Pdf(pdf.file, pdf.sizeInBytes, pdf.pageCount)
     }
 
     suspend fun generatePdfForExternalCall(): ExportResult.Pdf {
-        val pdf = generatePdf(ExportQuality.BALANCED) {}
+        val pdf = generatePdf(ExportQuality.BALANCED, true) {}
         val sourceFile = pdf.file
         val targetFile = File(sourceFile.parentFile, defaultFilename() + ".pdf")
         if (sourceFile.absolutePath == targetFile.absolutePath) return pdf
@@ -175,7 +176,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                     val result = if (exportFormat == ExportFormat.JPEG) {
                         generateJpegs(exportQuality, onProgress)
                     } else {
-                        generatePdf(exportQuality, onProgress)
+                        generatePdf(exportQuality, false, onProgress)
                     }
                     _uiState.update { it.copy(result = result) }
                     val t2 = System.currentTimeMillis()
