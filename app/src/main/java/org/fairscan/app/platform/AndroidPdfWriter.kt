@@ -15,8 +15,6 @@
 package org.fairscan.app.platform
 
 import android.content.res.AssetManager
-import android.graphics.Bitmap
-import com.tom_roush.fontbox.ttf.OTFParser
 import com.tom_roush.pdfbox.cos.COSArray
 import com.tom_roush.pdfbox.cos.COSDictionary
 import com.tom_roush.pdfbox.cos.COSName
@@ -28,14 +26,12 @@ import com.tom_roush.pdfbox.pdmodel.PDResources
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.common.PDStream
 import com.tom_roush.pdfbox.pdmodel.font.PDFontDescriptor
-import com.tom_roush.pdfbox.pdmodel.font.PDType0Font
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
 import org.fairscan.app.BuildConfig
 import org.fairscan.app.data.PdfWriter
 import org.fairscan.app.domain.OcrService
 import org.fairscan.app.domain.PageToExport
 import org.fairscan.imageprocessing.EstimatedDimensions
-import org.fairscan.imageprocessing.OcrCoordinateConverter
 import org.fairscan.imageprocessing.OcrTextBox
 import org.fairscan.imageprocessing.PaperFormats
 import java.io.OutputStream
@@ -43,8 +39,6 @@ import java.util.Calendar
 import java.util.Locale
 
 class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : PdfWriter {
-
-    private val ocrLayer = TesseractStyleOcrLayer(assets)
 
     override suspend fun writePdfFromJpegs(
         pages: List<PageToExport>,
@@ -55,6 +49,7 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
         doc.documentInformation.creationDate = Calendar.getInstance()
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
+            val ocrDocument = OcrDocument(document, assets)
             for ((index, page) in pages.withIndex()) {
                 val jpeg = page.jpeg.get()
                 val image = JPEGFactory.createFromByteArray(document, jpeg.bytes)
@@ -86,16 +81,14 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
                 contentStream.drawImage(image, 0f, 0f, widthPoints, heightPoints)
 
                 val bitmap = jpeg.toBitmap()
-                val ocr = ocrService.runOcr(bitmap)
-                ocrLayer.addToPage(
-                    document,
-                    page,
-                    ocr,
+                val ocrTextBoxes = ocrService.runOcr(bitmap)
+                val pdfPageDimensions = PageDimensions(
                     bitmap.width,
                     bitmap.height,
                     widthPoints,
-                    heightPoints)
-
+                    heightPoints
+                )
+                ocrDocument.addPage(page, ocrTextBoxes, pdfPageDimensions)
                 contentStream.close()
 
                 onProgress(index + 1)
@@ -118,9 +111,18 @@ fun constrainToMaxFormat(widthMm: Double, heightMm: Double): Pair<Double, Double
     return widthMm * scale to heightMm * scale
 }
 
-// Adapted from https://github.com/tesseract-ocr/tesseract/blob/main/src/api/pdfrenderer.cpp
-class TesseractStyleOcrLayer(private val assets: AssetManager) {
+data class PageDimensions(
+    val imageWidth: Int,
+    val imageHeight: Int,
+    val pageWidth: Float,
+    val pageHeight: Float,
+)
 
+// Adapted from https://github.com/tesseract-ocr/tesseract/blob/main/src/api/pdfrenderer.cpp
+class OcrDocument(
+    private val document: PDDocument,
+    private val assets: AssetManager,
+) {
     private val fontBytes: ByteArray by lazy {
         assets.open("fonts/GlyphLessFont.ttf").readBytes()
     }
@@ -129,16 +131,11 @@ class TesseractStyleOcrLayer(private val assets: AssetManager) {
         ByteArray(65536 * 2) { i -> if (i % 2 == 0) 0x00.toByte() else 0x01.toByte() }
     }
 
-    fun addToPage(
-        document: PDDocument,
-        page: PDPage,
-        ocr: List<OcrTextBox>,
-        imageWidth: Int,
-        imageHeight: Int,
-        pageWidth: Float,
-        pageHeight: Float,
-    ) {
-        if (ocr.isEmpty()) return
+    private var fontDict: COSDictionary? = null
+
+    fun ensureResourcesAreCreated() {
+        if (fontDict != null)
+            return
 
         // -- Object 1 : embedded TTF --
         val fontFileStream = PDStream(document)
@@ -194,28 +191,7 @@ class TesseractStyleOcrLayer(private val assets: AssetManager) {
         descendants.add(cidFont)
         fontDict.setItem(COSName.DESCENDANT_FONTS, descendants)
         fontDict.setItem(COSName.TO_UNICODE, toUnicodeStream)
-
-        val resources = page.resources ?: PDResources().also { page.resources = it }
-        val fontResources = resources.cosObject
-            .getDictionaryObject(COSName.FONT) as? COSDictionary
-            ?: COSDictionary().also {
-                resources.cosObject.setItem(COSName.FONT, it)
-            }
-        fontResources.setItem(COSName.getPDFName("F1"), fontDict)
-
-        // -- Text stream --
-        val textStream = buildTextStream(ocr, imageWidth, imageHeight, pageWidth, pageHeight)
-        val pdTextStream = PDStream(document)
-        pdTextStream.createOutputStream(COSName.FLATE_DECODE).use {
-            it.write(textStream.toByteArray(Charsets.US_ASCII))
-        }
-
-        // Add to page
-        val contentsArray = COSArray()
-        val iter = page.contentStreams
-        while (iter.hasNext()) contentsArray.add(iter.next().cosObject)
-        contentsArray.add(pdTextStream.cosObject)
-        page.cosObject.setItem(COSName.CONTENTS, contentsArray)
+        this.fontDict = fontDict
     }
 
     private fun buildToUnicodeCMap(): String = buildString {
@@ -236,25 +212,51 @@ class TesseractStyleOcrLayer(private val assets: AssetManager) {
         append("end\nend\n")
     }
 
+    fun addPage(
+        page: PDPage,
+        ocrTextBoxes: List<OcrTextBox>,
+        dimensions: PageDimensions,
+    ) {
+        if (ocrTextBoxes.isEmpty()) return
+
+        ensureResourcesAreCreated()
+        val resources = page.resources ?: PDResources().also { page.resources = it }
+        val fontResources = resources.cosObject
+            .getDictionaryObject(COSName.FONT) as? COSDictionary
+            ?: COSDictionary().also {
+                resources.cosObject.setItem(COSName.FONT, it)
+            }
+        fontResources.setItem(COSName.getPDFName("F1"), fontDict)
+
+        val textStream = buildTextStream(ocrTextBoxes, dimensions)
+        val pdTextStream = PDStream(document)
+        pdTextStream.createOutputStream(COSName.FLATE_DECODE).use {
+            it.write(textStream.toByteArray(Charsets.US_ASCII))
+        }
+
+        val contentsArray = COSArray()
+        val iter = page.contentStreams
+        while (iter.hasNext()) contentsArray.add(iter.next().cosObject)
+        contentsArray.add(pdTextStream.cosObject)
+        page.cosObject.setItem(COSName.CONTENTS, contentsArray)
+    }
+
     private fun buildTextStream(
-        ocr: List<OcrTextBox>,
-        imageWidth: Int,
-        imageHeight: Int,
-        pageWidth: Float,
-        pageHeight: Float,
+        ocrTextBoxes: List<OcrTextBox>,
+        dimensions: PageDimensions,
     ): String {
-        val scaleX = pageWidth / imageWidth
-        val scaleY = pageHeight / imageHeight
+        val scaleX = dimensions.pageWidth / dimensions.imageWidth
+        val scaleY = dimensions.pageHeight / dimensions.imageHeight
         val sb = StringBuilder()
 
-        for (textBox in ocr) {
+        for (textBox in ocrTextBoxes) {
             val x = textBox.box.left * scaleX
             val wordWidth = textBox.box.width * scaleX
             val fontSize = textBox.lineHeight * scaleY * 0.8f
             // nominal width: fontSize / kCharWidth (Tesseract convention)
             val nominalWidth = textBox.text.length * fontSize / 2f
             val hScale = if (nominalWidth > 0f) (wordWidth / nominalWidth) * 100f else 100f
-            val baselineY = pageHeight - (textBox.lineBottom * scaleY) + fontSize * 0.2f
+            val baselineY = dimensions.pageHeight - (textBox.lineBottom * scaleY) + fontSize * 0.2f
 
             val utf16hex = buildString {
                 textBox.text.codePoints().forEach { cp ->
