@@ -43,6 +43,7 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
     override suspend fun writePdfFromJpegs(
         pages: List<PageToExport>,
         outputStream: OutputStream,
+        disableOcr: Boolean,
         onProgress: (Int) -> Unit,
     ) {
         val doc = PDDocument()
@@ -80,15 +81,17 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
                 val contentStream = PDPageContentStream(document, page, AppendMode.OVERWRITE, false)
                 contentStream.drawImage(image, 0f, 0f, widthPoints, heightPoints)
 
-                val bitmap = jpeg.toBitmap()
-                val ocrTextBoxes = ocrService.runOcr(bitmap)
-                val pdfPageDimensions = PageDimensions(
-                    bitmap.width,
-                    bitmap.height,
-                    widthPoints,
-                    heightPoints
-                )
-                ocrDocument.addPage(page, ocrTextBoxes, pdfPageDimensions)
+                if (!disableOcr) {
+                    val bitmap = jpeg.toBitmap()
+                    val ocrTextBoxes = ocrService.runOcr(bitmap)
+                    val pdfPageDimensions = PageDimensions(
+                        bitmap.width,
+                        bitmap.height,
+                        widthPoints,
+                        heightPoints
+                    )
+                    ocrDocument.addPage(page, ocrTextBoxes, pdfPageDimensions)
+                }
                 contentStream.close()
 
                 onProgress(index + 1)
