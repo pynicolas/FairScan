@@ -61,6 +61,7 @@
     <string name="settings_ocr_add_language">Ajouter une langue</string>
     <string name="settings_ocr_all_languages">Toutes les langues</string>
     <string name="settings_ocr_clean_up">Supprimer les langues inutilisées…</string>
+    <string name="settings_ocr_download_error">Le téléchargement a échoué. Vérifiez votre connexion Internet.</string>
     <string name="settings_ocr_download_intro">Les fichiers de langue sont téléchargés depuis le projet officiel Tesseract. La reconnaissance de texte reste entièrement hors ligne.</string>
     <string name="settings_ocr_downloading">Téléchargement du fichier de langue</string>
     <string name="settings_ocr_suggested">Suggéré</string>

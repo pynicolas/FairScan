@@ -65,6 +65,7 @@
     <string name="settings_ocr_add_language">Add language</string>
     <string name="settings_ocr_all_languages">All languages</string>
     <string name="settings_ocr_clean_up">Clean up unused languages…</string>
+    <string name="settings_ocr_download_error">Download failed. Check your internet connection.</string>
     <string name="settings_ocr_download_intro">"Language files are downloaded from the official Tesseract project. Text recognition remains fully offline."</string>
     <string name="settings_ocr_downloading">Downloading language file</string>
     <string name="settings_ocr_suggested">Suggested</string>

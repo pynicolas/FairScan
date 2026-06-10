@@ -16,6 +16,7 @@ package org.fairscan.app.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -47,12 +48,14 @@ data class OcrDownloadUiState(
     val language: OcrLanguage,
     val downloadedBytes: Long = 0,
     val totalBytes: Long? = null,
+    val failed: Boolean = false,
 )
 
 class SettingsViewModel(container: AppContainer) : ViewModel() {
 
     private val repo = container.settingsRepository
     private val ocrLanguageRepo = container.ocrLanguageRepository
+    private val logger = container.logger
 
     private val _installedLanguages = MutableStateFlow<Set<String>>(emptySet())
     private val _ocrDownload = MutableStateFlow<OcrDownloadUiState?>(null)
@@ -148,14 +151,19 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
                 }
                 ocrLanguageRepo.setLanguageEnabled(code, true)
                 refreshInstalledLanguages()
-            } finally {
                 _ocrDownload.value = null
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                logger.e("OcrDownload", "Download failed for $code", e)
+                _ocrDownload.value = _ocrDownload.value?.copy(failed = true)
             }
         }
     }
 
     fun cancelOcrDownload() {
         downloadJob?.cancel()
+        _ocrDownload.value = null
     }
 
     fun setOcrLanguageEnabled(code: String, enabled: Boolean) {

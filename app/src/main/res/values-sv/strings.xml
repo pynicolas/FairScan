@@ -61,6 +61,7 @@
     <string name="settings_ocr_add_language">Lägg till språk</string>
     <string name="settings_ocr_all_languages">Alla språk</string>
     <string name="settings_ocr_clean_up">Rensa oanvända språk…</string>
+    <string name="settings_ocr_download_error">Nedladdningen misslyckades. Kontrollera din internetanslutning.</string>
     <string name="settings_ocr_download_intro">Språkfiler hämtas från det officiella Tesseract-projektet. Textigenkänning förblir helt offline.</string>
     <string name="settings_ocr_downloading">Hämtar språkfil</string>
     <string name="settings_ocr_suggested">Föreslagen</string>
