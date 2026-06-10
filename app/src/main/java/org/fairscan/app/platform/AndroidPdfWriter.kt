@@ -124,7 +124,7 @@ class OcrDocument(
     private val assets: AssetManager,
 ) {
     private val fontBytes: ByteArray by lazy {
-        assets.open("fonts/GlyphLessFont.ttf").readBytes()
+        assets.open("fonts/TesseractGlyphLessFont.ttf").readBytes()
     }
 
     private val cidToGidMap: ByteArray by lazy {
