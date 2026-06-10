@@ -145,33 +145,52 @@ fun OcrDownloadDialog(
 ) {
     AlertDialog(
         onDismissRequest = {}, // tapping outside the dialog should not cancel
-        title = { Text(stringResource(R.string.settings_ocr_downloading)) },
+        title = {
+            Text(
+                stringResource(R.string.settings_ocr_downloading),
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
         text = {
-            Column{
-                Text(state.language.displayName(Locale.current.platformLocale))
-                Spacer(Modifier.height(16.dp))
+            if (state.failed) {
+                Text(
+                    text = stringResource(R.string.settings_ocr_download_error),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            } else {
+                Column {
+                    Text(state.language.displayName(Locale.current.platformLocale))
+                    Spacer(Modifier.height(16.dp))
 
-                val progress =
-                    state.totalBytes?.let { total ->
-                        state.downloadedBytes.toFloat() / total
+                    val progress =
+                        state.totalBytes?.let { total ->
+                            state.downloadedBytes.toFloat() / total
+                        }
+
+                    if (progress != null) {
+                        LinearProgressIndicator(progress = { progress }, Modifier.fillMaxWidth())
+                    } else {
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
                     }
 
-                if (progress != null) {
-                    LinearProgressIndicator(progress = { progress }, Modifier.fillMaxWidth())
-                } else {
-                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(12.dp))
+
+                    Text(
+                        buildProgressText(
+                            state.downloadedBytes,
+                            state.totalBytes,
+                            LocalContext.current
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
                 }
-
-                Spacer(Modifier.height(12.dp))
-
-                Text(
-                    buildProgressText(state.downloadedBytes, state.totalBytes, LocalContext.current),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
             }
         },
         dismissButton = {
-            TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
+            TextButton(onClick = onCancel) {
+                Text(stringResource(if (state.failed) R.string.close else R.string.cancel))
+            }
         },
         confirmButton = {}
     )

@@ -365,6 +365,26 @@ fun SettingsScreenPreviewWithDir() {
     )
 }
 
+@Preview
+@Composable
+fun SettingsScreenPreviewWithDownloadDialog() {
+    SettingsScreenPreview(
+        SettingsUiState(currentDownload =
+            OcrDownloadUiState(OcrLanguage("eng"), 500_000, 1_200_000)
+        )
+    )
+}
+
+@Preview
+@Composable
+fun SettingsScreenPreviewWithDownloadError() {
+    SettingsScreenPreview(
+        SettingsUiState(currentDownload =
+            OcrDownloadUiState(OcrLanguage("eng"), failed = true)
+        )
+    )
+}
+
 @Composable
 fun SettingsScreenPreview(uiState: SettingsUiState) {
     FairScanTheme {

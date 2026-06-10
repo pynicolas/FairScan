@@ -61,6 +61,7 @@
     <string name="settings_ocr_add_language">Přidat jazyk</string>
     <string name="settings_ocr_all_languages">Všechny jazyky</string>
     <string name="settings_ocr_clean_up">Odstranit nepoužívané jazyky…</string>
+    <string name="settings_ocr_download_error">Stahování se nezdařilo. Zkontrolujte své internetové připojení.</string>
     <string name="settings_ocr_download_intro">Jazykové soubory jsou stahovány z oficiálního projektu Tesseract. Rozpoznávání textu zůstává zcela offline.</string>
     <string name="settings_ocr_downloading">Stahování jazykového souboru</string>
     <string name="settings_ocr_suggested">Doporučeno</string>

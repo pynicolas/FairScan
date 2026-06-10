@@ -61,6 +61,7 @@
     <string name="settings_ocr_add_language">新增語言</string>
     <string name="settings_ocr_all_languages">所有語言</string>
     <string name="settings_ocr_clean_up">清理未使用的語言…</string>
+    <string name="settings_ocr_download_error">下載失敗。請檢查您的網路連線。</string>
     <string name="settings_ocr_download_intro">語言檔案會從官方 Tesseract 專案下載。文字辨識始終完全離線運作。</string>
     <string name="settings_ocr_downloading">正在下載語言檔案</string>
     <string name="settings_ocr_suggested">推薦</string>

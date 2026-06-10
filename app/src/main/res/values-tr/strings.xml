@@ -61,6 +61,7 @@
     <string name="settings_ocr_add_language">Dil ekle</string>
     <string name="settings_ocr_all_languages">Tüm diller</string>
     <string name="settings_ocr_clean_up">Kullanılmayan dilleri temizle…</string>
+    <string name="settings_ocr_download_error">İndirme başarısız oldu. İnternet bağlantınızı kontrol edin.</string>
     <string name="settings_ocr_download_intro">Dil dosyaları resmi Tesseract projesinden indirilir. Metin tanıma tamamen çevrimdışı olarak çalışır.</string>
     <string name="settings_ocr_downloading">Dil dosyası indiriliyor</string>
     <string name="settings_ocr_suggested">Önerilen</string>

@@ -61,6 +61,7 @@
     <string name="settings_ocr_add_language">Engadir idioma</string>
     <string name="settings_ocr_all_languages">Todos os idiomas</string>
     <string name="settings_ocr_clean_up">Limpar idiomas non utilizados…</string>
+    <string name="settings_ocr_download_error">Produciuse un erro na descarga. Comproba a túa conexión á Internet.</string>
     <string name="settings_ocr_download_intro">Os ficheiros de idioma descárganse desde o proxecto oficial Tesseract. O recoñecemento de texto segue sendo completamente sen conexión.</string>
     <string name="settings_ocr_downloading">Descargando ficheiro de idioma</string>
     <string name="settings_ocr_suggested">Suxerido</string>
