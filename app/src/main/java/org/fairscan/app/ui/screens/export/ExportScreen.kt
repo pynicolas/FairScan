@@ -300,7 +300,13 @@ private fun PdfInfos(
                     fontStyle = FontStyle.Italic,
                     modifier = Modifier.padding(top = 8.dp),
                 )
-                uiState.progress?.let{ p -> LinearProgressIndicator({ p.progress }) }
+                uiState.progress?.let{ p ->
+                    if (p.totalPages == 1) {
+                        LinearProgressIndicator()
+                    } else {
+                        LinearProgressIndicator({ p.progress })
+                    }
+                }
             } else if (result != null) {
                 val context = LocalContext.current
                 val formattedFileSize = formatFileSize(result.sizeInBytes, context)
