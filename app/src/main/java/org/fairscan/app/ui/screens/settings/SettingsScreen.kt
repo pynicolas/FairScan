@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -326,7 +327,9 @@ fun DirectorySettingItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick),
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.onSurfaceVariant),
         ) {
             Row(
                 modifier = Modifier
