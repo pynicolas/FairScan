@@ -135,6 +135,16 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private suspend fun currentPageKeys(): ImmutableList<PageViewKey> =
         imageRepository.pages().map { it.key() }.toImmutableList()
 
+    fun cancelPreparationJob() {
+        preparationJob?.let {
+            // keep result if job is not active
+            if (it.isActive) {
+                _uiState.update { ExportUiState() }
+            }
+            it.cancel()
+        }
+    }
+
     fun prepareExportIfNeeded() {
         ensureValidFilename()
 
@@ -146,7 +156,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
             val currentPageKeys = currentPageKeys()
             val key = ExportPreparationKey(
                 currentPageKeys, exportFormat, exportQuality, ocrLanguageString)
-            if (key == lastPreparationKey) {
+            if (key == lastPreparationKey && _uiState.value.result != null) {
                 return@launch
             }
             val pageCount = currentPageKeys.size
@@ -460,6 +470,7 @@ data class ExportActions(
     val share: () -> Unit,
     val save: () -> Unit,
     val open: (SavedItem) -> Unit,
+    val cancelPreparationJob: () -> Unit,
 )
 
 class MissingExportDirPermissionException(

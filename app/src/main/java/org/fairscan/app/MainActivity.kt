@@ -205,12 +205,13 @@ class MainActivity : ComponentActivity() {
                             navigation = navigation,
                             uiState = exportUiState,
                             currentDocument = document,
-                            pdfActions = ExportActions(
+                            exportActions = ExportActions(
                                 prepareExportIfNeeded = exportViewModel::prepareExportIfNeeded,
                                 setFilename = exportViewModel::setFilename,
                                 share = { exportViewModel.onShareClicked() },
                                 save = { exportViewModel.onSaveClicked() },
                                 open = { item -> openUri(item.uri, item.format.mimeType, logger) },
+                                cancelPreparationJob = exportViewModel::cancelPreparationJob,
                             ),
                             onCloseScan = {
                                 exportViewModel.resetFilename()

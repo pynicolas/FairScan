@@ -64,6 +64,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -108,7 +109,7 @@ fun ExportScreenWrapper(
     navigation: Navigation,
     uiState: ExportUiState,
     currentDocument: DocumentUiModel,
-    pdfActions: ExportActions,
+    exportActions: ExportActions,
     onCloseScan: () -> Unit,
 ) {
     BackHandler { navigation.back() }
@@ -116,11 +117,16 @@ fun ExportScreenWrapper(
     val showConfirmationDialog = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        pdfActions.prepareExportIfNeeded()
+        exportActions.prepareExportIfNeeded()
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            exportActions.cancelPreparationJob()
+        }
     }
 
     val onFilenameChange = { newName:String ->
-        pdfActions.setFilename(newName)
+        exportActions.setFilename(newName)
     }
 
     ExportScreen(
@@ -130,15 +136,15 @@ fun ExportScreenWrapper(
         navigation = navigation,
         onShare = {
             if (!uiState.isSaving) {
-                pdfActions.share()
+                exportActions.share()
             }
         },
         onSave = {
             if (!uiState.isSaving) {
-                pdfActions.save()
+                exportActions.save()
             }
         },
-        onOpen = pdfActions.open,
+        onOpen = exportActions.open,
         onCloseScan = {
             if (!uiState.isSaving) {
                 if (uiState.hasSavedOrShared || uiState.isResumedScan)
