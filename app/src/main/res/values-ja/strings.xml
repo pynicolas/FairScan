@@ -20,6 +20,7 @@
     <string name="copy_logs">ログをコピー</string>
     <string name="creating_export">エクスポートを準備中…</string>
     <string name="crop">トリミング</string>
+    <string name="delete">削除</string>
     <string name="delete_page">ページを削除</string>
     <string name="delete_page_warning">このページを削除しますか？</string>
     <string name="developer">開発者</string>
@@ -58,12 +59,13 @@
     <string name="save">保存</string>
     <string name="scan_button">新規スキャン</string>
     <string name="settings">設定</string>
-    <string name="settings_ocr_add_language">言語を追加</string>
-    <string name="settings_ocr_all_languages">すべての言語</string>
-    <string name="settings_ocr_clean_up">未使用の言語を整理…</string>
     <string name="settings_ocr_download_error">ダウンロードに失敗しました。インターネット接続を確認してください。</string>
     <string name="settings_ocr_download_intro">言語ファイルは公式の Tesseract プロジェクトからダウンロードされます。テキスト認識は完全にオフラインで実行されます。</string>
     <string name="settings_ocr_downloading">言語ファイルをダウンロード中</string>
+    <string name="settings_ocr_languages">言語</string>
+    <string name="settings_ocr_languages_available">利用可能な言語</string>
+    <string name="settings_ocr_languages_disabled">無効</string>
+    <string name="settings_ocr_languages_installed">インストール済み</string>
     <string name="settings_ocr_suggested">おすすめ</string>
     <string name="settings_section_ocr">テキスト認識</string>
     <string name="settings_section_scan">スキャン</string>

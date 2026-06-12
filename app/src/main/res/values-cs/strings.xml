@@ -20,6 +20,7 @@
     <string name="copy_logs">Kopírovat protokoly</string>
     <string name="creating_export">Příprava exportu…</string>
     <string name="crop">Oříznout</string>
+    <string name="delete">Smazat</string>
     <string name="delete_page">Smazat stránku</string>
     <string name="delete_page_warning">Chcete smazat tuto stránku?</string>
     <string name="developer">Vývojář</string>
@@ -58,12 +59,13 @@
     <string name="save">Uložit</string>
     <string name="scan_button">Nové skenování</string>
     <string name="settings">Nastavení</string>
-    <string name="settings_ocr_add_language">Přidat jazyk</string>
-    <string name="settings_ocr_all_languages">Všechny jazyky</string>
-    <string name="settings_ocr_clean_up">Odstranit nepoužívané jazyky…</string>
     <string name="settings_ocr_download_error">Stahování se nezdařilo. Zkontrolujte své internetové připojení.</string>
     <string name="settings_ocr_download_intro">Jazykové soubory jsou stahovány z oficiálního projektu Tesseract. Rozpoznávání textu zůstává zcela offline.</string>
     <string name="settings_ocr_downloading">Stahování jazykového souboru</string>
+    <string name="settings_ocr_languages">Jazyky</string>
+    <string name="settings_ocr_languages_available">Dostupné jazyky</string>
+    <string name="settings_ocr_languages_disabled">Vypnuto</string>
+    <string name="settings_ocr_languages_installed">Nainstalované</string>
     <string name="settings_ocr_suggested">Doporučeno</string>
     <string name="settings_section_ocr">Rozpoznávání textu</string>
     <string name="settings_section_scan">Skenování</string>

@@ -20,6 +20,7 @@
     <string name="copy_logs">Copia log</string>
     <string name="creating_export">Preparazione dell’esportazione…</string>
     <string name="crop">Ritaglia</string>
+    <string name="delete">Elimina</string>
     <string name="delete_page">Elimina pagina</string>
     <string name="delete_page_warning">Vuoi eliminare questa pagina?</string>
     <string name="developer">Sviluppatore</string>
@@ -58,12 +59,13 @@
     <string name="save">Salva</string>
     <string name="scan_button">Nuova scansione</string>
     <string name="settings">Impostazioni</string>
-    <string name="settings_ocr_add_language">Aggiungi lingua</string>
-    <string name="settings_ocr_all_languages">Tutte le lingue</string>
-    <string name="settings_ocr_clean_up">Rimuovi le lingue inutilizzate…</string>
     <string name="settings_ocr_download_error">Download non riuscito. Controlla la connessione a Internet.</string>
     <string name="settings_ocr_download_intro">I file di lingua vengono scaricati dal progetto ufficiale Tesseract. Il riconoscimento del testo rimane completamente offline.</string>
     <string name="settings_ocr_downloading">Download del file di lingua</string>
+    <string name="settings_ocr_languages">Lingue</string>
+    <string name="settings_ocr_languages_available">Lingue disponibili</string>
+    <string name="settings_ocr_languages_disabled">Disattivato</string>
+    <string name="settings_ocr_languages_installed">Installate</string>
     <string name="settings_ocr_suggested">Suggerito</string>
     <string name="settings_section_ocr">Riconoscimento del testo</string>
     <string name="settings_section_scan">Scansione</string>

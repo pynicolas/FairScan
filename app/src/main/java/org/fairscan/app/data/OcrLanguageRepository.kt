@@ -143,13 +143,6 @@ class OcrLanguageRepository(
         setLanguageEnabled(code, false)
     }
 
-    suspend fun deleteInactiveLanguages() {
-        val enabled = enabledLanguagesValue()
-        getInstalledLanguages()
-            .filter { it !in enabled }
-            .forEach { code -> deleteLanguage(code) }
-    }
-
     suspend fun buildTesseractLanguageString(): String {
         return getActiveLanguages()
             .sorted()

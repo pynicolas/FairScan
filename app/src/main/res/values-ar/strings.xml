@@ -20,6 +20,7 @@
     <string name="copy_logs">انسخ السجلات</string>
     <string name="creating_export">يجهز التصدير…</string>
     <string name="crop">اقتصاص</string>
+    <string name="delete">حذف</string>
     <string name="delete_page">احذف الصفحة</string>
     <string name="delete_page_warning">هل تريد حذف هذه الصفحة؟</string>
     <string name="developer">مطوّر</string>
@@ -58,12 +59,13 @@
     <string name="save">احفظ</string>
     <string name="scan_button">مسح جديد</string>
     <string name="settings">الإعدادات</string>
-    <string name="settings_ocr_add_language">إضافة لغة</string>
-    <string name="settings_ocr_all_languages">جميع اللغات</string>
-    <string name="settings_ocr_clean_up">تنظيف اللغات غير المستخدمة…</string>
     <string name="settings_ocr_download_error">فشل التنزيل. تحقق من اتصالك بالإنترنت.</string>
     <string name="settings_ocr_download_intro">يتم تنزيل ملفات اللغة من مشروع Tesseract الرسمي. تبقى عملية التعرّف على النصوص دون اتصال بالإنترنت بالكامل.</string>
     <string name="settings_ocr_downloading">جارٍ تنزيل ملف اللغة</string>
+    <string name="settings_ocr_languages">اللغات</string>
+    <string name="settings_ocr_languages_available">اللغات المتاحة</string>
+    <string name="settings_ocr_languages_disabled">معطّل</string>
+    <string name="settings_ocr_languages_installed">مثبّتة</string>
     <string name="settings_ocr_suggested">مقترح</string>
     <string name="settings_section_ocr">التعرّف على النصوص</string>
     <string name="settings_section_scan">المسح</string>

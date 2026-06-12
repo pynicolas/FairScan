@@ -25,6 +25,7 @@ sealed class Screen {
         object About : Overlay()
         object Libraries : Overlay()
         object Settings : Overlay()
+        object OcrLanguages : Overlay()
     }
 }
 
@@ -36,6 +37,7 @@ data class Navigation(
     val toAboutScreen: () -> Unit,
     val toLibrariesScreen: () -> Unit,
     val toSettingsScreen: (() -> Unit)?,
+    val toOcrLanguagesScreen: () -> Unit,
     val back: () -> Unit,
     val shouldDisplayBackButton: () -> Boolean,
 )

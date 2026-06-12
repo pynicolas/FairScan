@@ -20,6 +20,7 @@
     <string name="copy_logs">Копировать журналы</string>
     <string name="creating_export">Подготовка экспорта…</string>
     <string name="crop">Обрезать</string>
+    <string name="delete">Удалить</string>
     <string name="delete_page">Удалить страницу</string>
     <string name="delete_page_warning">Вы желаете удалить эту страницу?</string>
     <string name="developer">Разработчик</string>
@@ -58,12 +59,13 @@
     <string name="save">Сохранить</string>
     <string name="scan_button">Начать</string>
     <string name="settings">Настройки</string>
-    <string name="settings_ocr_add_language">Добавить язык</string>
-    <string name="settings_ocr_all_languages">Все языки</string>
-    <string name="settings_ocr_clean_up">Удалить неиспользуемые языки…</string>
     <string name="settings_ocr_download_error">Не удалось загрузить файл. Проверьте подключение к Интернету.</string>
     <string name="settings_ocr_download_intro">Языковые файлы загружаются из официального проекта Tesseract. Распознавание текста остаётся полностью офлайн.</string>
     <string name="settings_ocr_downloading">Загрузка языкового файла</string>
+    <string name="settings_ocr_languages">Языки</string>
+    <string name="settings_ocr_languages_available">Доступные языки</string>
+    <string name="settings_ocr_languages_disabled">Отключено</string>
+    <string name="settings_ocr_languages_installed">Установленные</string>
     <string name="settings_ocr_suggested">Рекомендуется</string>
     <string name="settings_section_ocr">Распознавание текста</string>
     <string name="settings_section_scan">Сканирование</string>
