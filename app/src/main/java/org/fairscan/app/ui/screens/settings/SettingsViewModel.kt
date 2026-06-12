@@ -137,6 +137,14 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
         }
     }
 
+    fun onLanguageClick(code: String) {
+        if (uiState.value.installedOcrLanguages.contains(code)) {
+            setOcrLanguageEnabled(code, !uiState.value.enabledOcrLanguages.contains(code))
+        } else {
+            installLanguage(code)
+        }
+    }
+
     fun installLanguage(code: String) {
         downloadJob?.cancel()
         downloadJob = viewModelScope.launch {
@@ -172,9 +180,9 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
         }
     }
 
-    fun deleteUnusedOcrLanguages() {
+    fun onRemoveLanguage(code: String) {
         viewModelScope.launch {
-            ocrLanguageRepo.deleteInactiveLanguages()
+            ocrLanguageRepo.deleteLanguage(code)
             refreshInstalledLanguages()
         }
     }

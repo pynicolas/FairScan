@@ -20,6 +20,7 @@
     <string name="copy_logs">复制日志</string>
     <string name="creating_export">正在准备导出…</string>
     <string name="crop">裁剪</string>
+    <string name="delete">删除</string>
     <string name="delete_page">删除页面</string>
     <string name="delete_page_warning">是否要删除此页面?</string>
     <string name="developer">开发者</string>
@@ -58,12 +59,13 @@
     <string name="save">保存</string>
     <string name="scan_button">新建扫描</string>
     <string name="settings">设置</string>
-    <string name="settings_ocr_add_language">添加语言</string>
-    <string name="settings_ocr_all_languages">所有语言</string>
-    <string name="settings_ocr_clean_up">清理未使用的语言…</string>
     <string name="settings_ocr_download_error">下载失败。请检查您的网络连接。</string>
     <string name="settings_ocr_download_intro">语言文件从官方 Tesseract 项目下载。文本识别始终完全离线运行。</string>
     <string name="settings_ocr_downloading">正在下载语言文件</string>
+    <string name="settings_ocr_languages">语言</string>
+    <string name="settings_ocr_languages_available">可用语言</string>
+    <string name="settings_ocr_languages_disabled">已禁用</string>
+    <string name="settings_ocr_languages_installed">已安装</string>
     <string name="settings_ocr_suggested">推荐</string>
     <string name="settings_section_ocr">文本识别</string>
     <string name="settings_section_scan">扫描</string>

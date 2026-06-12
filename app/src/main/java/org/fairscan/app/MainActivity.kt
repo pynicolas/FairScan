@@ -69,7 +69,9 @@ import org.fairscan.app.ui.screens.export.ExportEvent
 import org.fairscan.app.ui.screens.export.ExportResult
 import org.fairscan.app.ui.screens.export.ExportScreenWrapper
 import org.fairscan.app.ui.screens.export.ExportViewModel
+import org.fairscan.app.ui.screens.settings.OcrLanguagesScreen
 import org.fairscan.app.ui.screens.settings.SettingsScreen
+import org.fairscan.app.ui.screens.settings.SettingsUiState
 import org.fairscan.app.ui.screens.settings.SettingsViewModel
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.opencv.android.OpenCVLoader
@@ -126,6 +128,7 @@ class MainActivity : ComponentActivity() {
             val documentUiState by viewModel.documentUiState.collectAsStateWithLifecycle()
             val cropInitialState by viewModel.cropInitState.collectAsStateWithLifecycle()
             val exportUiState by exportViewModel.uiState.collectAsStateWithLifecycle()
+            val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
             val cameraPermission = rememberCameraPermissionState()
             CollectCameraEvents(cameraViewModel, viewModel)
             CollectExportEvents(context, exportViewModel)
@@ -237,7 +240,16 @@ class MainActivity : ComponentActivity() {
                         LibrariesScreen(onBack = navigation.back)
                     }
                     is Screen.Overlay.Settings -> {
-                        SettingsScreenWrapper(settingsViewModel, navigation, logger)
+                        SettingsScreenWrapper(settingsUiState, settingsViewModel, navigation, logger)
+                    }
+                    is Screen.Overlay.OcrLanguages -> {
+                        OcrLanguagesScreen(
+                            uiState = settingsUiState,
+                            onBack = navigation.back,
+                            onLanguageClick = settingsViewModel::onLanguageClick,
+                            onRemoveLanguage = settingsViewModel::onRemoveLanguage,
+                            onCancelOcrDownload = settingsViewModel::cancelOcrDownload,
+                        )
                     }
                 }
             }
@@ -258,6 +270,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun SettingsScreenWrapper(
+        settingsUiState: SettingsUiState,
         settingsViewModel: SettingsViewModel,
         nav: Navigation,
         logger: FileLogger,
@@ -277,7 +290,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(Unit) {
             settingsViewModel.refreshExportDirName()
         }
@@ -296,11 +308,7 @@ class MainActivity : ComponentActivity() {
             onResetExportDirClick = { settingsViewModel.setExportDirUri(null) },
             onExportFormatChanged = { format -> settingsViewModel.setExportFormat(format) },
             onExportQualityChanged = { quality -> settingsViewModel.setExportQuality(quality) },
-            onInstallOcrLanguage = settingsViewModel::installLanguage,
-            onCancelOcrDownload = settingsViewModel::cancelOcrDownload,
-            onEnableOcrLanguage = settingsViewModel::setOcrLanguageEnabled,
-            onDeleteUnusedOcrLanguages = settingsViewModel::deleteUnusedOcrLanguages,
-            onBack = nav.back,
+            navigation = nav,
         )
     }
 
@@ -484,6 +492,7 @@ class MainActivity : ComponentActivity() {
                 viewModel.navigateTo(Screen.Overlay.Settings)
             }
         },
+        toOcrLanguagesScreen = { viewModel.navigateTo(Screen.Overlay.OcrLanguages) },
         back = {
             val origin = viewModel.currentScreen.value
             viewModel.navigateBack()

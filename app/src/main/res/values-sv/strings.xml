@@ -20,6 +20,7 @@
     <string name="copy_logs">Kopiera loggar</string>
     <string name="creating_export">Förbereder export…</string>
     <string name="crop">Beskär</string>
+    <string name="delete">Ta bort</string>
     <string name="delete_page">Ta bort sida</string>
     <string name="delete_page_warning">Vill du ta bort den här sidan?</string>
     <string name="developer">Utvecklare</string>
@@ -58,12 +59,13 @@
     <string name="save">Spara</string>
     <string name="scan_button">Ny skanning</string>
     <string name="settings">Inställningar</string>
-    <string name="settings_ocr_add_language">Lägg till språk</string>
-    <string name="settings_ocr_all_languages">Alla språk</string>
-    <string name="settings_ocr_clean_up">Rensa oanvända språk…</string>
     <string name="settings_ocr_download_error">Nedladdningen misslyckades. Kontrollera din internetanslutning.</string>
     <string name="settings_ocr_download_intro">Språkfiler hämtas från det officiella Tesseract-projektet. Textigenkänning förblir helt offline.</string>
     <string name="settings_ocr_downloading">Hämtar språkfil</string>
+    <string name="settings_ocr_languages">Språk</string>
+    <string name="settings_ocr_languages_available">Tillgängliga språk</string>
+    <string name="settings_ocr_languages_disabled">Inaktiverad</string>
+    <string name="settings_ocr_languages_installed">Installerade</string>
     <string name="settings_ocr_suggested">Föreslagen</string>
     <string name="settings_section_ocr">Textigenkänning</string>
     <string name="settings_section_scan">Skanning</string>
