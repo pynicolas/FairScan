@@ -30,9 +30,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,6 +42,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -56,6 +59,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
@@ -151,14 +155,13 @@ private fun SettingsContent(
         val context = LocalResources.current
 
         Text(stringResource(R.string.settings_section_scan), style = MaterialTheme.typography.titleLarge)
-        Spacer(Modifier.height(16.dp))
 
-        RadioButtonGroup(
-            R.string.color_mode_default,
-            DefaultColorMode.entries,
-            onClick = onDefaultColorModeChanged,
+        SingleChoiceSetting(
+            title = stringResource(R.string.color_mode_default),
+            entries = DefaultColorMode.entries,
+            onValueChanged = onDefaultColorModeChanged,
             label = { t -> context.getString(t.labelResource) },
-            selectedValue = uiState.defaultColorMode
+            selectedValue = uiState.defaultColorMode,
         )
 
         Spacer(Modifier.height(16.dp))
@@ -175,35 +178,31 @@ private fun SettingsContent(
             onClick = onChooseDirectoryClick,
         )
 
-        Spacer(Modifier.height(12.dp))
-
         if (export.dirUri != null) {
-            OutlinedButton(
+            TextButton(
                 onClick = onResetExportDirClick,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                modifier = Modifier.padding(start = 4.dp),
             ) {
                 Text(stringResource(R.string.reset_to_default))
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
 
-        RadioButtonGroup(
-            R.string.export_quality,
-            ExportQuality.entries.reversed(),
-            onClick = onExportQualityChanged,
+        SingleChoiceSetting(
+            title = stringResource(R.string.export_quality),
+            entries = ExportQuality.entries.reversed(),
+            selectedValue = export.quality,
+            onValueChanged = onExportQualityChanged,
             label = { t -> context.getString(t.labelResource) },
-            selectedValue = export.quality
         )
 
-        Spacer(Modifier.height(32.dp))
-
-        RadioButtonGroup(
-            R.string.export_format,
-            ExportFormat.entries,
-            onClick = onExportFormatChanged,
-            label = { t -> t.name},
-            selectedValue = export.format
+        SingleChoiceSetting(
+            title = stringResource(R.string.export_format),
+            entries = ExportFormat.entries,
+            selectedValue = export.format,
+            onValueChanged = onExportFormatChanged,
+            label = { it.name },
         )
 
         Spacer(Modifier.height(16.dp))
@@ -281,29 +280,73 @@ private fun SettingsContent(
 }
 
 @Composable
-fun <T: Enum<T>> RadioButtonGroup(
-    title: Int,
+fun <T> SingleChoiceSetting(
+    title: String,
     entries: List<T>,
-    onClick: (T) -> Unit,
-    label: (T) -> String,
     selectedValue: T,
+    onValueChanged: (T) -> Unit,
+    label: (T) -> String,
 ) {
-    Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
-    entries.forEach { t ->
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onClick(t) }
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            RadioButton(
-                selected = selectedValue == t,
-                onClick = null,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 0.dp)
+    var showDialog by rememberSaveable { mutableStateOf(false) }
+
+    ListItem(
+        headlineContent = {
+            Text(title)
+        },
+        supportingContent = {
+            Text(label(selectedValue))
+        },
+        trailingContent = {
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null
             )
-            Text(label(t))
+        },
+        modifier = Modifier.clickable {
+            showDialog = true
         }
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDialog = false
+            },
+            title = {
+                Text(title)
+            },
+            text = {
+                Column {
+                    entries.forEach { entry ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onValueChanged(entry)
+                                    showDialog = false
+                                }
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = selectedValue == entry,
+                                onClick = {
+                                    onValueChanged(entry)
+                                    showDialog = false
+                                }
+                            )
+
+                            Text(
+                                text = label(entry),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {}
+        )
     }
 }
 
@@ -315,10 +358,12 @@ fun DirectorySettingItem(
     onClick: () -> Unit,
 
     ) {
-    Column {
+    Column (
+        modifier = Modifier.padding(vertical = 0.dp, horizontal = 12.dp)
+    ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.bodyLarge
         )
 
         Spacer(Modifier.height(8.dp))
