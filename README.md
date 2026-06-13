@@ -110,6 +110,7 @@ FairScan uses:
 - [CameraX](https://developer.android.com/media/camera/camerax) for image capture
 - [LiteRT](https://ai.google.dev/edge/litert) to run the custom segmentation model for automatic document detection
 - [OpenCV](https://opencv.org/) for perspective correction and image enhancement
+- [Tesseract](https://github.com/tesseract-ocr/tesseract) for text recognition (OCR)
 - [PDFBox-Android](https://github.com/TomRoush/PdfBox-Android) for PDF generation
 
 ---
