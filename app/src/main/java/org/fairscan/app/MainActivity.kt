@@ -460,13 +460,13 @@ class MainActivity : ComponentActivity() {
         }
         try {
             startActivity(chooser)
-        } catch (e: SecurityException) {
+        } catch (_: ActivityNotFoundException) {
+            showToast(getString(R.string.error_no_app))
+        } catch (e: Exception) {
             val errorMessage =
                 "Failed to open URI, scheme=${uriToOpen.scheme}, authority=${uriToOpen.authority}"
             logger.e("OpenUri", errorMessage, e)
             showToast(getString(R.string.error_occurred))
-        } catch (_: ActivityNotFoundException) {
-            showToast(getString(R.string.error_no_app))
         }
     }
 
