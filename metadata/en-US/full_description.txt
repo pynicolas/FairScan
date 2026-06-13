@@ -7,8 +7,9 @@ With FairScan, it takes only a few seconds to get a clean PDF you can share or s
 • Automatic crop, perspective correction, and enhancement
 • Export to shareable PDFs
 
-FairScan works entirely offline.
+All document scanning and processing happen locally on your device.
 
 Minimal permissions required:
 • Camera
+• Internet: used only for optional OCR language downloads
 • On Android 9 and below: storage (to save PDFs to Downloads)

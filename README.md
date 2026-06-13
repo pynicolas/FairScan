@@ -54,7 +54,7 @@ Contributions are welcome, but please read the guidelines first: [CONTRIBUTING.m
 - **Automatic perspective correction**
 - **Automatic image enhancement**
 - **Fast PDF generation** with no manual adjustments
-- **Fully offline** – the app has *no* internet permission
+- **All document processing happens locally on your device**, no cloud processing
 - **Minimal permissions**
 - **Open source**, GPLv3
 
