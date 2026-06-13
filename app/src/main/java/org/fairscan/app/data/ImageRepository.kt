@@ -55,6 +55,7 @@ class ImageRepository(
     scanRootDir: File,
     val transformations: ImageTransformations,
     private val scope: CoroutineScope,
+    private val logger: Logger,
 ) {
     private val sourceDir = File(scanRootDir, SOURCE_DIR_NAME).apply { mkdirs() }
     private val processedDir = File(scanRootDir, PROCESSED_DIR_NAME).apply { mkdirs() }
@@ -295,7 +296,13 @@ class ImageRepository(
         withContext(Dispatchers.IO) {
             val processed = getOrCompute(imageCache, key, ::computeProcessedImage)
                 ?: return@withContext null
-            transformations.resizeToThumbnail(processed)
+            try {
+                transformations.resizeToThumbnail(processed)
+            } catch (e: Exception) {
+                val message = "Failed to compute thumbnail for ${key.pageId}"
+                logger.e("ImageRepository", message, e)
+                null
+            }
         }
 
     // --- Other operations ---

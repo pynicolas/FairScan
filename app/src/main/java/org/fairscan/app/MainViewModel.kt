@@ -37,14 +37,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.data.ImageRepository
+import org.fairscan.app.data.Logger
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.Rotation
 import org.fairscan.app.domain.ScanPage
 import org.fairscan.app.ui.NavigationState
 import org.fairscan.app.ui.Screen
+import org.fairscan.app.ui.screens.crop.CropInitState
 import org.fairscan.app.ui.screens.document.CurrentPageUiState
 import org.fairscan.app.ui.screens.document.DocumentUiState
-import org.fairscan.app.ui.screens.crop.CropInitState
 import org.fairscan.app.ui.state.DocumentUiModel
 import org.fairscan.app.ui.state.PageThumbnail
 import org.fairscan.imageprocessing.ColorMode
@@ -53,7 +54,7 @@ import org.fairscan.imageprocessing.Quad
 import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MainViewModel(val imageRepository: ImageRepository): ViewModel() {
+class MainViewModel(val imageRepository: ImageRepository, logger: Logger): ViewModel() {
 
     private val _navigationState = MutableStateFlow<NavigationState?>(null)
     val currentScreen: StateFlow<Screen?> = _navigationState.map { it?.current }
@@ -102,8 +103,13 @@ class MainViewModel(val imageRepository: ImageRepository): ViewModel() {
             .mapLatest { (page,loadingId) ->
                 page?.let {
                     val isLoading = (it.id == loadingId)
-                    val bitmap = imageRepository.jpegBytes(it.key())?.toBitmap()
                     val canBeCropped = page.metadata != null
+                    val bitmap = try {
+                         imageRepository.jpegBytes(it.key())?.toBitmap()
+                    } catch (e: Exception) {
+                        logger.e("MainViewModel", "Failed to load image for ${it.id}", e)
+                        null
+                    }
                     CurrentPageUiState(it.key(), bitmap, it.colorMode, canBeCropped, isLoading)
                 }
             }

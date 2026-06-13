@@ -15,6 +15,7 @@
 package org.fairscan.app.platform
 
 import android.content.res.AssetManager
+import android.util.Log
 import com.tom_roush.pdfbox.cos.COSArray
 import com.tom_roush.pdfbox.cos.COSDictionary
 import com.tom_roush.pdfbox.cos.COSName
@@ -82,15 +83,19 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
                 contentStream.drawImage(image, 0f, 0f, widthPoints, heightPoints)
 
                 if (!disableOcr) {
-                    val bitmap = jpeg.toBitmap()
-                    val ocrTextBoxes = ocrService.runOcr(bitmap)
-                    val pdfPageDimensions = PageDimensions(
-                        bitmap.width,
-                        bitmap.height,
-                        widthPoints,
-                        heightPoints
-                    )
-                    ocrDocument.addPage(page, ocrTextBoxes, pdfPageDimensions)
+                    try {
+                        val bitmap = jpeg.toBitmap()
+                        val ocrTextBoxes = ocrService.runOcr(bitmap)
+                        val pdfPageDimensions = PageDimensions(
+                            bitmap.width,
+                            bitmap.height,
+                            widthPoints,
+                            heightPoints
+                        )
+                        ocrDocument.addPage(page, ocrTextBoxes, pdfPageDimensions)
+                    } catch (e: Exception) {
+                        Log.e("AndroidPdfWriter", "Failed to run OCR on page $index", e)
+                    }
                 }
                 contentStream.close()
 

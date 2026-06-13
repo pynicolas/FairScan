@@ -82,8 +82,8 @@ class ImageRepositoryTest {
                 colorMode: ColorMode
             ): Jpeg = process(source, metadata, colorMode)
         }
-
-        return ImageRepository(getFilesDir(), transformations, testScope)
+        val logger = Logger { _, _, _ -> }
+        return ImageRepository(getFilesDir(), transformations, testScope, logger)
     }
 
     @Test

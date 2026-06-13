@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
         val imageRepository = sessionViewModel.imageRepository
         val viewModel: MainViewModel by viewModels {
             appContainer.viewModelFactory {
-                MainViewModel(imageRepository)
+                MainViewModel(imageRepository, appContainer.logger)
             }
         }
         val exportViewModel: ExportViewModel by viewModels {
