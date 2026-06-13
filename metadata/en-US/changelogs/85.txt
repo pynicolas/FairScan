@@ -1,0 +1,1 @@
+Version 2.0 adds text recognition (OCR), allowing FairScan to create searchable PDFs.
