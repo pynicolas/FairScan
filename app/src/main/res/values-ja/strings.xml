@@ -58,6 +58,10 @@
     <string name="rotate_right">右に回転</string>
     <string name="save">保存</string>
     <string name="scan_button">新規スキャン</string>
+    <string name="scan_current">現在のスキャン</string>
+    <string name="scan_discard_current">現在のスキャンを破棄</string>
+    <string name="scan_resume">スキャンを再開</string>
+    <string name="scan_start_new">新しいスキャン</string>
     <string name="settings">設定</string>
     <string name="settings_ocr_download_error">ダウンロードに失敗しました。インターネット接続を確認してください。</string>
     <string name="settings_ocr_download_intro">言語ファイルは公式の Tesseract プロジェクトからダウンロードされます。テキスト認識は完全にオフラインで実行されます。</string>

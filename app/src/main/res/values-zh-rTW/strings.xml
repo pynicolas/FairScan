@@ -58,6 +58,10 @@
     <string name="rotate_right">向右旋轉</string>
     <string name="save">儲存</string>
     <string name="scan_button">開始掃描</string>
+    <string name="scan_current">目前掃描</string>
+    <string name="scan_discard_current">放棄目前掃描</string>
+    <string name="scan_resume">繼續掃描</string>
+    <string name="scan_start_new">新增掃描</string>
     <string name="settings">設定</string>
     <string name="settings_ocr_download_error">下載失敗。請檢查您的網路連線。</string>
     <string name="settings_ocr_download_intro">語言檔案會從官方 Tesseract 專案下載。文字辨識始終完全離線運作。</string>
