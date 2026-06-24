@@ -65,7 +65,7 @@ import org.fairscan.imageprocessing.ColorMode
 
 
 @Composable
-fun CurrentScanScreen(
+fun ResumeScanScreen(
     currentDocument: DocumentUiState,
     onResumeScan: () -> Unit,
     onStartNewScan: () -> Unit,
@@ -186,7 +186,7 @@ fun BigButton(onClick: () -> Unit, text: String) {
 @Preview(showBackground = true, widthDp = 320, heightDp = 640)
 @Preview(showBackground = true, widthDp = 640, heightDp = 320)
 @Composable
-fun CurrentScanScreenPreview() {
+fun ResumeScanScreenPreview() {
     val image = fakeImage("gallica.bnf.fr-bpt6k5530456s-1", LocalContext.current).toBitmap()
     val document = fakeDocument(
         listOf(1, 2).map { "gallica.bnf.fr-bpt6k5530456s-$it" }.toImmutableList(),
@@ -194,7 +194,7 @@ fun CurrentScanScreenPreview() {
     )
     val key = PageViewKey("123", Rotation.R0, null, 0)
     FairScanTheme {
-        CurrentScanScreen(
+        ResumeScanScreen(
             DocumentUiState(1, CurrentPageUiState(key,image, ColorMode.COLOR, true), document),
              {}, {}
         )

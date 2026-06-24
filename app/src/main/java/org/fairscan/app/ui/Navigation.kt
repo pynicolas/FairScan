@@ -20,7 +20,7 @@ sealed class Screen {
         object EditImage : Main()
         data class Document(val initialPage: Int = 0) : Main()
         object Export : Main()
-        object CurrentScan : Main()
+        object ResumeScan : Main()
     }
     sealed class Overlay : Screen() {
         object About : Overlay()
@@ -66,7 +66,7 @@ data class NavigationState private constructor(val stack: List<Screen>, val root
     fun navigateBack(): NavigationState {
         return when (current) {
             root -> this // Back handled by system
-            is Screen.Main.CurrentScan -> this // Back handled by system
+            is Screen.Main.ResumeScan -> this // Back handled by system
             is Screen.Main.Camera -> this // Back handled by system
             is Screen.Main.Document -> copy(stack = listOf(Screen.Main.Camera))
             is Screen.Main.EditImage -> copy(stack = listOf(Screen.Main.Document()))

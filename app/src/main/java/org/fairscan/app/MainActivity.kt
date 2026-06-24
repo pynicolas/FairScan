@@ -57,7 +57,7 @@ import org.fairscan.app.ui.components.rememberCameraPermissionState
 import org.fairscan.app.ui.screens.document.DocumentScreen
 import org.fairscan.app.ui.screens.crop.CropScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
-import org.fairscan.app.ui.screens.CurrentScanScreen
+import org.fairscan.app.ui.screens.ResumeScanScreen
 import org.fairscan.app.ui.screens.about.AboutEvent
 import org.fairscan.app.ui.screens.about.AboutScreen
 import org.fairscan.app.ui.screens.about.AboutViewModel
@@ -162,8 +162,8 @@ class MainActivity : ComponentActivity() {
                     null -> {
                         // waiting to load pages to get an initial screen
                     }
-                    is Screen.Main.CurrentScan -> {
-                        CurrentScanScreen(
+                    is Screen.Main.ResumeScan -> {
+                        ResumeScanScreen(
                             currentDocument = documentUiState,
                             onResumeScan = navigation.toCameraScreen,
                             onStartNewScan = {
