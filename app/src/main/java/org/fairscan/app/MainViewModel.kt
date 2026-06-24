@@ -73,7 +73,7 @@ class MainViewModel(val imageRepository: ImageRepository, logger: Logger): ViewM
                 if (pages.isEmpty()) {
                     NavigationState.initial()
                 } else {
-                    NavigationState.initial().navigateTo(Screen.Main.Export)
+                    NavigationState.initial().navigateTo(Screen.Main.ResumeScan)
                 }
         }
     }
