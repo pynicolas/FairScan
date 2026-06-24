@@ -22,6 +22,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -144,10 +145,12 @@ private fun FirstPageThumbnail(firstPageThumbnail: Bitmap?, modifier: Modifier) 
 
 @Composable
 private fun ResumeScanActions(pageCount: Int, onResumeScan: () -> Unit) {
-    Row {
-        Text(stringResource(R.string.scan_current))
-        Text(" • ")
-        Text(pageCountText(pageCount))
+
+    FlowRow {
+        val style = MaterialTheme.typography.bodyMedium
+        Text(stringResource(R.string.scan_current), style = style)
+        Text(" • ", style = style)
+        Text(pageCountText(pageCount), style = style)
     }
     BigButton(onClick = onResumeScan, text = stringResource(R.string.scan_resume))
 }
@@ -165,6 +168,7 @@ private fun NewScanArea(onStartNewScan: () -> Unit, modifier: Modifier) {
         Text(
             text = stringResource(R.string.scan_discard_current),
             textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
         )
         BigButton(onClick = onStartNewScan, text = stringResource(R.string.scan_start_new))
     }
