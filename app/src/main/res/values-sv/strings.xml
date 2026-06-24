@@ -63,7 +63,7 @@
     <string name="scan_resume">Återuppta skanning</string>
     <string name="scan_start_new">Ny skanning</string>
     <string name="settings">Inställningar</string>
-    <string name="settings_ocr_download_error">Nedladdningen misslyckades. Kontrollera din internetanslutning.</string>
+    <string name="settings_ocr_download_error">Nedladdningen misslyckades. Kontrollera din internetanslutning och att nätverksåtkomst är tillåten för den här appen.</string>
     <string name="settings_ocr_download_intro">Språkfiler hämtas från det officiella Tesseract-projektet. Textigenkänning förblir helt offline.</string>
     <string name="settings_ocr_downloading">Hämtar språkfil</string>
     <string name="settings_ocr_languages">Språk</string>

@@ -63,7 +63,7 @@
     <string name="scan_resume">继续扫描</string>
     <string name="scan_start_new">新建扫描</string>
     <string name="settings">设置</string>
-    <string name="settings_ocr_download_error">下载失败。请检查您的网络连接。</string>
+    <string name="settings_ocr_download_error">下载失败。请检查您的网络连接，并确认已允许此应用访问网络。</string>
     <string name="settings_ocr_download_intro">语言文件从官方 Tesseract 项目下载。文本识别始终完全离线运行。</string>
     <string name="settings_ocr_downloading">正在下载语言文件</string>
     <string name="settings_ocr_languages">语言</string>

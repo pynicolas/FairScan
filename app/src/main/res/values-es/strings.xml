@@ -63,7 +63,7 @@
     <string name="scan_resume">Reanudar escaneo</string>
     <string name="scan_start_new">Iniciar nuevo escaneo</string>
     <string name="settings">Ajustes</string>
-    <string name="settings_ocr_download_error">La descarga ha fallado. Comprueba tu conexión a Internet.</string>
+    <string name="settings_ocr_download_error">Descarga fallida. Comprueba tu conexión a Internet y asegúrate de que esta aplicación tenga permitido el acceso a la red.</string>
     <string name="settings_ocr_download_intro">Los archivos de idioma se descargan desde el proyecto oficial Tesseract. El reconocimiento de texto sigue siendo completamente local.</string>
     <string name="settings_ocr_downloading">Descargando archivo de idioma</string>
     <string name="settings_ocr_languages">Idiomas</string>

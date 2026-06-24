@@ -63,7 +63,7 @@
     <string name="scan_resume">Retomar digitalização</string>
     <string name="scan_start_new">Nova digitalização</string>
     <string name="settings">Configurações</string>
-    <string name="settings_ocr_download_error">Falha no download. Verifique sua conexão com a Internet.</string>
+    <string name="settings_ocr_download_error">Falha no download. Verifique sua conexão com a Internet e certifique-se de que o acesso à rede está permitido para este aplicativo.</string>
     <string name="settings_ocr_download_intro">Os arquivos de idioma são baixados do projeto oficial Tesseract. O reconhecimento de texto permanece totalmente offline.</string>
     <string name="settings_ocr_downloading">Baixando arquivo de idioma</string>
     <string name="settings_ocr_languages">Idiomas</string>

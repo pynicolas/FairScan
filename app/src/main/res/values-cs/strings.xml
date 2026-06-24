@@ -63,7 +63,7 @@
     <string name="scan_resume">Pokračovat ve skenování</string>
     <string name="scan_start_new">Nový sken</string>
     <string name="settings">Nastavení</string>
-    <string name="settings_ocr_download_error">Stahování se nezdařilo. Zkontrolujte své internetové připojení.</string>
+    <string name="settings_ocr_download_error">Stahování se nezdařilo. Zkontrolujte připojení k internetu a ujistěte se, že má tato aplikace povolený přístup k síti.</string>
     <string name="settings_ocr_download_intro">Jazykové soubory jsou stahovány z oficiálního projektu Tesseract. Rozpoznávání textu zůstává zcela offline.</string>
     <string name="settings_ocr_downloading">Stahování jazykového souboru</string>
     <string name="settings_ocr_languages">Jazyky</string>

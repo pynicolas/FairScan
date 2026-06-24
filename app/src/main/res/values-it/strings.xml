@@ -63,7 +63,7 @@
     <string name="scan_resume">Riprendi scansione</string>
     <string name="scan_start_new">Nuova scansione</string>
     <string name="settings">Impostazioni</string>
-    <string name="settings_ocr_download_error">Download non riuscito. Controlla la connessione a Internet.</string>
+    <string name="settings_ocr_download_error">Download non riuscito. Controlla la connessione a Internet e assicurati che l\'accesso alla rete sia consentito per questa app.</string>
     <string name="settings_ocr_download_intro">I file di lingua vengono scaricati dal progetto ufficiale Tesseract. Il riconoscimento del testo rimane completamente offline.</string>
     <string name="settings_ocr_downloading">Download del file di lingua</string>
     <string name="settings_ocr_languages">Lingue</string>
