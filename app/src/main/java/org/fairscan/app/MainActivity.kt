@@ -461,15 +461,15 @@ class MainActivity : ComponentActivity() {
             } else {
                 uriForFile(fileUri.toFile())
             }
-        val openIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uriToOpen, mimeType)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            clipData = ClipData.newUri(contentResolver, "file", uriToOpen)
-        }
-        val chooser = Intent.createChooser(openIntent, getString(R.string.open_file)).apply {
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
         try {
+            val openIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uriToOpen, mimeType)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                clipData = ClipData.newUri(contentResolver, "file", uriToOpen)
+            }
+            val chooser = Intent.createChooser(openIntent, getString(R.string.open_file)).apply {
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
             startActivity(chooser)
         } catch (_: ActivityNotFoundException) {
             showToast(getString(R.string.error_no_app))
