@@ -245,6 +245,13 @@ class MainActivity : ComponentActivity() {
                             onCopyLogs = { aboutViewModel.onCopyLogsClicked() },
                             onContactWithLastImageClicked =
                                 { aboutViewModel.onContactWithLastImageClicked() },
+                            onStartActivity = { intent ->
+                                try {
+                                    startActivity(intent)
+                                } catch (_: ActivityNotFoundException) {
+                                    showToast(getString(R.string.error_occurred))
+                                }
+                            },
                             onViewLibraries = navigation.toLibrariesScreen)
                     }
                     is Screen.Overlay.Libraries -> {

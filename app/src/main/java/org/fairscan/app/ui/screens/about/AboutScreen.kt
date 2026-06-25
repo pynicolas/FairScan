@@ -81,6 +81,7 @@ fun AboutScreen(
     onBack: () -> Unit,
     onCopyLogs: () -> Unit,
     onContactWithLastImageClicked: () -> Unit,
+    onStartActivity: (Intent) -> Unit,
     onViewLibraries: () -> Unit,
 ) {
     val showLicenseDialog = rememberSaveable { mutableStateOf(false) }
@@ -99,6 +100,7 @@ fun AboutScreen(
             aboutUiState,
             onCopyLogs,
             onContactWithLastImageClicked,
+            onStartActivity,
             showLicenseDialog,
             onViewLibraries)
     }
@@ -113,6 +115,7 @@ fun AboutContent(
     aboutUiState: AboutUiState,
     onCopyLogs: () -> Unit,
     onContactWithLastImageClicked: () -> Unit,
+    onStartActivity: (Intent) -> Unit,
     showLicenseDialog: MutableState<Boolean>,
     onViewLibraries: () -> Unit,
     ) {
@@ -155,7 +158,7 @@ fun AboutContent(
             ContactLink(
                 icon = Icons.Default.Email,
                 text = EMAIL_ADDRESS,
-                onClick = { context.startActivity(createContactEmailIntent()) }
+                onClick = { onStartActivity(createContactEmailIntent()) }
             )
             val websiteUrl = "https://fairscan.org"
             ContactLink(
@@ -163,7 +166,7 @@ fun AboutContent(
                 text = websiteUrl,
                 onClick = {
                     val intent = Intent(Intent.ACTION_VIEW, websiteUrl.toUri())
-                    context.startActivity(intent)
+                    onStartActivity(intent)
                 }
             )
         }
@@ -327,6 +330,6 @@ fun EmailImageButton(
 fun AboutScreenPreview() {
     FairScanTheme {
         val state = AboutUiState(true)
-        AboutScreen(state, {}, {}, {}, {})
+        AboutScreen(state, {}, {}, {}, {}, {})
     }
 }
