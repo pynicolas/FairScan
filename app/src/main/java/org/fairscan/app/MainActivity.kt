@@ -34,7 +34,6 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
@@ -55,8 +54,6 @@ import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
-import org.fairscan.app.ui.screens.document.DocumentScreen
-import org.fairscan.app.ui.screens.crop.CropScreen
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.ResumeScanScreen
 import org.fairscan.app.ui.screens.about.AboutEvent
@@ -66,6 +63,8 @@ import org.fairscan.app.ui.screens.about.createEmailWithImageIntent
 import org.fairscan.app.ui.screens.camera.CameraEvent
 import org.fairscan.app.ui.screens.camera.CameraScreen
 import org.fairscan.app.ui.screens.camera.CameraViewModel
+import org.fairscan.app.ui.screens.crop.CropScreen
+import org.fairscan.app.ui.screens.document.DocumentScreen
 import org.fairscan.app.ui.screens.export.ExportActions
 import org.fairscan.app.ui.screens.export.ExportEvent
 import org.fairscan.app.ui.screens.export.ExportResult
@@ -178,9 +177,9 @@ class MainActivity : ComponentActivity() {
                     }
                     is Screen.Main.Camera -> {
                         val pickMultiple = rememberLauncherForActivityResult(
-                            ActivityResultContracts.PickMultipleVisualMedia(10)) {
-                            uris -> cameraViewModel.importPhotos(uris)
-                        }
+                            ActivityResultContracts.GetMultipleContents()) {
+                                uris -> cameraViewModel.importPhotos(uris)
+                            }
                         CameraScreen(
                             viewModel,
                             cameraViewModel,
@@ -192,8 +191,7 @@ class MainActivity : ComponentActivity() {
                             cameraPermission = cameraPermission,
                             onImportClicked = {
                                 cameraViewModel.onImportClicked()
-                                pickMultiple.launch(PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly))
+                                pickMultiple.launch("image/*")
                             }
                         )
                     }
