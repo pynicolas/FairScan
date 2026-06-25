@@ -67,6 +67,13 @@ class CameraViewModel(appContainer: AppContainer): ViewModel() {
     private val _isTorchEnabled = MutableStateFlow(false)
     val isTorchEnabled: StateFlow<Boolean> = _isTorchEnabled
 
+    private val _volumeKeyEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val volumeKeyEvent = _volumeKeyEvent.asSharedFlow()
+
+    fun onVolumeKeyPressed() {
+        _volumeKeyEvent.tryEmit(Unit)
+    }
+
     fun resetLiveAnalysis() {
         quadStabilizer = QuadStabilizer()
         _liveAnalysisState.value = LiveAnalysisState()

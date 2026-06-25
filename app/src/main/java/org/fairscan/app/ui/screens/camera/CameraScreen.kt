@@ -185,6 +185,24 @@ fun CameraScreen(
             listState.animateScrollToItem(document.lastIndex())
         }
     }
+
+    val onCapture = {
+        previewView?.bitmap?.let {
+            Log.i("FairScan", "Pressed <Capture>")
+            cameraViewModel.onCapturePressed(it)
+            captureController.takePicture(
+                onImageCaptured = { imageProxy, opticalMeasures ->
+                    cameraViewModel.onImageCaptured(imageProxy, opticalMeasures)
+                }
+            )
+        }?: Unit
+    }
+    LaunchedEffect(Unit) {
+        cameraViewModel.volumeKeyEvent.collect {
+            onCapture()
+        }
+    }
+
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     CameraScreenScaffold(
         cameraPreview = {
@@ -224,16 +242,7 @@ fun CameraScreen(
             isLandscape = isLandscape,
             isDebugMode,
             isTorchEnabled),
-        onCapture = {
-            previewView?.bitmap?.let {
-                Log.i("FairScan", "Pressed <Capture>")
-                cameraViewModel.onCapturePressed(it)
-                captureController.takePicture(
-                    onImageCaptured = { imageProxy, opticalMeasures ->
-                        cameraViewModel.onImageCaptured(imageProxy, opticalMeasures) }
-                )
-            }
-        },
+        onCapture = onCapture,
         onFinalizePressed = onFinalizePressed,
         onDebugModeSwitched = { isDebugMode = !isDebugMode },
         onTorchSwitched = {
