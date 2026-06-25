@@ -27,6 +27,7 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.Q
 import android.os.Bundle
 import android.util.Log
+import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -80,6 +81,9 @@ import java.io.File
 
 class MainActivity : ComponentActivity() {
 
+    private lateinit var cameraViewModel: CameraViewModel
+    private lateinit var viewModel: MainViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initLibraries()
@@ -96,11 +100,11 @@ class MainActivity : ComponentActivity() {
         }
 
         val imageRepository = sessionViewModel.imageRepository
-        val viewModel: MainViewModel by viewModels {
+        viewModel = viewModels<MainViewModel> {
             appContainer.viewModelFactory {
                 MainViewModel(imageRepository, appContainer.logger)
             }
-        }
+        }.value
         val exportViewModel: ExportViewModel by viewModels {
             appContainer.viewModelFactory {
                 ExportViewModel(appContainer, imageRepository)
@@ -111,7 +115,7 @@ class MainActivity : ComponentActivity() {
                 AboutViewModel(appContainer, imageRepository)
             }
         }
-        val cameraViewModel: CameraViewModel by viewModels { appContainer.cameraViewModelFactory }
+        cameraViewModel = viewModels<CameraViewModel> { appContainer.cameraViewModelFactory }.value
 
         val settingsViewModel: SettingsViewModel
             by viewModels { appContainer.settingsViewModelFactory }
@@ -525,4 +529,15 @@ class MainActivity : ComponentActivity() {
                     || launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF
         }
     )
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+            keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            if (viewModel.currentScreen.value is Screen.Main.Camera) {
+                cameraViewModel.onVolumeKeyPressed()
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
 }
