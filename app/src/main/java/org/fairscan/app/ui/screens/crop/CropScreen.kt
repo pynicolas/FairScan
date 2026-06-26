@@ -36,8 +36,12 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -71,14 +75,19 @@ fun CropScreen(
     navigation: Navigation,
     onUpdatePageQuad: (Quad) -> Unit,
 ) {
+    val quadHandler = remember { QuadEditingHandler() }
+
     val (bitmap, initialQuad)  = if (initState is CropInitState.Ready && initState.pageId == pageId) {
         Pair(initState.bitmap, initState.quad)
     } else {
         Pair(null, null)
     }
-    val quadHandler = remember { QuadEditingHandler() }
+
+    val editableQuad = rememberSaveable(pageId, saver = QuadSaver) {
+        mutableStateOf(initialQuad)
+    }
     val state = remember(pageId) {
-        CropScreenState(initialQuad)
+        CropScreenState(editableQuad)
     }
 
     BackHandler { navigation.back() }
@@ -310,6 +319,30 @@ private fun DragMagnifyingGlass(state: CropScreenState, bitmap: Bitmap?) {
         quad = state.editableQuad,
     )
 }
+
+val QuadSaver: Saver<MutableState<Quad?>, *> = listSaver(
+    save = { state ->
+        state.value?.let {
+            listOf(
+                it.topLeft.x, it.topLeft.y,
+                it.topRight.x, it.topRight.y,
+                it.bottomRight.x, it.bottomRight.y,
+                it.bottomLeft.x, it.bottomLeft.y,
+            )
+        } ?: listOf()
+    },
+    restore = { list ->
+        val quad = if (list.size == 8) {
+            Quad(
+                topLeft = Point(list[0], list[1]),
+                topRight = Point(list[2], list[3]),
+                bottomRight = Point(list[4], list[5]),
+                bottomLeft = Point(list[6], list[7]),
+            )
+        } else null
+        mutableStateOf(quad)
+    }
+)
 
 @Composable
 @Preview(showSystemUi = true)
