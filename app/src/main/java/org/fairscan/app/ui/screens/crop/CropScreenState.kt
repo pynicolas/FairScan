@@ -34,14 +34,14 @@ sealed interface CropInitState {
     ) : CropInitState
 }
 
-class CropScreenState {
+class CropScreenState(initialQuad: Quad? = null) {
     companion object {
         val LIFT_WIGGLE_MAX_DISTANCE = 8.dp
         const val LIFT_WIGGLE_WINDOW_MS = 70L
     }
 
     var containerSize by mutableStateOf<IntSize?>(null)
-    var editableQuad by mutableStateOf<Quad?>(null)
+    var editableQuad by mutableStateOf(initialQuad)
     var draggedCornerIndex by mutableIntStateOf(-1)
     var dragPosition by mutableStateOf<Offset?>(null)
     /** True from the moment the finger touches a drag handle until it is lifted. */
@@ -57,7 +57,6 @@ class CropScreenState {
     private var quadBeforeLastDragStep: Quad? = null
     private var lastDragStepDistancePx: Float = Float.MAX_VALUE
     private var lastDragStepAtMs: Long = 0L
-    private var initialQuad: Quad? = null
 
     fun updateQuad(newQuad: Quad) {
         editableQuad = newQuad
@@ -121,9 +120,4 @@ class CropScreenState {
     }
 
     fun isDragging(): Boolean = draggedCornerIndex >= 0
-
-    fun setInitialQuad(quad: Quad) {
-        initialQuad = quad
-        editableQuad = quad
-    }
 }

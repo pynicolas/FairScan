@@ -71,17 +71,14 @@ fun CropScreen(
     navigation: Navigation,
     onUpdatePageQuad: (Quad) -> Unit,
 ) {
-    val state = remember(pageId) { CropScreenState() }
+    val (bitmap, initialQuad)  = if (initState is CropInitState.Ready && initState.pageId == pageId) {
+        Pair(initState.bitmap, initState.quad)
+    } else {
+        Pair(null, null)
+    }
     val quadHandler = remember { QuadEditingHandler() }
-
-    val bitmap = if (initState is CropInitState.Ready && initState.pageId == pageId) {
-        initState.bitmap
-    } else null
-
-    LaunchedEffect(initState) {
-        if (initState is CropInitState.Ready && initState.pageId == pageId) {
-            state.setInitialQuad(initState.quad)
-        }
+    val state = remember(pageId) {
+        CropScreenState(initialQuad)
     }
 
     BackHandler { navigation.back() }

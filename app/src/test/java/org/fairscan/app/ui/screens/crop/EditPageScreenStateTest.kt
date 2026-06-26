@@ -188,8 +188,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun endDrag_preservesDragPosition() {
-        val state = CropScreenState()
-        state.setInitialQuad(testQuad)
+        val state = CropScreenState(testQuad)
         val pos = Offset(100f, 200f)
         state.onTouchDown(pos, cornerIndex = 0)
         state.startCornerDrag(0)
@@ -204,8 +203,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun endDrag_doesNotResetTouchDownIndices() {
-        val state = CropScreenState()
-        state.setInitialQuad(testQuad)
+        val state = CropScreenState(testQuad)
         state.onTouchDown(Offset(100f, 200f), cornerIndex = 2)
         state.startCornerDrag(2)
 
@@ -293,8 +291,7 @@ class EditPageScreenStateTest {
 
     @Test
     fun dragCycle_corner_leavesStateConsistent() {
-        val state = CropScreenState()
-        state.setInitialQuad(testQuad)
+        val state = CropScreenState(testQuad)
         val pos = Offset(100f, 200f)
 
         state.onTouchDown(pos, cornerIndex = 1)
@@ -320,8 +317,7 @@ class EditPageScreenStateTest {
     fun dragCycle_edge_leavesStateConsistent() {
         // Edge dragging is no longer supported; this test verifies that a touch
         // without a valid corner index simply does not trigger a drag.
-        val state = CropScreenState()
-        state.setInitialQuad(testQuad)
+        val state = CropScreenState(testQuad)
         val pos = Offset(150f, 80f)
 
         state.onTouchDown(pos)
