@@ -1,0 +1,2 @@
+- On startup, you can now explicitly choose to resume the current scan or start a new one
+- Volume buttons now trigger page capture
