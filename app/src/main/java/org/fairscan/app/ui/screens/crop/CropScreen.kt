@@ -74,9 +74,14 @@ fun CropScreen(
     val state = remember(pageId) { CropScreenState() }
     val quadHandler = remember { QuadEditingHandler() }
 
-    if (initState is CropInitState.Ready && initState.pageId == pageId && state.bitmap == null) {
-        state.bitmap = initState.bitmap
-        state.setInitialQuad(initState.quad)
+    val bitmap = if (initState is CropInitState.Ready && initState.pageId == pageId) {
+        initState.bitmap
+    } else null
+
+    LaunchedEffect(initState) {
+        if (initState is CropInitState.Ready && initState.pageId == pageId) {
+            state.setInitialQuad(initState.quad)
+        }
     }
 
     BackHandler { navigation.back() }
@@ -93,7 +98,7 @@ fun CropScreen(
     ) { modifier ->
 
         Box(modifier = modifier.fillMaxSize()) {
-            state.bitmap?.let { bmp ->
+            bitmap?.let { bmp ->
                 val imageBitmap = remember(bmp) { bmp.asImageBitmap() }
 
                 Box(
@@ -118,7 +123,7 @@ fun CropScreen(
                 }
             }
 
-            DragMagnifyingGlass(state)
+            DragMagnifyingGlass(state, bitmap)
 
             ActionButtons(
                 modifier = Modifier
@@ -244,7 +249,7 @@ private fun DragQuadOverlay(
 }
 
 @Composable
-private fun DragMagnifyingGlass(state: CropScreenState) {
+private fun DragMagnifyingGlass(state: CropScreenState, bitmap: Bitmap?) {
     // showLoupe becomes true immediately on touch-down and stays true for
     // one additional second after the finger is lifted.
     val showLoupe = remember { mutableStateOf(false) }
@@ -263,7 +268,7 @@ private fun DragMagnifyingGlass(state: CropScreenState) {
 
     if (!showLoupe.value || state.dragPosition == null || state.containerSize == null) return
 
-    val bmp = state.bitmap ?: return
+    val bmp = bitmap ?: return
     val containerSize = state.containerSize!!
     val displaySize = QuadCoordinateUtils.calculateDisplaySize(
         bmp.width, bmp.height, containerSize

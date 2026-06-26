@@ -44,7 +44,6 @@ class EditPageScreenStateTest {
     fun initialState_hasCorrectDefaults() {
         val state = CropScreenState()
 
-        assertThat(state.bitmap).isNull()
         assertThat(state.containerSize).isNull()
         assertThat(state.editableQuad).isNull()
         assertThat(state.draggedCornerIndex).isEqualTo(-1)

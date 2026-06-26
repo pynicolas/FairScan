@@ -40,7 +40,6 @@ class CropScreenState {
         const val LIFT_WIGGLE_WINDOW_MS = 70L
     }
 
-    var bitmap by mutableStateOf<android.graphics.Bitmap?>(null)
     var containerSize by mutableStateOf<IntSize?>(null)
     var editableQuad by mutableStateOf<Quad?>(null)
     var draggedCornerIndex by mutableIntStateOf(-1)
