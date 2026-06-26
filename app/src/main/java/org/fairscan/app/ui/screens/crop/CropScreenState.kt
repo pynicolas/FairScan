@@ -15,6 +15,7 @@
 package org.fairscan.app.ui.screens.crop
 
 import android.graphics.Bitmap
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,15 +35,15 @@ sealed interface CropInitState {
     ) : CropInitState
 }
 
-class CropScreenState {
+class CropScreenState(editableQuad: MutableState<Quad?> = mutableStateOf(null)) {
     companion object {
         val LIFT_WIGGLE_MAX_DISTANCE = 8.dp
         const val LIFT_WIGGLE_WINDOW_MS = 70L
     }
 
-    var bitmap by mutableStateOf<android.graphics.Bitmap?>(null)
     var containerSize by mutableStateOf<IntSize?>(null)
-    var editableQuad by mutableStateOf<Quad?>(null)
+    var editableQuad: Quad? by editableQuad
+        private set
     var draggedCornerIndex by mutableIntStateOf(-1)
     var dragPosition by mutableStateOf<Offset?>(null)
     /** True from the moment the finger touches a drag handle until it is lifted. */
@@ -58,7 +59,6 @@ class CropScreenState {
     private var quadBeforeLastDragStep: Quad? = null
     private var lastDragStepDistancePx: Float = Float.MAX_VALUE
     private var lastDragStepAtMs: Long = 0L
-    private var initialQuad: Quad? = null
 
     fun updateQuad(newQuad: Quad) {
         editableQuad = newQuad
@@ -122,9 +122,4 @@ class CropScreenState {
     }
 
     fun isDragging(): Boolean = draggedCornerIndex >= 0
-
-    fun setInitialQuad(quad: Quad) {
-        initialQuad = quad
-        editableQuad = quad
-    }
 }

@@ -36,8 +36,12 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -71,12 +75,19 @@ fun CropScreen(
     navigation: Navigation,
     onUpdatePageQuad: (Quad) -> Unit,
 ) {
-    val state = remember(pageId) { CropScreenState() }
     val quadHandler = remember { QuadEditingHandler() }
 
-    if (initState is CropInitState.Ready && initState.pageId == pageId && state.bitmap == null) {
-        state.bitmap = initState.bitmap
-        state.setInitialQuad(initState.quad)
+    val (bitmap, initialQuad)  = if (initState is CropInitState.Ready && initState.pageId == pageId) {
+        Pair(initState.bitmap, initState.quad)
+    } else {
+        Pair(null, null)
+    }
+
+    val editableQuad = rememberSaveable(pageId, saver = QuadSaver) {
+        mutableStateOf(initialQuad)
+    }
+    val state = remember(pageId) {
+        CropScreenState(editableQuad)
     }
 
     BackHandler { navigation.back() }
@@ -93,7 +104,7 @@ fun CropScreen(
     ) { modifier ->
 
         Box(modifier = modifier.fillMaxSize()) {
-            state.bitmap?.let { bmp ->
+            bitmap?.let { bmp ->
                 val imageBitmap = remember(bmp) { bmp.asImageBitmap() }
 
                 Box(
@@ -118,7 +129,7 @@ fun CropScreen(
                 }
             }
 
-            DragMagnifyingGlass(state)
+            DragMagnifyingGlass(state, bitmap)
 
             ActionButtons(
                 modifier = Modifier
@@ -244,7 +255,7 @@ private fun DragQuadOverlay(
 }
 
 @Composable
-private fun DragMagnifyingGlass(state: CropScreenState) {
+private fun DragMagnifyingGlass(state: CropScreenState, bitmap: Bitmap?) {
     // showLoupe becomes true immediately on touch-down and stays true for
     // one additional second after the finger is lifted.
     val showLoupe = remember { mutableStateOf(false) }
@@ -263,7 +274,7 @@ private fun DragMagnifyingGlass(state: CropScreenState) {
 
     if (!showLoupe.value || state.dragPosition == null || state.containerSize == null) return
 
-    val bmp = state.bitmap ?: return
+    val bmp = bitmap ?: return
     val containerSize = state.containerSize!!
     val displaySize = QuadCoordinateUtils.calculateDisplaySize(
         bmp.width, bmp.height, containerSize
@@ -308,6 +319,30 @@ private fun DragMagnifyingGlass(state: CropScreenState) {
         quad = state.editableQuad,
     )
 }
+
+val QuadSaver: Saver<MutableState<Quad?>, *> = listSaver(
+    save = { state ->
+        state.value?.let {
+            listOf(
+                it.topLeft.x, it.topLeft.y,
+                it.topRight.x, it.topRight.y,
+                it.bottomRight.x, it.bottomRight.y,
+                it.bottomLeft.x, it.bottomLeft.y,
+            )
+        } ?: listOf()
+    },
+    restore = { list ->
+        val quad = if (list.size == 8) {
+            Quad(
+                topLeft = Point(list[0], list[1]),
+                topRight = Point(list[2], list[3]),
+                bottomRight = Point(list[4], list[5]),
+                bottomLeft = Point(list[6], list[7]),
+            )
+        } else null
+        mutableStateOf(quad)
+    }
+)
 
 @Composable
 @Preview(showSystemUi = true)
