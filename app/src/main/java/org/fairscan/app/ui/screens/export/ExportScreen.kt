@@ -147,7 +147,7 @@ fun ExportScreenWrapper(
         onOpen = exportActions.open,
         onCloseScan = {
             if (!uiState.isSaving) {
-                if (uiState.hasSavedOrShared || uiState.isResumedScan)
+                if (uiState.hasSavedOrShared)
                     onCloseScan()
                 else
                     showConfirmationDialog.value = true

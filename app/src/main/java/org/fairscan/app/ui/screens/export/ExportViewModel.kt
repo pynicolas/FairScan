@@ -97,12 +97,6 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private val _uiState = MutableStateFlow(ExportUiState())
     val uiState: StateFlow<ExportUiState> = _uiState.asStateFlow()
 
-    private var resumedScanKeys: List<PageViewKey> = emptyList()
-    init {
-        viewModelScope.launch {
-            resumedScanKeys = currentPageKeys()
-        }
-    }
     private var lastPreparationKey: ExportPreparationKey? = null
     private var preparationJob: Job? = null
 
@@ -173,7 +167,6 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                         isGenerating = true,
                         progress = ExportProgress(0, pageCount),
                         ocrActivation = ocrActivation,
-                        isResumedScan = resumedScanKeys == currentPageKeys
                     )
                 }
                 val onProgress: (Int) -> Unit = { completedPages ->
