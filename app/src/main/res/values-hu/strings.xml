@@ -93,9 +93,11 @@
         <item quantity="other">%1$d fájl mentve ide: %3$s</item>
     </plurals>
     <plurals name="importing_photos">
+        <item quantity="one">%d fénykép importálása</item>
         <item quantity="other">%d fénykép importálása</item>
     </plurals>
     <plurals name="page_count">
+        <item quantity="one">%d oldal</item>
         <item quantity="other">%d oldal</item>
     </plurals>
 </resources>
