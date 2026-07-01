@@ -9,8 +9,8 @@
     <string name="camera_permission_rationale">L’application a besoin d’accéder à l’appareil photo pour scanner des documents. Les images capturées sont enregistrées uniquement sur cet appareil et seront supprimées lorsque vous fermerez le document en cours.</string>
     <string name="cancel">Annuler</string>
     <string name="change_directory">Changer de dossier</string>
-    <string name="clear_text">Effacer le texte.</string>
-    <string name="close">Fermer</string>
+    <string name="clear_text">Effacer le super texte</string>
+    <string name="close">Fermer tout</string>
     <string name="color_mode">Filtre</string>
     <string name="color_mode_auto">Automatique</string>
     <string name="color_mode_color">Couleur</string>
