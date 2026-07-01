@@ -2,6 +2,11 @@
     <string name="about">About</string>
     <string name="add_page">Add page</string>
     <string name="app_name" translatable="false">FairScan</string>
+    <!-- 
+    "Simple" means easy to use, with no unnecessary complexity. You can scan a document and get a PDF in just a few seconds.
+    "Respectful" is not only about privacy, but also: no ads, no tracking, no artificial limitations (e.g. watermark), minimal permissions...
+    Please preserve the broad meaning of "respectful". It is a key part of FairScan's philosophy and should not be translated as "privacy-friendly" only.
+    -->
     <string name="app_tagline">A simple and respectful application to scan your documents.</string>
     <string name="apply">Apply</string>
     <string name="back">Back</string>
@@ -27,6 +32,7 @@
     <string name="developer">Developer</string>
     <string name="download_dirname">Downloads</string>
     <string name="error_context_folder">Export folder: %1$s</string>
+    <!-- %1$s is the provider name -->
     <string name="error_context_provider">Provider: %1$s</string>
     <string name="error_export_dir_permission_lost">The selected export folder is no longer accessible. Please choose another folder.</string>
     <!-- Rare error messages should not be translated -->
@@ -36,6 +42,7 @@
     <string name="error_occurred">An error occurred</string>
     <string name="error_save">Failed to save file</string>
     <string name="export">Export</string>
+    <!-- %1$s is the export format (PDF, JPEG...) -->
     <string name="export_as">Export as %1$s</string>
     <string name="export_directory">Export folder</string>
     <string name="export_folder_permission_lost">Folder access lost</string>
@@ -93,7 +100,9 @@
     <string name="view_the_full_license">View the full license</string>
     <string name="yes">Yes</string>
     <plurals name="files_saved_to">
+        <!-- %2$s: file name; %3$s: folder name -->
         <item quantity="one">%2$s saved to %3$s</item>
+        <!-- %1$d: number of files; %3$s: folder name -->
         <item quantity="other">%1$d files saved to %3$s</item>
     </plurals>
     <plurals name="importing_photos">
