@@ -57,11 +57,10 @@
     <string name="rotate_left">向左旋转</string>
     <string name="rotate_right">向右旋转</string>
     <string name="save">保存</string>
-    <string name="scan_button">新建扫描</string>
+    <string name="scan_new">新建扫描</string>
     <string name="scan_current">当前扫描</string>
     <string name="scan_discard_current">放弃当前扫描</string>
     <string name="scan_resume">继续扫描</string>
-    <string name="scan_start_new">新建扫描</string>
     <string name="settings">设置</string>
     <string name="settings_ocr_download_error">下载失败。请检查您的网络连接，并确认已允许此应用访问网络。</string>
     <string name="settings_ocr_download_intro">语言文件从官方 Tesseract 项目下载。文本识别始终完全离线运行。</string>

@@ -57,11 +57,10 @@
     <string name="rotate_left">Forgatás balra</string>
     <string name="rotate_right">Forgatás jobbra</string>
     <string name="save">Mentés</string>
-    <string name="scan_button">Új szkennelés</string>
+    <string name="scan_new">Új szkennelés</string>
     <string name="scan_current">Folyamatban lévő szkennelés</string>
     <string name="scan_discard_current">A folyamatban lévő szkennelés elvetése</string>
     <string name="scan_resume">Szkennelés folytatása</string>
-    <string name="scan_start_new">Új szkennelés indítása</string>
     <string name="settings">Beállítások</string>
     <string name="settings_ocr_download_error">A letöltés sikertelen. Ellenőrizd az internetkapcsolatodat, valamint hogy a hálózati hozzáférés engedélyezett-e az alkalmazás számára.</string>
     <string name="settings_ocr_download_intro">"A nyelvi fájlok a hivatalos Tesseract projektből kerülnek letöltésre. A szövegfelismerés ezt követően teljes mértékben offline történik."</string>

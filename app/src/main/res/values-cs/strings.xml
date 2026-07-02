@@ -57,11 +57,10 @@
     <string name="rotate_left">Otočit doleva</string>
     <string name="rotate_right">Otočit doprava</string>
     <string name="save">Uložit</string>
-    <string name="scan_button">Nové skenování</string>
+    <string name="scan_new">Nové skenování</string>
     <string name="scan_current">Aktuální sken</string>
     <string name="scan_discard_current">Zahodit aktuální sken</string>
     <string name="scan_resume">Pokračovat ve skenování</string>
-    <string name="scan_start_new">Nový sken</string>
     <string name="settings">Nastavení</string>
     <string name="settings_ocr_download_error">Stahování se nezdařilo. Zkontrolujte připojení k internetu a ujistěte se, že má tato aplikace povolený přístup k síti.</string>
     <string name="settings_ocr_download_intro">Jazykové soubory jsou stahovány z oficiálního projektu Tesseract. Rozpoznávání textu zůstává zcela offline.</string>

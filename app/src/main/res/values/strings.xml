@@ -68,11 +68,10 @@
     <string name="rotate_left">Rotate left</string>
     <string name="rotate_right">Rotate right</string>
     <string name="save">Save</string>
-    <string name="scan_button">New Scan</string>
+    <string name="scan_new">New Scan</string>
     <string name="scan_current">Current scan</string>
     <string name="scan_discard_current">Discard the current scan</string>
     <string name="scan_resume">Resume scan</string>
-    <string name="scan_start_new">Start new scan</string>
     <string name="settings">Settings</string>
     <string name="settings_ocr_download_error">Download failed. Check your internet connection and that network access is allowed for this app.</string>
     <string name="settings_ocr_download_intro">"Language files are downloaded from the official Tesseract project. Text recognition remains fully offline."</string>

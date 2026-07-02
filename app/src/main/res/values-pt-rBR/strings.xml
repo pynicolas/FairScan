@@ -57,11 +57,10 @@
     <string name="rotate_left">Girar para a esquerda</string>
     <string name="rotate_right">Girar para a direita</string>
     <string name="save">Salvar</string>
-    <string name="scan_button">Nova digitalização</string>
+    <string name="scan_new">Nova digitalização</string>
     <string name="scan_current">Digitalização atual</string>
     <string name="scan_discard_current">Descartar a digitalização atual</string>
     <string name="scan_resume">Retomar digitalização</string>
-    <string name="scan_start_new">Nova digitalização</string>
     <string name="settings">Configurações</string>
     <string name="settings_ocr_download_error">Falha no download. Verifique sua conexão com a Internet e certifique-se de que o acesso à rede está permitido para este aplicativo.</string>
     <string name="settings_ocr_download_intro">Os arquivos de idioma são baixados do projeto oficial Tesseract. O reconhecimento de texto permanece totalmente offline.</string>

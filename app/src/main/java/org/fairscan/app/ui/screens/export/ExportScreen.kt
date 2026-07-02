@@ -156,7 +156,7 @@ fun ExportScreenWrapper(
     )
 
     if (showConfirmationDialog.value) {
-        NewDocumentDialog(onCloseScan, showConfirmationDialog, stringResource(R.string.scan_button))
+        NewDocumentDialog(onCloseScan, showConfirmationDialog, stringResource(R.string.scan_new))
     }
 }
 
@@ -413,7 +413,7 @@ private fun MainActions(
         }
         ExportButton(
             icon = Icons.Default.Done,
-            text = stringResource(R.string.scan_button),
+            text = stringResource(R.string.scan_new),
             onClick = onCloseScan,
             modifier = Modifier.fillMaxWidth(),
             isPrimary = uiState.hasSavedOrShared,

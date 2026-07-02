@@ -170,7 +170,7 @@ private fun NewScanArea(onStartNewScan: () -> Unit, modifier: Modifier) {
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyMedium,
         )
-        BigButton(onClick = onStartNewScan, text = stringResource(R.string.scan_start_new))
+        BigButton(onClick = onStartNewScan, text = stringResource(R.string.scan_new))
     }
 }
 

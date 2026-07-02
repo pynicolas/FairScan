@@ -57,11 +57,10 @@
     <string name="rotate_left">Nach links drehen</string>
     <string name="rotate_right">Nach rechts drehen</string>
     <string name="save">Speichern</string>
-    <string name="scan_button">Neuer Scan</string>
+    <string name="scan_new">Neuer Scan</string>
     <string name="scan_current">Aktueller Scan</string>
     <string name="scan_discard_current">Aktuellen Scan verwerfen</string>
     <string name="scan_resume">Scan fortsetzen</string>
-    <string name="scan_start_new">Neuen Scan starten</string>
     <string name="settings">Einstellungen</string>
     <string name="settings_ocr_download_error">Download fehlgeschlagen. Überprüfen Sie Ihre Internetverbindung und stellen Sie sicher, dass der Netzwerkzugriff für diese App erlaubt ist.</string>
     <string name="settings_ocr_download_intro">Sprachdateien werden vom offiziellen Tesseract-Projekt heruntergeladen. Die Texterkennung bleibt vollständig offline.</string>

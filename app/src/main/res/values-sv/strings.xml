@@ -57,11 +57,10 @@
     <string name="rotate_left">Rotera åt vänster</string>
     <string name="rotate_right">Rotera åt höger</string>
     <string name="save">Spara</string>
-    <string name="scan_button">Ny skanning</string>
+    <string name="scan_new">Ny skanning</string>
     <string name="scan_current">Aktuell skanning</string>
     <string name="scan_discard_current">Kassera aktuell skanning</string>
     <string name="scan_resume">Återuppta skanning</string>
-    <string name="scan_start_new">Ny skanning</string>
     <string name="settings">Inställningar</string>
     <string name="settings_ocr_download_error">Nedladdningen misslyckades. Kontrollera din internetanslutning och att nätverksåtkomst är tillåten för den här appen.</string>
     <string name="settings_ocr_download_intro">Språkfiler hämtas från det officiella Tesseract-projektet. Textigenkänning förblir helt offline.</string>

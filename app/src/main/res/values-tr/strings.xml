@@ -57,11 +57,10 @@
     <string name="rotate_left">Sola döndür</string>
     <string name="rotate_right">Sağa döndür</string>
     <string name="save">Kaydet</string>
-    <string name="scan_button">Yeni Tarama</string>
+    <string name="scan_new">Yeni Tarama</string>
     <string name="scan_current">Geçerli tarama</string>
     <string name="scan_discard_current">Geçerli taramayı sil</string>
     <string name="scan_resume">Taramaya devam et</string>
-    <string name="scan_start_new">Yeni tarama</string>
     <string name="settings">Ayarlar</string>
     <string name="settings_ocr_download_error">İndirme başarısız oldu. İnternet bağlantınızı kontrol edin ve bu uygulama için ağ erişimine izin verildiğinden emin olun.</string>
     <string name="settings_ocr_download_intro">Dil dosyaları resmi Tesseract projesinden indirilir. Metin tanıma tamamen çevrimdışı olarak çalışır.</string>

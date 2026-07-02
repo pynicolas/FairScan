@@ -57,11 +57,10 @@
     <string name="rotate_left">تدوير إلى اليسار</string>
     <string name="rotate_right">تدوير إلى اليمين</string>
     <string name="save">احفظ</string>
-    <string name="scan_button">مسح جديد</string>
+    <string name="scan_new">مسح جديد</string>
     <string name="scan_current">المسح الحالي</string>
     <string name="scan_discard_current">تجاهل المسح الحالي</string>
     <string name="scan_resume">متابعة المسح</string>
-    <string name="scan_start_new">بدء مسح جديد</string>
     <string name="settings">الإعدادات</string>
     <string name="settings_ocr_download_error">فشل التنزيل. تحقق من اتصال الإنترنت وتأكد من السماح لهذا التطبيق بالوصول إلى الشبكة.</string>
     <string name="settings_ocr_download_intro">يتم تنزيل ملفات اللغة من مشروع Tesseract الرسمي. تبقى عملية التعرّف على النصوص دون اتصال بالإنترنت بالكامل.</string>

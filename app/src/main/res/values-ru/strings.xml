@@ -57,11 +57,10 @@
     <string name="rotate_left">Повернуть влево</string>
     <string name="rotate_right">Повернуть вправо</string>
     <string name="save">Сохранить</string>
-    <string name="scan_button">Начать</string>
+    <string name="scan_new">Начать</string>
     <string name="scan_current">Текущее сканирование</string>
     <string name="scan_discard_current">Отменить текущее сканирование</string>
     <string name="scan_resume">Продолжить сканирование</string>
-    <string name="scan_start_new">Новое сканирование</string>
     <string name="settings">Настройки</string>
     <string name="settings_ocr_download_error">Не удалось загрузить файл. Проверьте подключение к Интернету и убедитесь, что для этого приложения разрешён доступ к сети.</string>
     <string name="settings_ocr_download_intro">Языковые файлы загружаются из официального проекта Tesseract. Распознавание текста остаётся полностью офлайн.</string>
