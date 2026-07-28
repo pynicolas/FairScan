@@ -19,8 +19,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import org.fairscan.app.data.ImageTransformations
+import org.fairscan.app.domain.Bitonal
 import org.fairscan.app.domain.CapturedPage
 import org.fairscan.app.domain.ExportQuality
+import org.fairscan.app.domain.bitonalMaxPixels
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.Rotation
@@ -33,7 +35,9 @@ import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.autoColorMode
 import org.fairscan.imageprocessing.createQuad
+import org.fairscan.imageprocessing.estimateRealDimensions
 import org.fairscan.imageprocessing.extractDocument
+import org.fairscan.imageprocessing.packBitsMsbFirst
 import org.fairscan.imageprocessing.resizeForMaxPixels
 import org.fairscan.imageprocessing.rotate
 import org.fairscan.imageprocessing.scaledTo
@@ -108,13 +112,104 @@ fun processedImage(
     try {
         sourceMat = source.toMat()
         val quad = metadata.normalizedQuad.scaledTo(1, 1, sourceMat.width(), sourceMat.height())
-        page = extractDocument(sourceMat, quad, rotationDegrees, colorMode, exportQuality.maxPixels,
+        page = renderPage(sourceMat, quad, rotationDegrees, colorMode, exportQuality,
             metadata.opticalMeasures)
-        return Jpeg.fromMat(page, exportQuality.jpegQuality)
+        return Jpeg.fromMat(page, storedJpegQuality(colorMode, exportQuality))
     } finally {
         sourceMat?.release()
         page?.release()
     }
+}
+
+// A scaled down bitonal page is nothing but hard edges, which is exactly where JPEG rings.
+private const val BITONAL_JPEG_QUALITY = 92
+
+private fun storedJpegQuality(colorMode: ColorMode, exportQuality: ExportQuality) =
+    if (colorMode == ColorMode.BLACK_AND_WHITE) BITONAL_JPEG_QUALITY
+    else exportQuality.jpegQuality
+
+private fun bitonalMaxPixels(
+    source: Mat,
+    quad: Quad,
+    exportQuality: ExportQuality,
+    opticalMeasures: OpticalMeasures?,
+): Long = exportQuality.bitonalMaxPixels(
+    estimateRealDimensions(quad, source.cols(), source.rows(), opticalMeasures)
+        .snapToStandardFormat()
+)
+
+// Black and white is binarized at the export resolution and scaled down afterwards: at preview
+// resolution a speck of glare merges with a glyph and can no longer be told apart from it.
+private fun renderPage(
+    source: Mat,
+    quad: Quad,
+    rotationDegrees: Int,
+    colorMode: ColorMode,
+    exportQuality: ExportQuality,
+    opticalMeasures: OpticalMeasures?,
+): Mat {
+    if (colorMode != ColorMode.BLACK_AND_WHITE) {
+        return extractDocument(source, quad, rotationDegrees, colorMode,
+            exportQuality.maxPixels, opticalMeasures)
+    }
+    val full = extractDocument(source, quad, rotationDegrees, colorMode,
+        bitonalMaxPixels(source, quad, exportQuality, opticalMeasures), opticalMeasures,
+        allowUpscaling = true)
+    return try {
+        resizeForMaxPixels(full, exportQuality.maxPixels.toDouble())
+    } finally {
+        full.release()
+    }
+}
+
+// Rebuilt from the original capture, because the stored page is a JPEG and would carry its
+// compression artifacts into the PDF.
+fun processedBitonalImage(
+    source: Jpeg,
+    metadata: PageMetadata,
+    rotation: Rotation,
+    exportQuality: ExportQuality,
+): Bitonal {
+    var sourceMat: Mat? = null
+    var page: Mat? = null
+    var gray: Mat? = null
+    try {
+        sourceMat = source.toMat()
+        val quad = metadata.normalizedQuad.scaledTo(1, 1, sourceMat.width(), sourceMat.height())
+        page = extractDocument(sourceMat, quad, rotation.degrees, ColorMode.BLACK_AND_WHITE,
+            bitonalMaxPixels(sourceMat, quad, exportQuality, metadata.opticalMeasures),
+            metadata.opticalMeasures, allowUpscaling = true)
+        gray = Mat()
+        Imgproc.cvtColor(page, gray, Imgproc.COLOR_BGR2GRAY)
+        return packBitonal(gray)
+    } finally {
+        sourceMat?.release()
+        page?.release()
+        gray?.release()
+    }
+}
+
+// Fallback for pages whose original capture is no longer available.
+fun bitonalFromJpeg(jpeg: Jpeg): Bitonal {
+    var mat: Mat? = null
+    var gray: Mat? = null
+    try {
+        mat = jpeg.toMat()
+        gray = Mat()
+        Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY)
+        return packBitonal(gray)
+    } finally {
+        mat?.release()
+        gray?.release()
+    }
+}
+
+private fun packBitonal(gray: Mat): Bitonal {
+    val width = gray.width()
+    val height = gray.height()
+    val pixels = ByteArray(width * height)
+    gray.get(0, 0, pixels)
+    return Bitonal(width, height, packBitsMsbFirst(pixels, width, height))
 }
 
 fun extractDocumentFromBitmap(
@@ -150,11 +245,10 @@ fun extractDocumentFromBitmap(
         normalizedQuad = quad.scaledTo(source.width, source.height, 1, 1)
         autoColorMode = autoColorMode(bgr, mask, quad)
         colorMode = defaultColorMode.colorMode ?: autoColorMode
-        page = extractDocument(bgr, quad, rotationDegrees, colorMode, exportQuality.maxPixels,
-            opticalMeasures)
+        page = renderPage(bgr, quad, rotationDegrees, colorMode, exportQuality, opticalMeasures)
     }
 
-    val pageJpeg = Jpeg.fromMat(page, exportQuality.jpegQuality)
+    val pageJpeg = Jpeg.fromMat(page, storedJpegQuality(colorMode, exportQuality))
     bgr.release()
     page.release()
 

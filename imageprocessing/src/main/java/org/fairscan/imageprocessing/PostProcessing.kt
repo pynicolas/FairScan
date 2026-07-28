@@ -19,21 +19,26 @@ import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.MatOfFloat
 import org.opencv.core.MatOfInt
+import org.opencv.core.Rect
 import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 enum class ColorMode {
     COLOR,
     GRAYSCALE,
+    BLACK_AND_WHITE,
 }
 
-fun enhanceCapturedImage(img: Mat, colorMode: ColorMode): Mat {
+fun enhanceCapturedImage(img: Mat, colorMode: ColorMode, upscaleTo: Long = 0L): Mat {
     return when (colorMode) {
         ColorMode.COLOR -> multiScaleRetinexOnL(img)
         ColorMode.GRAYSCALE -> enhanceGrayscaleImage(img)
+        ColorMode.BLACK_AND_WHITE -> binarizeDocument(img, upscaleTo)
     }
 }
 
@@ -200,6 +205,16 @@ fun percentileL(l: Mat, p: Double): Double {
 }
 
 fun enhanceGrayscaleImage(img: Mat): Mat {
+    val gray = flattenedGrayscale(img)
+    val finalBgr = Mat()
+    Imgproc.cvtColor(gray, finalBgr, Imgproc.COLOR_GRAY2BGR)
+    gray.release()
+    return finalBgr
+}
+
+// Steps 1 to 5 of enhanceGrayscaleImage, without the conversion back to BGR.
+// Binarization reuses it for the same illumination flattening.
+private fun flattenedGrayscale(img: Mat): Mat {
 
     // -- 1. Convert to grayscale --------
     val gray = Mat()
@@ -320,14 +335,218 @@ fun enhanceGrayscaleImage(img: Mat): Mat {
     val denoised = Mat()
     Imgproc.bilateralFilter(stretched8u, denoised, 9, 20.0, 10.0)
 
-    val finalBgr = Mat()
-    Imgproc.cvtColor(denoised, finalBgr, Imgproc.COLOR_GRAY2BGR)
-
     // -- Cleanup -----------
     gray.release(); imgFloat.release(); logImg.release()
     blur.release(); logBlur.release(); diff.release()
     retinex.release(); result8u.release()
-    stretched8u.release(); denoised.release()
+    stretched8u.release()
 
-    return finalBgr
+    return denoised
+}
+
+private const val SAUVOLA_K = 0.25
+private const val SAUVOLA_R = 128.0
+
+// Window and deviation below which an area counts as a flat fill rather than texture.
+private const val FILL_WINDOW = 9.0
+private const val FILL_DEVIATION = 12.0
+
+// Step 4 of the grayscale pipeline stretches the page background to white.
+private const val FILL_LEVEL = 155.0
+
+// How much larger a hole may be inside a fill before it counts as content rather than glare.
+private const val FILL_HOLE_FACTOR = 5
+
+// Returns BGR containing only 0 and 255, like the other color modes, so that storage and
+// preview stay unchanged. The export path packs it into one bit per pixel.
+fun binarizeDocument(img: Mat, upscaleTo: Long = 0L): Mat {
+    // Flatten the illumination at the captured resolution. Interpolated pixels carry no extra
+    // information for that step, only for where the threshold puts an edge.
+    val flattened = flattenedGrayscale(img)
+    val gray = upscaleToPixels(flattened, upscaleTo)
+    flattened.release()
+    val window = sauvolaWindow(max(gray.cols(), gray.rows()))
+
+    val src = Mat()
+    gray.convertTo(src, CvType.CV_32F)
+    gray.release()
+
+    val binary = sauvolaThreshold(src, window)
+    val fill = flatFill(src, window)
+    src.release()
+
+    // A local threshold has no reference point inside a flat fill of color, so the fill reads
+    // as background and comes out as an outline of itself.
+    Core.subtract(binary, fill, binary)
+    despeckle(binary, fill, window)
+    fill.release()
+
+    val bgr = Mat()
+    Imgproc.cvtColor(binary, bgr, Imgproc.COLOR_GRAY2BGR)
+    binary.release()
+    return bgr
+}
+
+private fun upscaleToPixels(img: Mat, targetPixels: Long): Mat {
+    val pixels = img.width().toLong() * img.height()
+    if (targetPixels <= pixels) return img.clone()
+    val scale = sqrt(targetPixels.toDouble() / pixels)
+    val out = Mat()
+    Imgproc.resize(img, out, Size(img.width() * scale, img.height() * scale),
+        0.0, 0.0, Imgproc.INTER_CUBIC)
+    return out
+}
+
+// Sauvola local thresholding: t = mean * (1 + k * (stdDev / r - 1))
+private fun sauvolaThreshold(src: Mat, window: Int): Mat {
+    val windowSize = Size(window.toDouble(), window.toDouble())
+
+    val mean = Mat()
+    Imgproc.boxFilter(src, mean, CvType.CV_32F, windowSize)
+
+    val squares = Mat()
+    Core.multiply(src, src, squares)
+    val deviation = Mat()
+    Imgproc.boxFilter(squares, deviation, CvType.CV_32F, windowSize)
+    squares.release()
+
+    val meanSquared = Mat()
+    Core.multiply(mean, mean, meanSquared)
+    Core.subtract(deviation, meanSquared, deviation)
+    meanSquared.release()
+    Core.max(deviation, Scalar(0.0), deviation)
+    Core.sqrt(deviation, deviation)
+
+    Core.multiply(deviation, Scalar(SAUVOLA_K / SAUVOLA_R), deviation)
+    Core.add(deviation, Scalar(1.0 - SAUVOLA_K), deviation)
+    val threshold = Mat()
+    Core.multiply(mean, deviation, threshold)
+    mean.release(); deviation.release()
+
+    val binary = Mat()
+    Core.compare(src, threshold, binary, Core.CMP_GT)
+    threshold.release()
+
+    return binary
+}
+
+// Dark pixels belonging to a flat fill: a smooth dark spot seeds the fill, the seed grows over
+// the area one local window covers, and the result is clipped back to the dark pixels. Texture
+// produces almost no seeds, so photographs stay on the local threshold.
+private fun flatFill(src: Mat, window: Int): Mat {
+    val dark = Mat()
+    Core.compare(src, Scalar(FILL_LEVEL), dark, Core.CMP_LT)
+
+    val deviation = localDeviation(src, FILL_WINDOW)
+    val seeds = Mat()
+    Core.compare(deviation, Scalar(FILL_DEVIATION), seeds, Core.CMP_LT)
+    deviation.release()
+    Core.bitwise_and(seeds, dark, seeds)
+
+    // Half the local window is enough: that is how far the threshold is disturbed around a
+    // bright feature sitting on the fill.
+    val reach = (window / 2).coerceAtLeast(3).toDouble()
+    val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(reach, reach))
+    val fill = Mat()
+    Imgproc.dilate(seeds, fill, kernel)
+    seeds.release(); kernel.release()
+
+    Core.bitwise_and(fill, dark, fill)
+    dark.release()
+    return fill
+}
+
+// Standard deviation of src over a square window, as CV_32F.
+private fun localDeviation(src: Mat, window: Double): Mat {
+    val windowSize = Size(window, window)
+    val mean = Mat()
+    Imgproc.boxFilter(src, mean, CvType.CV_32F, windowSize)
+    val squares = Mat()
+    Core.multiply(src, src, squares)
+    val deviation = Mat()
+    Imgproc.boxFilter(squares, deviation, CvType.CV_32F, windowSize)
+    squares.release()
+    Core.multiply(mean, mean, mean)
+    Core.subtract(deviation, mean, deviation)
+    mean.release()
+    Core.max(deviation, Scalar(0.0), deviation)
+    Core.sqrt(deviation, deviation)
+    return deviation
+}
+
+// About two to three times the cap height of body text at any of the export resolutions.
+internal fun sauvolaWindow(maxDim: Int): Int = (maxDim / 60).coerceIn(15, 101) or 1
+
+// Grows with the square of the resolution, anchored so that at 300 dpi anything up to 3x3 is
+// removed while a full stop, about 35 px, survives.
+internal fun despeckleMinArea(maxDim: Int): Int {
+    val scale = maxDim / 3508.0
+    return max(2, (12.0 * scale * scale).roundToInt())
+}
+
+// Removes specks of both kinds: ink on paper, and the holes that glare punches into a fill.
+private fun despeckle(binary: Mat, fill: Mat, window: Int) {
+    val minArea = despeckleMinArea(max(binary.cols(), binary.rows()))
+    removeSpecks(binary, minArea, ink = true)
+    removeSpecks(binary, minArea, ink = false)
+
+    // Glare and uneven printing punch holes into a filled area that are far bigger than the
+    // tiny ones above, and about the size of a letter counter. A counter never sits inside a
+    // fill though, so within one the size limit can be raised without eating any text.
+    val reach = (window / 4).coerceAtLeast(3).toDouble()
+    val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, Size(reach, reach))
+    val inside = Mat()
+    Imgproc.dilate(fill, inside, kernel)
+    kernel.release()
+    removeSpecks(binary, minArea * FILL_HOLE_FACTOR, ink = false, within = inside)
+    inside.release()
+}
+
+// Drops connected areas below minArea, optionally only those centred in `within`. Only the
+// bounding box of each speck is touched, never the whole image.
+private fun removeSpecks(binary: Mat, minArea: Int, ink: Boolean, within: Mat? = null) {
+    val subject = Mat()
+    if (ink) Core.bitwise_not(binary, subject) else binary.copyTo(subject)
+
+    val labels = Mat()
+    val stats = Mat()
+    val centroids = Mat()
+    val count = Imgproc.connectedComponentsWithStats(
+        subject, labels, stats, centroids, 8, CvType.CV_32S)
+    subject.release()
+
+    if (count > 1) {
+        val statsData = IntArray(count * 5)
+        stats.get(0, 0, statsData)
+        val centres = DoubleArray(count * 2)
+        centroids.get(0, 0, centres)
+        val replacement = Scalar(if (ink) 255.0 else 0.0)
+
+        for (label in 1 until count) {
+            val offset = label * 5
+            if (statsData[offset + Imgproc.CC_STAT_AREA] >= minArea) continue
+            if (within != null && !isSet(within, centres[label * 2], centres[label * 2 + 1]))
+                continue
+            val box = Rect(
+                statsData[offset + Imgproc.CC_STAT_LEFT],
+                statsData[offset + Imgproc.CC_STAT_TOP],
+                statsData[offset + Imgproc.CC_STAT_WIDTH],
+                statsData[offset + Imgproc.CC_STAT_HEIGHT],
+            )
+            val labelBox = labels.submat(box)
+            val speck = Mat()
+            Core.compare(labelBox, Scalar(label.toDouble()), speck, Core.CMP_EQ)
+            val target = binary.submat(box)
+            target.setTo(replacement, speck)
+            labelBox.release(); speck.release(); target.release()
+        }
+    }
+
+    labels.release(); stats.release(); centroids.release()
+}
+
+private fun isSet(mask: Mat, x: Double, y: Double): Boolean {
+    val col = x.toInt().coerceIn(0, mask.cols() - 1)
+    val row = y.toInt().coerceIn(0, mask.rows() - 1)
+    return mask.get(row, col)[0] != 0.0
 }

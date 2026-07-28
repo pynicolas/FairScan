@@ -5,6 +5,8 @@
     <string name="app_tagline">Lihtsaltkasutatav ja viisakas rakendus dokumentide skaneerimiseks.</string>
     <string name="apply">Rakenda</string>
     <string name="back">Tagasi</string>
+    <string name="black_and_white_jpeg_hint">Kasutage väljundvorminguna PDF-i, et mustvalged lehed jääksid kompaktseks ja teravaks.</string>
+    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">Kaamera kasutamise õigused on puudu</string>
     <string name="camera_permission_rationale">Et dokumentide skaneerimine toimiks, vajab see rakendus õigust kasutada kaamerat. Pildihõive käigus jäädvustatud pildid salvestuvad vaid siin selles seadmes ja kustutatakse töösoleva skaneerimise lõppedes.</string>
     <string name="cancel">Katkesta</string>
@@ -13,6 +15,7 @@
     <string name="close">Sulge</string>
     <string name="color_mode">Filtreeri</string>
     <string name="color_mode_auto">Automaatne</string>
+    <string name="color_mode_black_and_white">Mustvalge</string>
     <string name="color_mode_color">Värvid</string>
     <string name="color_mode_default">Vaikimisi filter</string>
     <string name="color_mode_grayscale">Halltoonides</string>

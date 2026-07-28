@@ -4,6 +4,8 @@
     <string name="app_tagline">Простое и открытое приложение для сканирования Ваших документов.</string>
     <string name="apply">Применить</string>
     <string name="back">Назад</string>
+    <string name="black_and_white_jpeg_hint">Используйте PDF в качестве формата вывода, чтобы чёрно-белые страницы оставались компактными и чёткими.</string>
+    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">В доступе к камере отказано</string>
     <string name="camera_permission_rationale">Для сканирования документов приложению требуется доступ к камере. Отснятые изображения хранятся только на данном устройстве и удаляются по окончании текущего сканирования.</string>
     <string name="cancel">Отмена</string>
@@ -12,6 +14,7 @@
     <string name="close">Закрыть</string>
     <string name="color_mode">Фильтр</string>
     <string name="color_mode_auto">Автоматически</string>
+    <string name="color_mode_black_and_white">Чёрно-белый</string>
     <string name="color_mode_color">Цвет</string>
     <string name="color_mode_default">Фильтр по умолчанию</string>
     <string name="color_mode_grayscale">Оттенки серого</string>

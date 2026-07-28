@@ -4,6 +4,8 @@
     <string name="app_tagline">تطبيق بسيط ومحترم لمسح مستنداتك ضوئيًا.</string>
     <string name="apply">تطبيق</string>
     <string name="back">ارجع</string>
+    <string name="black_and_white_jpeg_hint">استخدم PDF كصيغة إخراج للحفاظ على صفحات الأبيض والأسود صغيرة وواضحة.</string>
+    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">رُفض إذن الوصول إلى الكاميرا</string>
     <string name="camera_permission_rationale">يتطلب التطبيق الوصول إلى الكاميرا لمسح المستندات ضوئيًا. تُخزن الصور الملتقطة على هذا الجهاز فقط، وسيتم حذفها عند إغلاق المسح الحالي.</string>
     <string name="cancel">ألغِ</string>
@@ -12,6 +14,7 @@
     <string name="close">إغلاق</string>
     <string name="color_mode">فلتر</string>
     <string name="color_mode_auto">تلقائي</string>
+    <string name="color_mode_black_and_white">أبيض وأسود</string>
     <string name="color_mode_color">ألوان</string>
     <string name="color_mode_default">الفلتر الافتراضي</string>
     <string name="color_mode_grayscale">تدرج الرمادي</string>

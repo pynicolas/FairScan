@@ -49,6 +49,7 @@ import org.fairscan.app.domain.PageViewKey
 import org.fairscan.app.domain.pagesToExport
 import org.fairscan.app.ui.screens.settings.ExportFormat
 import org.fairscan.app.ui.screens.settings.ExportFormat.PDF
+import org.fairscan.imageprocessing.ColorMode
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -160,6 +161,11 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 
             preparationJob = launch {
                 val ocrActivation = if (exportFormat == PDF) ocrLanguageString.isNotEmpty() else null
+                val bitonalCount = currentPageKeys.count { it.colorMode == ColorMode.BLACK_AND_WHITE }
+                val bitonalAsJpeg =
+                    if (exportFormat == ExportFormat.JPEG && bitonalCount > 0)
+                        BitonalPages(bitonalCount, pageCount)
+                    else null
                 _uiState.update {
                     ExportUiState(
                         filename = it.filename,
@@ -167,6 +173,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                         isGenerating = true,
                         progress = ExportProgress(0, pageCount),
                         ocrActivation = ocrActivation,
+                        bitonalAsJpeg = bitonalAsJpeg,
                     )
                 }
                 val onProgress: (Int) -> Unit = { completedPages ->
