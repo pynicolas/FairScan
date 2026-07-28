@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RotateLeft
 import androidx.compose.material.icons.filled.RotateRight
@@ -63,6 +64,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -87,6 +89,7 @@ import org.fairscan.app.ui.fakeDocument
 import org.fairscan.app.ui.fakeImage
 import org.fairscan.app.ui.theme.FairScanTheme
 import org.fairscan.imageprocessing.ColorMode
+import org.fairscan.imageprocessing.ColorMode.BLACK_AND_WHITE
 import org.fairscan.imageprocessing.ColorMode.COLOR
 import org.fairscan.imageprocessing.ColorMode.GRAYSCALE
 
@@ -98,7 +101,7 @@ fun DocumentScreen(
     onExportClick: () -> Unit,
     onDeleteImage: () -> Unit,
     onRotateImage: (Boolean) -> Unit,
-    onToggleColorMode: () -> Unit,
+    onColorModeSelected: (ColorMode) -> Unit,
     onCropClick: () -> Unit,
     onPageReorder: (String, Int) -> Unit,
     onPageSelected: (Int) -> Unit,
@@ -132,7 +135,7 @@ fun DocumentScreen(
             uiState,
             { showDeletePageDialog.value = true },
             onRotateImage,
-            onToggleColorMode,
+            onColorModeSelected,
             onCropClick,
             modifier
         )
@@ -151,7 +154,7 @@ private fun DocumentPreview(
     uiState: DocumentUiState,
     onDeleteImage: () -> Unit,
     onRotateImage: (Boolean) -> Unit,
-    onToggleColorMode: () -> Unit,
+    onColorModeSelected: (ColorMode) -> Unit,
     onCropClick: () -> Unit,
     modifier: Modifier,
 ) {
@@ -199,7 +202,7 @@ private fun DocumentPreview(
             }
             EditButtons(
                 uiState,
-                onToggleColorMode,
+                onColorModeSelected,
                 onCropClick,
                 modifier = Modifier.align(Alignment.BottomStart)
             )
@@ -256,7 +259,7 @@ fun RotationButtons(
 @Composable
 fun EditButtons(
     uiState: DocumentUiState,
-    onToggleColorMode: () -> Unit,
+    onColorModeSelected: (ColorMode) -> Unit,
     onCropClick: () -> Unit,
     modifier: Modifier
 ) {
@@ -264,7 +267,7 @@ fun EditButtons(
         uiState.currentPage?.colorMode?.let {
             ColorModeButton(
                 currentColorMode = it,
-                onToggle = { onToggleColorMode() },
+                onColorModeSelected = onColorModeSelected,
             )
         }
         Spacer(Modifier.width(8.dp))
@@ -281,7 +284,7 @@ fun EditButtons(
 @Composable
 fun ColorModeButton(
     currentColorMode: ColorMode,
-    onToggle: () -> Unit,
+    onColorModeSelected: (ColorMode) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -296,35 +299,38 @@ fun ColorModeButton(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.color_mode_color)) },
-                leadingIcon = { Icon(Icons.Default.Palette, contentDescription = null) },
-                onClick = {
-                    if (currentColorMode != COLOR) onToggle()
-                    expanded = false
-                },
-                trailingIcon = {
-                    if (currentColorMode == COLOR) {
-                        Icon(Icons.Default.Check, contentDescription = null)
+            ColorMode.entries.forEach { colorMode ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(colorMode.labelResource)) },
+                    leadingIcon = { Icon(colorMode.icon, contentDescription = null) },
+                    onClick = {
+                        onColorModeSelected(colorMode)
+                        expanded = false
+                    },
+                    trailingIcon = {
+                        if (currentColorMode == colorMode) {
+                            Icon(Icons.Default.Check, contentDescription = null)
+                        }
                     }
-                }
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.color_mode_grayscale)) },
-                leadingIcon = { Icon(Icons.Default.Contrast, contentDescription = null) },
-                onClick = {
-                    if (currentColorMode != GRAYSCALE) onToggle()
-                    expanded = false
-                },
-                trailingIcon = {
-                    if (currentColorMode == GRAYSCALE) {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                    }
-                }
-            )
+                )
+            }
         }
     }
 }
+
+private val ColorMode.labelResource: Int
+    get() = when (this) {
+        COLOR -> R.string.color_mode_color
+        GRAYSCALE -> R.string.color_mode_grayscale
+        BLACK_AND_WHITE -> R.string.color_mode_black_and_white
+    }
+
+private val ColorMode.icon: ImageVector
+    get() = when (this) {
+        COLOR -> Icons.Default.Palette
+        GRAYSCALE -> Icons.Default.Contrast
+        BLACK_AND_WHITE -> Icons.Default.FontDownload
+    }
 
 @Composable
 private fun BottomBar(
@@ -378,7 +384,7 @@ fun DocumentScreenPreview() {
             onExportClick = {},
             onDeleteImage = { },
             onRotateImage = { _ -> },
-            onToggleColorMode = { },
+            onColorModeSelected = { },
             onCropClick = { },
             onPageReorder = { _,_ -> },
             onPageSelected = { _ -> },

@@ -15,10 +15,12 @@
 package org.fairscan.app.platform
 
 import android.content.res.AssetManager
+import android.graphics.Bitmap
 import android.util.Log
 import com.tom_roush.pdfbox.cos.COSArray
 import com.tom_roush.pdfbox.cos.COSDictionary
 import com.tom_roush.pdfbox.cos.COSName
+import com.tom_roush.pdfbox.filter.FilterFactory
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
@@ -27,14 +29,19 @@ import com.tom_roush.pdfbox.pdmodel.PDResources
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.common.PDStream
 import com.tom_roush.pdfbox.pdmodel.font.PDFontDescriptor
+import com.tom_roush.pdfbox.pdmodel.graphics.color.PDDeviceGray
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
+import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
 import org.fairscan.app.BuildConfig
 import org.fairscan.app.data.PdfWriter
+import org.fairscan.app.domain.Bitonal
 import org.fairscan.app.domain.OcrService
 import org.fairscan.app.domain.PageToExport
 import org.fairscan.imageprocessing.EstimatedDimensions
 import org.fairscan.imageprocessing.OcrTextBox
 import org.fairscan.imageprocessing.PaperFormats
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.Calendar
 import java.util.Locale
@@ -47,14 +54,22 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
         disableOcr: Boolean,
         onProgress: (Int) -> Unit,
     ) {
+        // Without a language, runOcr returns nothing, and decoding a page for it is not free:
+        // at the highest quality it renders the page a second time.
+        val ocrEnabled = !disableOcr && ocrService.languageString().isNotEmpty()
         val doc = PDDocument()
         doc.documentInformation.creationDate = Calendar.getInstance()
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
             val ocrDocument = OcrDocument(document, assets)
             for ((index, page) in pages.withIndex()) {
-                val jpeg = page.jpeg.get()
-                val image = JPEGFactory.createFromByteArray(document, jpeg.bytes)
+                val bitonal = page.bitonal?.get()
+                val embedded = if (bitonal == null) page.jpeg.get() else null
+                val ocrJpeg = page.ocrJpeg
+                val image = if (bitonal != null)
+                    createCcittG4Image(document, bitonal)
+                else
+                    JPEGFactory.createFromByteArray(document, requireNotNull(embedded).bytes)
 
                 // PDF has 72 points (units) per inch, 1 inch = 25.4 mm
                 val pointsPerMm = 72f / 25.4f
@@ -82,9 +97,11 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
                 val contentStream = PDPageContentStream(document, page, AppendMode.OVERWRITE, false)
                 contentStream.drawImage(image, 0f, 0f, widthPoints, heightPoints)
 
-                if (!disableOcr) {
+                if (ocrEnabled) {
+                    var bitmap: Bitmap? = null
                     try {
-                        val bitmap = jpeg.toBitmap()
+                        // For every mode but black and white this is the image just embedded.
+                        bitmap = (embedded ?: ocrJpeg.get()).toBitmap()
                         val ocrTextBoxes = ocrService.runOcr(bitmap)
                         val pdfPageDimensions = PageDimensions(
                             bitmap.width,
@@ -95,6 +112,8 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
                         ocrDocument.addPage(page, ocrTextBoxes, pdfPageDimensions)
                     } catch (e: Exception) {
                         Log.e("AndroidPdfWriter", "Failed to run OCR on page $index", e)
+                    } finally {
+                        bitmap?.recycle()
                     }
                 }
                 contentStream.close()
@@ -105,6 +124,31 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
             document.save(outputStream)
         }
     }
+}
+
+// Same sequence of calls as PDFBox's own CCITTFactory, which is not usable here because it
+// insists on an ALPHA_8 bitmap. The filter reads a set bit as black, so /BlackIs1 is left out.
+private fun createCcittG4Image(document: PDDocument, bitonal: Bitonal): PDImageXObject {
+    val encoded = ByteArrayOutputStream()
+    val decodeParms = COSDictionary().apply {
+        setInt(COSName.COLUMNS, bitonal.width)
+        setInt(COSName.ROWS, bitonal.height)
+    }
+    FilterFactory.INSTANCE.getFilter(COSName.CCITTFAX_DECODE)
+        .encode(ByteArrayInputStream(bitonal.bits), encoded, decodeParms, 0)
+
+    val image = PDImageXObject(
+        document,
+        ByteArrayInputStream(encoded.toByteArray()),
+        COSName.CCITTFAX_DECODE,
+        bitonal.width,
+        bitonal.height,
+        1,
+        PDDeviceGray.INSTANCE,
+    )
+    decodeParms.setInt(COSName.K, -1)
+    image.cosObject.setItem(COSName.DECODE_PARMS, decodeParms)
+    return image
 }
 
 fun constrainToMaxFormat(widthMm: Double, heightMm: Double): Pair<Double, Double> {

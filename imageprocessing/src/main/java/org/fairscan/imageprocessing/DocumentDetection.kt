@@ -166,6 +166,10 @@ fun extractDocument(
     colorMode: ColorMode,
     maxPixels: Long,
     opticalMeasures: OpticalMeasures? = null,
+    // Lets the warp interpolate up to maxPixels. One bit per pixel loses the sub-pixel edge
+    // position that the gray levels still carry, so a finer grid gives smoother contours even
+    // though it adds no detail.
+    allowUpscaling: Boolean = false,
 ): Mat {
     val estimatedDimensions = estimateRealDimensions(
         quad,
@@ -193,7 +197,8 @@ fun extractDocument(
     Imgproc.warpPerspective(inputMat, warped, transform, outputSize)
 
     val resized = resizeForMaxPixels(warped, maxPixels.toDouble())
-    val enhanced = enhanceCapturedImage(resized, colorMode)
+    val enhanced = enhanceCapturedImage(
+        resized, colorMode, if (allowUpscaling) maxPixels else 0L)
     val rotated = rotate(enhanced, rotationDegrees)
 
     warped.release()

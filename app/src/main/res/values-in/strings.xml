@@ -4,6 +4,8 @@
     <string name="app_tagline">Aplikasi sederhana dan aman untuk memindai dokumen Anda</string>
     <string name="apply">Terapkan</string>
     <string name="back">Kembali</string>
+    <string name="black_and_white_jpeg_hint">Gunakan PDF sebagai format keluaran agar halaman hitam putih tetap ringkas dan tajam.</string>
+    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">Izin penggunaan kamera ditolak</string>
     <string name="camera_permission_rationale">Aplikasi ini memerlukan akses kamera untuk memindai dokumen. Gambar yang diambil hanya disimpan di perangkat ini dan akan dihapus saat Anda menutup pemindaian saat ini.</string>
     <string name="cancel">Batalkan</string>
@@ -12,6 +14,7 @@
     <string name="close">Tutup</string>
     <string name="color_mode">Filter</string>
     <string name="color_mode_auto">Otomatis</string>
+    <string name="color_mode_black_and_white">Hitam putih</string>
     <string name="color_mode_color">Warna</string>
     <string name="color_mode_default">Filter bawaan</string>
     <string name="color_mode_grayscale">Abu-abu</string>

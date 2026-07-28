@@ -210,7 +210,7 @@ class MainActivity : ComponentActivity() {
                             onExportClick = onExportClick,
                             onDeleteImage =  { viewModel.deleteCurrentPage() },
                             onRotateImage = { clockwise -> viewModel.rotateCurrentPage(clockwise) },
-                            onToggleColorMode = { viewModel.toggleCurrentPageColorMode() },
+                            onColorModeSelected = { viewModel.setCurrentPageColorMode(it) },
                             onCropClick = { viewModel.onClickOnCropButton() },
                             onPageReorder = { id, newIndex -> viewModel.movePage(id, newIndex) },
                             onPageSelected = viewModel::onPageSelected

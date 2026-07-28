@@ -43,6 +43,7 @@ class SettingsRepository(
                 "AUTO" -> DefaultColorMode.AUTO
                 "COLOR" -> DefaultColorMode.COLOR
                 "GRAYSCALE" -> DefaultColorMode.GRAYSCALE
+                "BLACK_AND_WHITE" -> DefaultColorMode.BLACK_AND_WHITE
                 else -> DefaultColorMode.AUTO
             }
         }
@@ -108,6 +109,7 @@ enum class DefaultColorMode(val colorMode: ColorMode?, val labelResource: Int) {
     AUTO(null, R.string.color_mode_auto),
     COLOR(ColorMode.COLOR, R.string.color_mode_color),
     GRAYSCALE(ColorMode.GRAYSCALE, R.string.color_mode_grayscale),
+    BLACK_AND_WHITE(ColorMode.BLACK_AND_WHITE, R.string.color_mode_black_and_white),
 }
 
 enum class ExportFormat(val mimeType: String) {

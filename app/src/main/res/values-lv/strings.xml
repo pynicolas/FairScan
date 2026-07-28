@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="black_and_white_jpeg_hint">Izmantojiet PDF kā izvades formātu, lai melnbaltās lapas paliktu kompaktas un asas.</string>
+    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
+    <string name="color_mode_black_and_white">Melnbalts</string>
     <string name="export_quality_balanced">Sabalansēta</string>
     <string name="close">Aizvērt</string>
     <string name="save">Saglabāt</string>

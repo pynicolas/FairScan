@@ -4,6 +4,8 @@
     <string name="app_tagline">シンプルで安心なドキュメントスキャナーです。</string>
     <string name="apply">適用</string>
     <string name="back">戻る</string>
+    <string name="black_and_white_jpeg_hint">白黒ページを小さく鮮明に保つには、出力形式に PDF を使用してください。</string>
+    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">カメラの権限が拒否されました</string>
     <string name="camera_permission_rationale">ドキュメントをスキャンするためにカメラへのアクセスが必要です。撮影した画像はこのデバイスにのみ保存され、現在のスキャンを閉じると削除されます。</string>
     <string name="cancel">キャンセル</string>
@@ -12,6 +14,7 @@
     <string name="close">閉じる</string>
     <string name="color_mode">フィルター</string>
     <string name="color_mode_auto">自動</string>
+    <string name="color_mode_black_and_white">白黒</string>
     <string name="color_mode_color">カラー</string>
     <string name="color_mode_default">デフォルトフィルター</string>
     <string name="color_mode_grayscale">グレースケール</string>
