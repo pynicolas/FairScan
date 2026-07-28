@@ -300,6 +300,17 @@ private fun PdfInfos(
                     )
             }
 
+            uiState.bitonalAsJpeg?.let { pages ->
+                val hint = stringResource(R.string.black_and_white_jpeg_hint)
+                val affected = if (pages.count == pages.total) "" else " " + stringResource(
+                    R.string.black_and_white_jpeg_pages, pages.count, pageCountText(pages.total))
+                Text(
+                    hint + affected,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+
             if (uiState.isGenerating) {
                 Text(
                     text = stringResource(R.string.creating_export),

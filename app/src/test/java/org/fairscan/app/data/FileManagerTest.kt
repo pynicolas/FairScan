@@ -87,7 +87,7 @@ class FileManagerTest {
         }
         val manager = FileManager(pdfDir, externalDir, fakePdfWriter)
         val pages = listOf(byteArrayOf(0x01, 0x02), byteArrayOf(0x11))
-            .map { PageToExport(ScanPage("1", Rotation.R0, null, 1, null)) { Jpeg(it) } }
+            .map { PageToExport(ScanPage("1", Rotation.R0, null, 1, null), jpeg = { Jpeg(it) }) }
         val pdf = manager.generatePdf(pages, true) {}
         assertThat(pdf.pageCount).isEqualTo(2)
         assertThat(pdf.sizeInBytes).isEqualTo(3)

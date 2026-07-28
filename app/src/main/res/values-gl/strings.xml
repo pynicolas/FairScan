@@ -4,6 +4,8 @@
     <string name="app_tagline">Unha aplicación sinxela e respectuosa para escanear os teus documentos.</string>
     <string name="apply">Aplicar</string>
     <string name="back">Atrás</string>
+    <string name="black_and_white_jpeg_hint">Use PDF como formato de saída para que as páxinas en branco e negro se manteñan compactas e nítidas.</string>
+    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">Permiso da cámara denegado</string>
     <string name="camera_permission_rationale">A aplicación precisa acceso á cámara para escanear documentos. As imaxes capturadas gárdanse só neste dispositivo e eliminaranse ao pechar o escaneo actual.</string>
     <string name="cancel">Cancelar</string>
@@ -12,6 +14,7 @@
     <string name="close">Pechar</string>
     <string name="color_mode">Filtro</string>
     <string name="color_mode_auto">Automático</string>
+    <string name="color_mode_black_and_white">Branco e negro</string>
     <string name="color_mode_color">Cor</string>
     <string name="color_mode_default">Filtro predeterminado</string>
     <string name="color_mode_grayscale">Escala de grises</string>

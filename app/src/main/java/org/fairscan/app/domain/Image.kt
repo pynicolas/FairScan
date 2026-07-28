@@ -29,6 +29,9 @@ class Jpeg(val bytes: ByteArray) {
     fun toMat() : Mat = decodeJpeg(bytes)
 }
 
+// One bit per pixel, MSB first, rows padded to whole bytes, set bit means black.
+class Bitonal(val width: Int, val height: Int, val bits: ByteArray)
+
 interface ImageLoader {
     suspend fun load(uri: Uri): Bitmap
 }
