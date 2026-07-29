@@ -16,6 +16,13 @@
     <string name="apply">Apply</string>
     <!-- Icon description for ← at the top-left -->
     <string name="back">Back</string>
+    <!-- Export screen: shown when the document has black and white pages but JPEG is the export
+         format. JPEG cannot store one bit per pixel, so those pages lose their size advantage.
+         Keep it short, it sits under the page count. -->
+    <string name="black_and_white_jpeg_hint">Use PDF as the output format to keep black &amp; white pages compact and crisp.</string>
+    <!-- Appended to the hint above when only some of the pages are black and white.
+         %1$d: those pages, %2$s: all pages of the document, already worded as "5 pages". -->
+    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <!-- Error message (as a toast) -->
     <string name="camera_permission_denied">Camera permission was denied</string>
     <!-- Appears on the Camera screen -->
@@ -32,6 +39,9 @@
     <string name="color_mode">Filter</string>
     <!-- Settings screen -->
     <string name="color_mode_auto">Automatic</string>
+    <!-- Settings screen: value for "default filter". Document screen: dropdown menu for filter.
+         Pure black and white, not grayscale, which is a separate value. -->
+    <string name="color_mode_black_and_white">Black &amp; white</string>
     <!-- Settings screen: value for "default filter". Document screen: dropdown menu for filter -->
     <string name="color_mode_color">Color</string>
     <!-- Settings screen -->

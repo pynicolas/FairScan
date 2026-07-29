@@ -179,15 +179,13 @@ class MainViewModel(val imageRepository: ImageRepository, logger: Logger): ViewM
         }
     }
 
-    fun toggleCurrentPageColorMode() {
+    fun setCurrentPageColorMode(colorMode: ColorMode) {
         viewModelScope.launch {
             val currentPage = currentPage()
-            currentPage.colorMode?.let {
+            if (currentPage.colorMode != colorMode) {
                 _loadingPageId.value = currentPage.id
-                val newColorMode =
-                    if (it == ColorMode.COLOR) ColorMode.GRAYSCALE else ColorMode.COLOR
                 val pages = withContext(Dispatchers.IO) {
-                    imageRepository.setColorMode(currentPage.id, newColorMode)
+                    imageRepository.setColorMode(currentPage.id, colorMode)
                     imageRepository.pages()
                 }
                 _pages.value = pages
