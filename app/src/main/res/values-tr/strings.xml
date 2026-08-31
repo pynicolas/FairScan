@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="about">Hakkında</string>
     <string name="add_page">Sayfa ekle</string>
@@ -28,9 +29,9 @@
     <string name="error_context_folder">Dışa aktarma klasörü: %1$s</string>
     <string name="error_context_provider">Sağlayıcı: %1$s</string>
     <string name="error_export_dir_permission_lost">Seçilen dışa aktarma dizini artık erişilebilir değil. Lütfen başka bir dizin seçin.</string>
-    <string name="error_no_app">No app found to open this file</string>
+    <string name="error_no_app">Bu dosyayı açacak uygulama bulunamadı</string>
     <string name="error_occurred">Bir hata oluştu</string>
-    <string name="error_save">Failed to save file</string>
+    <string name="error_save">Dosya kaydedilemedi</string>
     <string name="export">Dışa aktar</string>
     <string name="export_as">%1$s olarak dışa aktar</string>
     <string name="export_directory">Dışa aktarma dizini</string>
@@ -50,7 +51,7 @@
     <string name="license">Lisans</string>
     <string name="licensed_under">Bu uygulama GNU General Public License v3.0 altında lisanslanmıştır.</string>
     <string name="menu">Menü</string>
-    <string name="new_document_warning">Mevcut tarama kaybolacak. Devam etmek istiyor musunuz?</string>
+    <string name="new_document_warning">Geçerli tarama kaybolacak. Devam etmek istiyor musunuz?</string>
     <string name="open">Aç</string>
     <string name="open_file">Dosyayı aç</string>
     <string name="reset_to_default">Varsayılana sıfırla</string>
@@ -92,8 +93,8 @@
         <item quantity="other">%1$d dosya %3$s konumuna kaydedildi</item>
     </plurals>
     <plurals name="importing_photos">
-        <item quantity="one">1 foto içe aktarılıyor</item>
-        <item quantity="other">%d foto içe aktarılıyor</item>
+        <item quantity="one">1 fotoğraf içe aktarılıyor</item>
+        <item quantity="other">%d fotoğraf içe aktarılıyor</item>
     </plurals>
     <plurals name="page_count">
         <item quantity="one">%d sayfa</item>

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="about">Über</string>
     <string name="add_page">Seite hinzufügen</string>
@@ -50,7 +51,7 @@
     <string name="license">Lizenz</string>
     <string name="licensed_under">Diese Anwendung ist unter der GNU General Public License v3.0 lizenziert.</string>
     <string name="menu">Menü</string>
-    <string name="new_document_warning">Das aktuelle Dokument geht verloren. Möchten Sie fortfahren?</string>
+    <string name="new_document_warning">Der aktuelle Scan geht verloren. Möchten Sie fortfahren?</string>
     <string name="open">Öffnen</string>
     <string name="open_file">Datei öffnen</string>
     <string name="reset_to_default">Auf Standard zurücksetzen</string>
