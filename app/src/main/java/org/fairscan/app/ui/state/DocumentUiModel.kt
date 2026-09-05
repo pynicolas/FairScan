@@ -17,7 +17,7 @@ package org.fairscan.app.ui.state
 import android.graphics.Bitmap
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import org.fairscan.app.domain.Jpeg
+import org.fairscan.app.domain.EncodedImage
 import org.fairscan.app.domain.PageViewKey
 
 data class DocumentUiModel(
@@ -39,5 +39,5 @@ data class DocumentUiModel(
 
 data class PageThumbnail(
     val key: PageViewKey,
-    val thumbnail: Jpeg?,
+    val thumbnail: EncodedImage?,
 )

@@ -209,7 +209,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         preparationDir.mkdirs()
         val files = pageToExports.mapIndexed { index, page ->
             val file = File(preparationDir, "$timestamp-${index + 1}.jpg")
-            file.writeBytes(page.jpeg.get().bytes)
+            val jpeg = page.image.get().toJpeg(exportQuality.jpegQuality)
+            file.writeBytes(jpeg.bytes)
             onProgress(index + 1)
             file
         }.toList()

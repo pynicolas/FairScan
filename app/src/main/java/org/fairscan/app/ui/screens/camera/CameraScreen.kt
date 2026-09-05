@@ -328,7 +328,7 @@ private fun CameraScreenScaffold(
             }
         }
         if (cameraUiState.captureState is CaptureState.CapturePreview) {
-            val page = cameraUiState.captureState.capturedPage.pageJpeg.toBitmap()
+            val page = cameraUiState.captureState.capturedPage.pageImage.toBitmap()
             CapturedImage(page.asImageBitmap(), thumbnailCoords)
         }
     }

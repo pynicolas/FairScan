@@ -82,7 +82,7 @@ class FileManagerTest {
                 onProgress: (Int) -> Unit,
             ) {
                 val list = pages.toList()
-                list.forEach { page -> outputStream.write(page.jpeg.get().bytes) }
+                list.forEach { page -> outputStream.write(page.image.get().bytes) }
             }
         }
         val manager = FileManager(pdfDir, externalDir, fakePdfWriter)
