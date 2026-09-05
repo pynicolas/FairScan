@@ -36,6 +36,8 @@ import org.fairscan.app.data.PdfWriter
 import org.fairscan.app.domain.Bitonal
 import org.fairscan.app.domain.OcrService
 import org.fairscan.app.domain.PageToExport
+import org.fairscan.app.domain.packBitonal
+import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.EstimatedDimensions
 import org.fairscan.imageprocessing.OcrTextBox
 import org.fairscan.imageprocessing.PaperFormats
@@ -60,7 +62,10 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
             val ocrDocument = OcrDocument(document, assets)
             for ((index, page) in pages.withIndex()) {
                 val jpeg = page.jpeg.get()
-                val image = JPEGFactory.createFromByteArray(document, jpeg.bytes)
+                val image = if (page.page.colorMode == ColorMode.BLACK_AND_WHITE)
+                    createCcittG4Image(document, packBitonal(jpeg))
+                else
+                    JPEGFactory.createFromByteArray(document, jpeg.bytes)
 
                 // PDF has 72 points (units) per inch, 1 inch = 25.4 mm
                 val pointsPerMm = 72f / 25.4f

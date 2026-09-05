@@ -19,7 +19,9 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import org.fairscan.imageprocessing.decodeJpeg
 import org.fairscan.imageprocessing.encodeJpeg
+import org.fairscan.imageprocessing.packBitsMsbFirst
 import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
 
 class Jpeg(val bytes: ByteArray) {
     companion object {
@@ -31,6 +33,21 @@ class Jpeg(val bytes: ByteArray) {
 
 // One bit per pixel, MSB first, rows padded to whole bytes, set bit means black.
 class Bitonal(val width: Int, val height: Int, val bits: ByteArray)
+
+fun packBitonal(image: Jpeg): Bitonal {
+    val original = image.toMat()
+    val gray = Mat()
+    Imgproc.cvtColor(original, gray, Imgproc.COLOR_BGR2GRAY)
+    original.release()
+
+    val width = gray.width()
+    val height = gray.height()
+    val pixels = ByteArray(width * height)
+    gray.get(0, 0, pixels)
+    gray.release()
+
+    return Bitonal(width, height, packBitsMsbFirst(pixels, width, height))
+}
 
 interface ImageLoader {
     suspend fun load(uri: Uri): Bitmap
