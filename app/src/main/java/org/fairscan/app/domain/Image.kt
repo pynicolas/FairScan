@@ -17,24 +17,47 @@ package org.fairscan.app.domain
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import org.fairscan.imageprocessing.decodeJpeg
+import org.fairscan.imageprocessing.decodeJpegOrPng
 import org.fairscan.imageprocessing.encodeJpeg
+import org.fairscan.imageprocessing.encodePng
 import org.fairscan.imageprocessing.packBitsMsbFirst
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 
-class Jpeg(val bytes: ByteArray) {
+sealed class EncodedImage(
+    open val bytes: ByteArray
+) {
+    fun toBitmap(): Bitmap =
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+
+    fun toMat(): Mat =
+        decodeJpegOrPng(bytes)
+    abstract fun toJpeg(jpegQuality: Int): Jpeg
+}
+
+class Jpeg(override val bytes: ByteArray): EncodedImage(bytes) {
     companion object {
         fun fromMat(mat: Mat, jpegQuality: Int): Jpeg = Jpeg(encodeJpeg(mat, jpegQuality))
     }
-    fun toBitmap() : Bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-    fun toMat() : Mat = decodeJpeg(bytes)
+    override fun toJpeg(jpegQuality: Int): Jpeg = this
+}
+
+class Png(override val bytes: ByteArray): EncodedImage(bytes) {
+    companion object {
+        fun fromMat(mat: Mat): Png = Png(encodePng(mat))
+    }
+    override fun toJpeg(jpegQuality: Int): Jpeg {
+        val mat = toMat()
+        val jpeg = Jpeg.fromMat(mat, jpegQuality)
+        mat.release()
+        return jpeg
+    }
 }
 
 // One bit per pixel, MSB first, rows padded to whole bytes, set bit means black.
 class Bitonal(val width: Int, val height: Int, val bits: ByteArray)
 
-fun packBitonal(image: Jpeg): Bitonal {
+fun packBitonal(image: EncodedImage): Bitonal {
     val original = image.toMat()
     val gray = Mat()
     Imgproc.cvtColor(original, gray, Imgproc.COLOR_BGR2GRAY)

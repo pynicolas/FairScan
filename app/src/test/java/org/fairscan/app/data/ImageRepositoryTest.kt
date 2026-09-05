@@ -23,15 +23,18 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.fairscan.app.domain.EncodedImage
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.domain.Png
 import org.fairscan.app.domain.Rotation.R0
 import org.fairscan.app.domain.Rotation.R180
 import org.fairscan.app.domain.Rotation.R270
 import org.fairscan.app.domain.Rotation.R90
 import org.fairscan.imageprocessing.CameraIntrinsics
 import org.fairscan.imageprocessing.ColorMode
+import org.fairscan.imageprocessing.ColorMode.BLACK_AND_WHITE
 import org.fairscan.imageprocessing.ColorMode.COLOR
 import org.fairscan.imageprocessing.ColorMode.GRAYSCALE
 import org.fairscan.imageprocessing.ImageSize
@@ -65,16 +68,16 @@ class ImageRepositoryTest {
     }
 
     fun repo(
-        rotate: (Jpeg, Int) -> Jpeg = { input, _ -> input },
-        resizeToThumbnail: (Jpeg) -> Jpeg = { input -> jpeg(input.bytes[0]) },
+        rotate: (EncodedImage, Int) -> EncodedImage = { input, _ -> input },
+        resizeToThumbnail: (EncodedImage) -> Jpeg = { input -> jpeg(input.bytes[0]) },
         process: (Jpeg, PageMetadata, ColorMode) -> Jpeg = { _, _, _ ->
             throw UnsupportedOperationException()
         }
     ): ImageRepository {
         val transformations = object : ImageTransformations {
-            override fun rotate(input: Jpeg, rotationDegrees: Int): Jpeg =
+            override fun rotate(input: EncodedImage, rotationDegrees: Int): EncodedImage =
                 rotate(input, rotationDegrees)
-            override fun resizeToThumbnail(input: Jpeg): Jpeg =
+            override fun resizeToThumbnail(input: EncodedImage): Jpeg =
                 resizeToThumbnail(input)
             override fun process(
                 source: Jpeg,
@@ -95,7 +98,7 @@ class ImageRepositoryTest {
         assertThat(repo.imageIds()).hasSize(1)
         val id = repo.imageIds()[0]
         val key = PageViewKey(id, R0, COLOR, 0)
-        assertThat(repo.jpegBytes(key)).isEqualTo(jpeg)
+        assertThat(repo.image(key)).isEqualTo(jpeg)
         assertThat(repo.getThumbnail(key)?.bytes).isEqualTo(byteArrayOf(101))
 
         val page = repo.pages().first()
@@ -161,7 +164,7 @@ class ImageRepositoryTest {
         File(processedDir(), "1-90.jpg").writeBytes(bytes)
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("1")
-        assertThat(repo.jpegBytes(PageViewKey("1", R0, null, 0))?.bytes).isEqualTo(bytes)
+        assertThat(repo.image(PageViewKey("1", R0, null, 0))?.bytes).isEqualTo(bytes)
     }
 
     @Test
@@ -190,14 +193,14 @@ class ImageRepositoryTest {
         File(processedDir(), "1-90.jpg").writeBytes(bytes)
         val repo = repo()
         assertThat(repo.imageIds()).containsExactly("1")
-        assertThat(repo.jpegBytes(PageViewKey("1", R0, null, 0))?.bytes).isEqualTo(bytes)
+        assertThat(repo.image(PageViewKey("1", R0, null, 0))?.bytes).isEqualTo(bytes)
     }
 
     @Test
     fun `should return null on invalid id`() = runTest {
         val repo = repo()
         assertThat(repo.imageIds()).isEmpty()
-        assertThat(repo.jpegBytes(PageViewKey("x", R0, COLOR, 0))).isNull()
+        assertThat(repo.image(PageViewKey("x", R0, COLOR, 0))).isNull()
     }
 
     @Test
@@ -258,7 +261,7 @@ class ImageRepositoryTest {
         repo.setColorMode(id, GRAYSCALE)
         assertThat(repo.pages().first().colorMode).isEqualTo(GRAYSCALE)
         val key = PageViewKey(id, R0, GRAYSCALE, 0)
-        assertThat(repo.jpegBytes(key)?.bytes).isEqualTo(byteArrayOf(41))
+        assertThat(repo.image(key)?.bytes).isEqualTo(byteArrayOf(41))
     }
 
     @Test
@@ -278,7 +281,7 @@ class ImageRepositoryTest {
             launch { repo.setColorMode(id, GRAYSCALE) }
         }
         val key = PageViewKey(id, R0, GRAYSCALE, 0)
-        assertThat(repo.jpegBytes(key)?.bytes).isEqualTo(byteArrayOf(1))
+        assertThat(repo.image(key)?.bytes).isEqualTo(byteArrayOf(1))
         assertThat(processCalls).isEqualTo(1)
     }
 
@@ -365,6 +368,21 @@ class ImageRepositoryTest {
         assertThat(repo2.lastAddedSourceFile()).isNull()
     }
 
+    @Test
+    fun png_image() = runTest {
+        val repo = repo()
+        val png = png(101, 102, 103)
+        repo.add(png, jpeg(51), metadata1, ColorMode.BLACK_AND_WHITE)
+        assertThat(repo.imageIds()).hasSize(1)
+        val id = repo.imageIds()[0]
+        val key = PageViewKey(id, R0, BLACK_AND_WHITE, 0)
+        assertThat(repo.image(key)).isEqualTo(png)
+        assertThat(repo.getThumbnail(key)?.bytes).isEqualTo(byteArrayOf(101))
+
+        val repo2 = repo()
+        assertThat(repo2.imageIds()).containsExactly(id)
+    }
+
     private fun processedDir(): File = File(getFilesDir(), PROCESSED_DIR_NAME)
     private fun sourceDir(): File = File(getFilesDir(), SOURCE_DIR_NAME)
 
@@ -380,4 +398,5 @@ class ImageRepositoryTest {
         pages().map { it.id }.toPersistentList()
 
     private fun jpeg(vararg bytes: Byte) = Jpeg(bytes)
+    private fun png(vararg bytes: Byte) = Png(bytes)
 }

@@ -22,13 +22,13 @@ import org.fairscan.imageprocessing.resizeForMaxPixels
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.core.Mat
 
-fun interface JpegProvider {
-    suspend fun get(): Jpeg
+fun interface ImageProvider {
+    suspend fun get(): EncodedImage
 }
 
 data class PageToExport(
     val page: ScanPage,
-    val jpeg: JpegProvider,
+    val image: ImageProvider,
 ) {
     fun estimatedDimensions(): EstimatedDimensions? {
         val metadata = page.metadata
@@ -61,13 +61,13 @@ suspend fun pagesToExport(
     val pages = imageRepository.pages()
     return when (exportQuality) {
         ExportQuality.BALANCED -> pages.map {
-            PageToExport(it) { jpeg(it, imageRepository) }
+            PageToExport(it) { image(it, imageRepository) }
         }
 
         ExportQuality.LOW -> pages.map { page ->
             PageToExport(page) {
-                resizeJpegBytesForMaxPixels(
-                    jpeg = jpeg(page, imageRepository),
+                resizeImageForMaxPixels(
+                    image = image(page, imageRepository),
                     maxPixels = exportQuality.maxPixels.toDouble(),
                     jpegQuality = exportQuality.jpegQuality
                 )
@@ -84,29 +84,32 @@ suspend fun pagesToExport(
                     processedImage(source, metadata, rotation, colorMode, exportQuality)
                 }
                 else
-                    jpeg(page, imageRepository)
+                    image(page, imageRepository)
             }
         }
     }
 }
 
-private suspend fun jpeg(page: ScanPage, imageRepository: ImageRepository): Jpeg {
+private suspend fun image(page: ScanPage, imageRepository: ImageRepository): EncodedImage {
     val key = page.key()
-    return imageRepository.jpegBytes(key)
-        ?: throw IllegalArgumentException("JPEG not found for $key")
+    return imageRepository.image(key)
+        ?: throw IllegalArgumentException("Image not found for $key")
 }
 
-private fun resizeJpegBytesForMaxPixels(
-    jpeg: Jpeg,
+private fun resizeImageForMaxPixels(
+    image: EncodedImage,
     maxPixels: Double,
     jpegQuality: Int
-): Jpeg {
+): EncodedImage {
     var decoded: Mat? = null
     var resized: Mat? = null
     try {
-        decoded = jpeg.toMat()
+        decoded = image.toMat()
         resized = resizeForMaxPixels(decoded, maxPixels)
-        return Jpeg.fromMat(resized, jpegQuality)
+        return when (image) {
+            is Jpeg -> Jpeg.fromMat(resized, jpegQuality)
+            is Png -> Png.fromMat(resized)
+        }
     } finally {
         decoded?.release()
         resized?.release()

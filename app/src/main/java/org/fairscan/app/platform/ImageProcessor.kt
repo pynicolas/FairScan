@@ -20,9 +20,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import org.fairscan.app.data.ImageTransformations
 import org.fairscan.app.domain.CapturedPage
+import org.fairscan.app.domain.EncodedImage
 import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
+import org.fairscan.app.domain.Png
 import org.fairscan.app.domain.Rotation
 import org.fairscan.app.ui.screens.settings.DefaultColorMode
 import org.fairscan.imageprocessing.ColorMode
@@ -46,13 +48,13 @@ import kotlin.math.min
 
 class ImageProcessor(private val thumbnailSizePx: Int) : ImageTransformations {
 
-    override fun rotate(input: Jpeg, rotationDegrees: Int): Jpeg {
+    override fun rotate(input: EncodedImage, rotationDegrees: Int): EncodedImage {
         return transform(input, ExportQuality.BALANCED.jpegQuality) {
             rotate(it, rotationDegrees)
         }
     }
 
-    override fun resizeToThumbnail(input: Jpeg): Jpeg {
+    override fun resizeToThumbnail(input: EncodedImage): EncodedImage {
         val maxSize = thumbnailSizePx.toFloat()
         return transform(input, 85) { src ->
             val ratio = min(maxSize / src.width(), maxSize / src.height())
@@ -70,15 +72,18 @@ class ImageProcessor(private val thumbnailSizePx: Int) : ImageTransformations {
     }
 
     private fun transform(
-        inJpeg: Jpeg,
+        inputImage: EncodedImage,
         jpegQuality: Int,
         transform: (Mat) -> Mat,
-    ): Jpeg {
-        val input = inJpeg.toMat()
+    ): EncodedImage {
+        val input = inputImage.toMat()
         var output: Mat? = null
         try {
             output = transform.invoke(input)
-            return Jpeg.fromMat(output, jpegQuality)
+            return when (inputImage) {
+                is Jpeg -> Jpeg.fromMat(output, jpegQuality)
+                is Png -> Png.fromMat(output)
+            }
         } finally {
             input.release()
             output?.release()
@@ -89,7 +94,7 @@ class ImageProcessor(private val thumbnailSizePx: Int) : ImageTransformations {
         source: Jpeg,
         metadata: PageMetadata,
         colorMode: ColorMode
-    ): Jpeg {
+    ): EncodedImage {
         val baseRotation = metadata.baseRotation
         return processedImage(source, metadata, baseRotation, colorMode, ExportQuality.BALANCED)
     }
@@ -101,7 +106,7 @@ fun processedImage(
     rotation: Rotation,
     colorMode: ColorMode,
     exportQuality: ExportQuality,
-): Jpeg {
+): EncodedImage {
     val rotationDegrees = rotation.degrees
     var sourceMat: Mat? = null
     var page: Mat? = null
@@ -110,7 +115,7 @@ fun processedImage(
         val quad = metadata.normalizedQuad.scaledTo(1, 1, sourceMat.width(), sourceMat.height())
         page = extractDocument(sourceMat, quad, rotationDegrees, colorMode, exportQuality.maxPixels,
             metadata.opticalMeasures)
-        return Jpeg.fromMat(page, exportQuality.jpegQuality)
+        return encodeImage(page, colorMode, exportQuality)
     } finally {
         sourceMat?.release()
         page?.release()
@@ -154,7 +159,8 @@ fun extractDocumentFromBitmap(
             opticalMeasures)
     }
 
-    val pageJpeg = Jpeg.fromMat(page, exportQuality.jpegQuality)
+    val encodedImage = encodeImage(page, colorMode, exportQuality)
+
     bgr.release()
     page.release()
 
@@ -165,7 +171,14 @@ fun extractDocumentFromBitmap(
     val sourceJpegDeferred = viewModelScope.async(Dispatchers.IO) {
         compressSource(source)
     }
-    return CapturedPage(pageJpeg, sourceJpegDeferred, metadata, colorMode)
+    return CapturedPage(encodedImage, sourceJpegDeferred, metadata, colorMode)
+}
+
+private fun encodeImage(image: Mat, colorMode: ColorMode, quality: ExportQuality): EncodedImage {
+    return if (colorMode == ColorMode.BLACK_AND_WHITE)
+        Png.fromMat(image)
+    else
+        Jpeg.fromMat(image, quality.jpegQuality)
 }
 
 private fun compressSource(source: Bitmap): Jpeg {

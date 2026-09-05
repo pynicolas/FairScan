@@ -14,20 +14,21 @@
  */
 package org.fairscan.app.data
 
+import org.fairscan.app.domain.EncodedImage
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.imageprocessing.ColorMode
 
 interface ImageTransformations {
 
-    fun rotate(input: Jpeg, rotationDegrees: Int): Jpeg
+    fun rotate(input: EncodedImage, rotationDegrees: Int): EncodedImage
 
-    fun resizeToThumbnail(input: Jpeg): Jpeg
+    fun resizeToThumbnail(input: EncodedImage): EncodedImage
 
     fun process(
         source: Jpeg,
         metadata: PageMetadata,
         colorMode: ColorMode
-    ): Jpeg
+    ): EncodedImage
 
 }

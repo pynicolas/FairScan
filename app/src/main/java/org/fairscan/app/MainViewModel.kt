@@ -105,7 +105,7 @@ class MainViewModel(val imageRepository: ImageRepository, logger: Logger): ViewM
                     val isLoading = (it.id == loadingId)
                     val canBeCropped = page.metadata != null
                     val bitmap = try {
-                         imageRepository.jpegBytes(it.key())?.toBitmap()
+                         imageRepository.image(it.key())?.toBitmap()
                     } catch (e: Exception) {
                         logger.e("MainViewModel", "Failed to load image for ${it.id}", e)
                         null
@@ -231,7 +231,7 @@ class MainViewModel(val imageRepository: ImageRepository, logger: Logger): ViewM
             val pages = withContext(Dispatchers.IO) {
                 val sourceJpeg = capturedPage.sourceJpeg.await()
                 imageRepository.add(
-                    capturedPage.pageJpeg,
+                    capturedPage.pageImage,
                     sourceJpeg,
                     capturedPage.metadata,
                     capturedPage.colorMode,

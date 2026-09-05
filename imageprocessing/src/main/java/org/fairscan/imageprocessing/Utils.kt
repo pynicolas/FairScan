@@ -35,15 +35,28 @@ fun resizeForMaxPixels(img: Mat, maxPixels: Double): Mat {
     return resizedImg
 }
 
+enum class ImageEncoding(val fileNameExtension: String) {
+    JPEG(".jpg"), PNG(".png")
+}
+
 fun encodeJpeg(mat: Mat, jpegQuality: Int): ByteArray {
     val params = MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, jpegQuality.coerceIn(0, 100))
+    return encode(mat, params, ImageEncoding.JPEG)
+}
+
+fun encodePng(mat: Mat): ByteArray {
+    val params = MatOfInt(Imgcodecs.IMWRITE_PNG_COMPRESSION, 1)
+    return encode(mat, params, ImageEncoding.PNG)
+}
+
+private fun encode(mat: Mat, params: MatOfInt, encoding: ImageEncoding): ByteArray {
     val encoded = MatOfByte()
-    val ok = Imgcodecs.imencode(".jpg", mat, encoded, params)
+    val ok = Imgcodecs.imencode(encoding.fileNameExtension, mat, encoded, params)
     params.release()
 
     if (!ok) {
         encoded.release()
-        throw IOException("Failed to encode JPEG")
+        throw IOException("Failed to encode $encoding")
     }
 
     val result = encoded.toArray()
@@ -51,13 +64,13 @@ fun encodeJpeg(mat: Mat, jpegQuality: Int): ByteArray {
     return result
 }
 
-fun decodeJpeg(jpegBytes: ByteArray): Mat {
-    val src = MatOfByte(*jpegBytes)
+fun decodeJpegOrPng(bytes: ByteArray): Mat {
+    val src = MatOfByte(*bytes)
     val decoded = Imgcodecs.imdecode(src, Imgcodecs.IMREAD_COLOR)
     src.release()
     if (decoded.empty()) {
         decoded.release()
-        throw IllegalStateException("Failed to decode JPEG")
+        throw IllegalStateException("Failed to decode JPEG/PNG")
     }
     return decoded
 }
