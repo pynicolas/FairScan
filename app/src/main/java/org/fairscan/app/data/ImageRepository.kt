@@ -27,9 +27,11 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.fairscan.app.domain.EncodedImage
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageMetadata
 import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.domain.Png
 import org.fairscan.app.domain.Rotation
 import org.fairscan.app.domain.ScanPage
 import org.fairscan.imageprocessing.ColorMode
@@ -68,8 +70,8 @@ class ImageRepository(
     private var pages: PageStore = PageStore(loadPages())
 
     private val processingJobs = synchronizedMap(mutableMapOf<PageViewKey, Deferred<Unit>>())
-    private val imageCache = createLruCache<PageViewKey, Deferred<Jpeg?>>(maxEntries = 50)
-    private val thumbnailCache = createLruCache<PageViewKey, Deferred<Jpeg?>>(maxEntries = 1000)
+    private val imageCache = createLruCache<PageViewKey, Deferred<EncodedImage?>>(maxEntries = 50)
+    private val thumbnailCache = createLruCache<PageViewKey, Deferred<EncodedImage?>>(maxEntries = 1000)
 
     private fun <K, V> createLruCache(maxEntries: Int): MutableMap<K, V> =
         synchronizedMap(object : LinkedHashMap<K, V>(16, 0.75f, true) {
@@ -82,7 +84,7 @@ class ImageRepository(
         thumbnailDir.deleteRecursively() // clean up dir that was used in older versions
         normalizeLegacyFiles()
         val filesOnDisk = processedDir.listFiles()
-            ?.filter { it.extension == "jpg" }
+            ?.filter { it.extension == "jpg" || it.extension == "png"}
             ?.map { it.name }
             ?.toSet()
             ?: emptySet()
@@ -143,7 +145,7 @@ class ImageRepository(
         }
     }
 
-    suspend fun add(processed: Jpeg, source: Jpeg, metadata: PageMetadata, colorMode: ColorMode) =
+    suspend fun add(processed: EncodedImage, source: Jpeg, metadata: PageMetadata, colorMode: ColorMode) =
         mutex.withLock {
             val id = "${System.currentTimeMillis()}"
             val key = PageViewKey(id, Rotation.R0, colorMode, 0)
@@ -253,20 +255,19 @@ class ImageRepository(
         saveMetadata()
     }
 
-    suspend fun jpegBytes(key: PageViewKey): Jpeg? =
+    suspend fun image(key: PageViewKey): EncodedImage? =
         getOrCompute(imageCache, key, ::computeProcessedImage)
 
-
-    suspend fun getThumbnail(key: PageViewKey): Jpeg? =
+    suspend fun getThumbnail(key: PageViewKey): EncodedImage? =
         getOrCompute(thumbnailCache, key, ::computeThumbnail)
 
     // --- Cache compute functions ---
 
     private suspend fun getOrCompute(
-        cache: MutableMap<PageViewKey, Deferred<Jpeg?>>,
+        cache: MutableMap<PageViewKey, Deferred<EncodedImage?>>,
         key: PageViewKey,
-        compute: suspend (PageViewKey) -> Jpeg?
-    ): Jpeg? {
+        compute: suspend (PageViewKey) -> EncodedImage?
+    ): EncodedImage? {
         val deferred = cache.computeIfAbsent(key) { k ->
             scope.async(Dispatchers.IO) { compute(k) }
         }
@@ -278,21 +279,22 @@ class ImageRepository(
         }
     }
 
-    private suspend fun computeProcessedImage(key: PageViewKey): Jpeg? =
+    private suspend fun computeProcessedImage(key: PageViewKey): EncodedImage? =
         withContext(Dispatchers.IO) {
             val baseFile = processedImageFile(key)
             if (!baseFile.exists()) return@withContext null
-            val baseJpeg = Jpeg(baseFile.readBytes())
+            val bytes = baseFile.readBytes()
+            val baseImage = if (baseFile.extension == "png") Png(bytes) else Jpeg(bytes)
             if (key.rotation == Rotation.R0) {
-                baseJpeg
+                baseImage
             } else {
                 transformations.rotate(
-                    baseJpeg,
+                    baseImage,
                     key.rotation.degrees)
             }
         }
 
-    private suspend fun computeThumbnail(key: PageViewKey): Jpeg? =
+    private suspend fun computeThumbnail(key: PageViewKey): EncodedImage? =
         withContext(Dispatchers.IO) {
             val processed = getOrCompute(imageCache, key, ::computeProcessedImage)
                 ?: return@withContext null
@@ -313,7 +315,12 @@ class ImageRepository(
             sb.append(".").append(colorMode.name.lowercase())
         if (quadVersion > 0)
             sb.append(".q").append(quadVersion)
-        sb.append(".jpg")
+
+        if (colorMode == ColorMode.BLACK_AND_WHITE)
+            sb.append(".png")
+        else
+            sb.append(".jpg")
+
         return sb.toString()
     }
 

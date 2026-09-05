@@ -61,11 +61,11 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
         doc.use { document ->
             val ocrDocument = OcrDocument(document, assets)
             for ((index, page) in pages.withIndex()) {
-                val jpeg = page.jpeg.get()
+                val jpegOrPng = page.image.get()
                 val image = if (page.page.colorMode == ColorMode.BLACK_AND_WHITE)
-                    createCcittG4Image(document, packBitonal(jpeg))
+                    createCcittG4Image(document, packBitonal(jpegOrPng))
                 else
-                    JPEGFactory.createFromByteArray(document, jpeg.bytes)
+                    JPEGFactory.createFromByteArray(document, jpegOrPng.bytes)
 
                 // PDF has 72 points (units) per inch, 1 inch = 25.4 mm
                 val pointsPerMm = 72f / 25.4f
@@ -95,7 +95,7 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
 
                 if (!disableOcr) {
                     try {
-                        val bitmap = jpeg.toBitmap()
+                        val bitmap = jpegOrPng.toBitmap()
                         val ocrTextBoxes = ocrService.runOcr(bitmap)
                         val pdfPageDimensions = PageDimensions(
                             bitmap.width,
