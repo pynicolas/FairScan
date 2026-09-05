@@ -4,8 +4,6 @@
     <string name="app_tagline">Um aplicativo simples e respeitoso para digitalizar seus documentos.</string>
     <string name="apply">Aplicar</string>
     <string name="back">Voltar</string>
-    <string name="black_and_white_jpeg_hint">Use PDF como formato de saída para manter as páginas em preto e branco compactas e nítidas.</string>
-    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">Permissão da câmera negada</string>
     <string name="camera_permission_rationale">O aplicativo precisa de acesso à câmera para digitalizar documentos. As imagens capturadas são armazenadas apenas neste dispositivo e serão excluídas quando você fechar a digitalização atual.</string>
     <string name="cancel">Cancelar</string>

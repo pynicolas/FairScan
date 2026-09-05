@@ -23,9 +23,6 @@ data class ExportUiState(
     val isGenerating: Boolean = false,
     val progress: ExportProgress? = null,
     val ocrActivation: Boolean? = null,
-    // Set only when exporting to JPEG, which cannot store one bit per pixel, and at least one
-    // page is black and white and therefore loses its size advantage.
-    val bitonalAsJpeg: BitonalPages? = null,
     val isSaving: Boolean = false,
     val result: ExportResult? = null,
     val savedBundle: SavedBundle? = null,
@@ -34,8 +31,6 @@ data class ExportUiState(
 ) {
     val hasSavedOrShared get() = savedBundle != null || hasShared
 }
-
-data class BitonalPages(val count: Int, val total: Int)
 
 data class ExportProgress(
     val completedPages: Int,

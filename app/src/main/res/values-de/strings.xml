@@ -4,8 +4,6 @@
     <string name="app_tagline">Eine einfache und respektvolle App zum Scannen Ihrer Dokumente.</string>
     <string name="apply">Anwenden</string>
     <string name="back">Zurück</string>
-    <string name="black_and_white_jpeg_hint">Verwenden Sie PDF als Ausgabeformat, damit Schwarzweiß-Seiten kompakt und scharf bleiben.</string>
-    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">Kamerazugriff wurde verweigert</string>
     <string name="camera_permission_rationale">Die App benötigt Zugriff auf die Kamera, um Dokumente zu scannen. Aufgenommene Bilder werden nur auf diesem Gerät gespeichert und beim Schließen des aktuellen Scans gelöscht.</string>
     <string name="cancel">Abbrechen</string>

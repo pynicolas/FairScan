@@ -15,10 +15,7 @@
 package org.fairscan.app.domain
 
 import org.fairscan.app.data.ImageRepository
-import org.fairscan.app.platform.bitonalFromJpeg
-import org.fairscan.app.platform.processedBitonalImage
 import org.fairscan.app.platform.processedImage
-import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.EstimatedDimensions
 import org.fairscan.imageprocessing.estimateRealDimensions
 import org.fairscan.imageprocessing.resizeForMaxPixels
@@ -29,17 +26,9 @@ fun interface JpegProvider {
     suspend fun get(): Jpeg
 }
 
-fun interface BitonalProvider {
-    suspend fun get(): Bitonal
-}
-
 data class PageToExport(
     val page: ScanPage,
     val jpeg: JpegProvider,
-    // Set for black and white pages only. The PDF writer embeds it instead of the JPEG.
-    val bitonal: BitonalProvider? = null,
-    // What OCR reads when the embedded image is not a JPEG it can use.
-    val ocrJpeg: JpegProvider = jpeg,
 ) {
     fun estimatedDimensions(): EstimatedDimensions? {
         val metadata = page.metadata
@@ -67,60 +56,39 @@ private fun EstimatedDimensions.applyRotation(rotation: Rotation): EstimatedDime
 suspend fun pagesToExport(
     imageRepository: ImageRepository,
     exportQuality: ExportQuality
-): List<PageToExport> = imageRepository.pages().map { page ->
-    if (page.colorMode == ColorMode.BLACK_AND_WHITE)
-        bitonalPageToExport(page, imageRepository, exportQuality)
-    else
-        standardPageToExport(page, imageRepository, exportQuality)
-}
+): List<PageToExport> {
 
-private fun standardPageToExport(
-    page: ScanPage,
-    imageRepository: ImageRepository,
-    exportQuality: ExportQuality,
-): PageToExport = when (exportQuality) {
-    ExportQuality.BALANCED -> PageToExport(page, jpeg = { jpeg(page, imageRepository) })
-
-    ExportQuality.LOW -> PageToExport(page, jpeg = {
-        resizeJpegBytesForMaxPixels(
-            jpeg = jpeg(page, imageRepository),
-            maxPixels = exportQuality.maxPixels.toDouble(),
-            jpegQuality = exportQuality.jpegQuality
-        )
-    })
-
-    ExportQuality.HIGH -> PageToExport(page, jpeg = {
-        val source = imageRepository.source(page.id)
-        val metadata = page.metadata
-        val colorMode = page.colorMode
-        if (source != null && metadata != null && colorMode != null) {
-            val rotation = page.totalRotation()
-            processedImage(source, metadata, rotation, colorMode, exportQuality)
+    val pages = imageRepository.pages()
+    return when (exportQuality) {
+        ExportQuality.BALANCED -> pages.map {
+            PageToExport(it) { jpeg(it, imageRepository) }
         }
-        else
-            jpeg(page, imageRepository)
-    })
-}
 
-// Only the PDF writer looks at the bitonal provider, JPEG export keeps the standard one.
-private fun bitonalPageToExport(
-    page: ScanPage,
-    imageRepository: ImageRepository,
-    exportQuality: ExportQuality,
-): PageToExport = standardPageToExport(page, imageRepository, exportQuality).copy(
-    // The stored page, not the one the export quality asks for: OCR does not benefit from the
-    // higher resolution, and rendering it again would double the work for the page.
-    ocrJpeg = { jpeg(page, imageRepository) },
-    bitonal = {
-        val source = imageRepository.source(page.id)
-        val metadata = page.metadata
-        if (source != null && metadata != null) {
-            processedBitonalImage(source, metadata, page.totalRotation(), exportQuality)
+        ExportQuality.LOW -> pages.map { page ->
+            PageToExport(page) {
+                resizeJpegBytesForMaxPixels(
+                    jpeg = jpeg(page, imageRepository),
+                    maxPixels = exportQuality.maxPixels.toDouble(),
+                    jpegQuality = exportQuality.jpegQuality
+                )
+            }
         }
-        else
-            bitonalFromJpeg(jpeg(page, imageRepository))
-    },
-)
+
+        ExportQuality.HIGH -> pages.map { page ->
+            PageToExport(page) {
+                val source = imageRepository.source(page.id)
+                val metadata = page.metadata
+                val colorMode = page.colorMode
+                if (source != null && metadata != null && colorMode != null) {
+                    val rotation = page.totalRotation()
+                    processedImage(source, metadata, rotation, colorMode, exportQuality)
+                }
+                else
+                    jpeg(page, imageRepository)
+            }
+        }
+    }
+}
 
 private suspend fun jpeg(page: ScanPage, imageRepository: ImageRepository): Jpeg {
     val key = page.key()
