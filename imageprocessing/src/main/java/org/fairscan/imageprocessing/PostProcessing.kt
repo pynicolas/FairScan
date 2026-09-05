@@ -34,11 +34,11 @@ enum class ColorMode {
     BLACK_AND_WHITE,
 }
 
-fun enhanceCapturedImage(img: Mat, colorMode: ColorMode, upscaleTo: Long = 0L): Mat {
+fun enhanceCapturedImage(img: Mat, colorMode: ColorMode): Mat {
     return when (colorMode) {
         ColorMode.COLOR -> multiScaleRetinexOnL(img)
         ColorMode.GRAYSCALE -> enhanceGrayscaleImage(img)
-        ColorMode.BLACK_AND_WHITE -> binarizeDocument(img, upscaleTo)
+        ColorMode.BLACK_AND_WHITE -> binarizeDocument(img)
     }
 }
 

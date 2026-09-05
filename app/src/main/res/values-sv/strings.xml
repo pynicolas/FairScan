@@ -4,8 +4,6 @@
     <string name="app_tagline">En enkel och respektfull app för att skanna dina dokument.</string>
     <string name="apply">Använd</string>
     <string name="back">Tillbaka</string>
-    <string name="black_and_white_jpeg_hint">Använd PDF som utdataformat för att hålla svartvita sidor kompakta och skarpa.</string>
-    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">Kamerabehörighet nekades</string>
     <string name="camera_permission_rationale">Appen behöver åtkomst till kameran för att kunna skanna dokument. Tagna bilder lagras endast på den här enheten och raderas när du stänger den aktuella skanningen.</string>
     <string name="cancel">Avbryt</string>

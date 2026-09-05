@@ -5,8 +5,6 @@
     <string name="app_tagline">Une application simple et respectueuse pour scanner vos documents.</string>
     <string name="apply">Appliquer</string>
     <string name="back">Retour</string>
-    <string name="black_and_white_jpeg_hint">Utilisez le PDF comme format de sortie pour garder les pages en noir et blanc compactes et nettes.</string>
-    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">L\'autorisation d\'accès à la caméra a été refusée</string>
     <string name="camera_permission_rationale">L’application a besoin d’accéder à l’appareil photo pour scanner des documents. Les images capturées sont enregistrées uniquement sur cet appareil et seront supprimées lorsque vous fermerez le scan en cours.</string>
     <string name="cancel">Annuler</string>

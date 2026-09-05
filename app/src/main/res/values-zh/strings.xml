@@ -4,8 +4,6 @@
     <string name="app_tagline">一个简单且克制的文档扫描应用</string>
     <string name="apply">应用</string>
     <string name="back">返回</string>
-    <string name="black_and_white_jpeg_hint">请使用 PDF 作为输出格式，让黑白页面保持小巧清晰。</string>
-    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">相机权限被拒绝</string>
     <string name="camera_permission_rationale">应用请求相机权限访问扫描文档。捕获的图像仅存储在此设备上，并且在关闭当前扫描时将被删除。</string>
     <string name="cancel">取消</string>

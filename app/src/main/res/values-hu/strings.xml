@@ -4,8 +4,6 @@
     <string name="app_tagline">Egy egyszerű, a felhasználót tiszteletben tartó dokumentum szkenner alkalmazás.</string>
     <string name="apply">Alkalmaz</string>
     <string name="back">Vissza</string>
-    <string name="black_and_white_jpeg_hint">Használjon PDF kimeneti formátumot, hogy a fekete-fehér oldalak tömörek és élesek maradjanak.</string>
-    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">Kamerahozzáférés megtagadva</string>
     <string name="camera_permission_rationale">Az alkalmazásnak a dokumentumok beolvasásához kamerahozzáférésre van szüksége. A rögzített képek csak ezen az eszközön kerülnek tárolásra, és törlődnek, amikor bezárod a folyamatban lévő szkennelést.</string>
     <string name="cancel">Mégse</string>

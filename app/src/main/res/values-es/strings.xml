@@ -4,8 +4,6 @@
     <string name="app_tagline">Una aplicación sencilla y respetuosa para escanear tus documentos.</string>
     <string name="apply">Aplicar</string>
     <string name="back">Atrás</string>
-    <string name="black_and_white_jpeg_hint">Use PDF como formato de salida para que las páginas en blanco y negro se mantengan compactas y nítidas.</string>
-    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">Permiso de cámara denegado</string>
     <string name="camera_permission_rationale">La aplicación necesita acceso a la cámara para escanear documentos. Las imágenes capturadas se guardan solo en este dispositivo y se eliminarán cuando cierres el escaneo actual.</string>
     <string name="cancel">Cancelar</string>

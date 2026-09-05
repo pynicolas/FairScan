@@ -15,7 +15,6 @@
 package org.fairscan.app.platform
 
 import android.content.res.AssetManager
-import android.graphics.Bitmap
 import android.util.Log
 import com.tom_roush.pdfbox.cos.COSArray
 import com.tom_roush.pdfbox.cos.COSDictionary
@@ -54,22 +53,14 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
         disableOcr: Boolean,
         onProgress: (Int) -> Unit,
     ) {
-        // Without a language, runOcr returns nothing, and decoding a page for it is not free:
-        // at the highest quality it renders the page a second time.
-        val ocrEnabled = !disableOcr && ocrService.languageString().isNotEmpty()
         val doc = PDDocument()
         doc.documentInformation.creationDate = Calendar.getInstance()
         doc.documentInformation.creator = "FairScan ${BuildConfig.VERSION_NAME}"
         doc.use { document ->
             val ocrDocument = OcrDocument(document, assets)
             for ((index, page) in pages.withIndex()) {
-                val bitonal = page.bitonal?.get()
-                val embedded = if (bitonal == null) page.jpeg.get() else null
-                val ocrJpeg = page.ocrJpeg
-                val image = if (bitonal != null)
-                    createCcittG4Image(document, bitonal)
-                else
-                    JPEGFactory.createFromByteArray(document, requireNotNull(embedded).bytes)
+                val jpeg = page.jpeg.get()
+                val image = JPEGFactory.createFromByteArray(document, jpeg.bytes)
 
                 // PDF has 72 points (units) per inch, 1 inch = 25.4 mm
                 val pointsPerMm = 72f / 25.4f
@@ -97,11 +88,9 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
                 val contentStream = PDPageContentStream(document, page, AppendMode.OVERWRITE, false)
                 contentStream.drawImage(image, 0f, 0f, widthPoints, heightPoints)
 
-                if (ocrEnabled) {
-                    var bitmap: Bitmap? = null
+                if (!disableOcr) {
                     try {
-                        // For every mode but black and white this is the image just embedded.
-                        bitmap = (embedded ?: ocrJpeg.get()).toBitmap()
+                        val bitmap = jpeg.toBitmap()
                         val ocrTextBoxes = ocrService.runOcr(bitmap)
                         val pdfPageDimensions = PageDimensions(
                             bitmap.width,
@@ -112,8 +101,6 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
                         ocrDocument.addPage(page, ocrTextBoxes, pdfPageDimensions)
                     } catch (e: Exception) {
                         Log.e("AndroidPdfWriter", "Failed to run OCR on page $index", e)
-                    } finally {
-                        bitmap?.recycle()
                     }
                 }
                 contentStream.close()

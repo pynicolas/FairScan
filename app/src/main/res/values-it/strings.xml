@@ -4,8 +4,6 @@
     <string name="app_tagline">Un\'app semplice e rispettosa per scansionare i tuoi documenti.</string>
     <string name="apply">Applica</string>
     <string name="back">Indietro</string>
-    <string name="black_and_white_jpeg_hint">Usare il PDF come formato di output per mantenere le pagine in bianco e nero compatte e nitide.</string>
-    <string name="black_and_white_jpeg_pages">(%1$d/%2$s)</string>
     <string name="camera_permission_denied">Autorizzazione fotocamera negata</string>
     <string name="camera_permission_rationale">L\'app richiede l\'accesso alla fotocamera per scansionare documenti. Le immagini catturate sono salvate solo in questo dispositivo e verranno eliminate quando chiudi la scansione corrente.</string>
     <string name="cancel">Annulla</string>
