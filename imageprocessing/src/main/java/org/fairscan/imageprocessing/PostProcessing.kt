@@ -359,11 +359,11 @@ private const val FILL_HOLE_FACTOR = 5
 
 // Returns BGR containing only 0 and 255, like the other color modes, so that storage and
 // preview stay unchanged. The export path packs it into one bit per pixel.
-fun binarizeDocument(img: Mat, upscaleTo: Long = 0L): Mat {
+fun binarizeDocument(img: Mat): Mat {
     // Flatten the illumination at the captured resolution. Interpolated pixels carry no extra
     // information for that step, only for where the threshold puts an edge.
     val flattened = flattenedGrayscale(img)
-    val gray = upscaleToPixels(flattened, upscaleTo)
+    val gray = upscaleToPixels(flattened, 4L * img.width() * img.height())
     flattened.release()
     val window = sauvolaWindow(max(gray.cols(), gray.rows()))
 
