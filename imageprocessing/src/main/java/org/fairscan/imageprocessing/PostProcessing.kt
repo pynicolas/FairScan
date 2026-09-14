@@ -175,6 +175,7 @@ fun multiScaleRetinexOnL(bgr: Mat): Mat {
     return result
 }
 
+// Expects values in [0..255]
 fun percentileL(l: Mat, p: Double): Double {
     val hist = Mat()
     Imgproc.calcHist(
@@ -197,6 +198,22 @@ fun percentileL(l: Mat, p: Double): Double {
     }
     hist.release()
     return 255.0
+}
+
+// Estimate 2 percentiles in `src` on a subsample rather than the full image.
+private fun percentiles(src: Mat, low: Double, high: Double): Pair<Double, Double> {
+    val sample = resizeForMaxPixels(src, 500_000.0, Imgproc.INTER_NEAREST)
+    val flat = Mat()
+    sample.reshape(1, 1).copyTo(flat)
+    val sorted = Mat()
+    Core.sort(flat, sorted, Core.SORT_ASCENDING)
+    val n = sorted.cols()
+    val pLow = sorted.get(0, (n * low).toInt().coerceIn(0, n - 1))[0]
+    val pHigh = sorted.get(0, (n * high).toInt().coerceIn(0, n - 1))[0]
+    flat.release()
+    sorted.release()
+    sample.release()
+    return pLow to pHigh
 }
 
 fun enhanceGrayscaleImage(img: Mat): Mat {
@@ -247,16 +264,7 @@ fun enhanceGrayscaleImage(img: Mat): Mat {
     // gray areas more visible.
     val retinexExp = Mat()
     Core.exp(retinex, retinexExp)
-
-    val flat = Mat()
-    retinexExp.reshape(1, 1).copyTo(flat)
-    val sorted = Mat()
-    Core.sort(flat, sorted, Core.SORT_ASCENDING)
-    val n = sorted.cols()
-    val pLow  = sorted.get(0, (n * 0.004).toInt())[0]
-    val pHigh = sorted.get(0, (n * 0.99).toInt())[0]
-    flat.release(); sorted.release()
-
+    val (pLow, pHigh) = percentiles(retinexExp, 0.004, 0.99)
     val normalized = Mat()
     Core.subtract(retinexExp, Scalar(pLow), normalized)
     val scale = if (pHigh > pLow) 255.0 / (pHigh - pLow) else 1.0
@@ -291,14 +299,7 @@ fun enhanceGrayscaleImage(img: Mat): Mat {
     if (modeVal >= 254) {
         val grayF = Mat()
         gray.convertTo(grayF, CvType.CV_32F)
-        val grayFlat = Mat()
-        grayF.reshape(1, 1).copyTo(grayFlat)
-        val graySorted = Mat()
-        Core.sort(grayFlat, graySorted, Core.SORT_ASCENDING)
-        val gN = graySorted.cols()
-        val gLow  = graySorted.get(0, (gN * 0.01).toInt())[0]
-        val gHigh = graySorted.get(0, (gN * 0.99).toInt())[0]
-        grayFlat.release(); graySorted.release()
+        val (gLow, gHigh) = percentiles(grayF, 0.01, 0.99)
         Core.subtract(grayF, Scalar(gLow), grayF)
         Core.multiply(grayF, Scalar(255.0 / (gHigh - gLow + 1e-6)), grayF)
         Core.min(grayF, Scalar(255.0), grayF)
