@@ -23,7 +23,7 @@ import org.opencv.imgproc.Imgproc
 import java.io.IOException
 import kotlin.math.sqrt
 
-fun resizeForMaxPixels(img: Mat, maxPixels: Double): Mat {
+fun resizeForMaxPixels(img: Mat, maxPixels: Double, interpolation: Int = Imgproc.INTER_AREA): Mat {
     val origPixels = img.width() * img.height()
     if (origPixels <= maxPixels) {
         return img.clone()
@@ -31,7 +31,7 @@ fun resizeForMaxPixels(img: Mat, maxPixels: Double): Mat {
     val scale = sqrt(maxPixels / origPixels)
     val size = Size(img.width() * scale, img.height() * scale)
     val resizedImg = Mat()
-    Imgproc.resize(img, resizedImg, size, 0.0, 0.0, Imgproc.INTER_AREA)
+    Imgproc.resize(img, resizedImg, size, 0.0, 0.0, interpolation)
     return resizedImg
 }
 
