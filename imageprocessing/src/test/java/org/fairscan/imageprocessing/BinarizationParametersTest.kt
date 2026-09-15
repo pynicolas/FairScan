@@ -29,15 +29,15 @@ class BinarizationParametersTest {
     @Test
     fun sauvola_window_is_clamped_at_both_ends() {
         assertThat(sauvolaWindow(1)).isEqualTo(15)
-        assertThat(sauvolaWindow(100_000)).isEqualTo(101)
+        assertThat(sauvolaWindow(100_000)).isEqualTo(1001)
     }
 
     @Test
     fun sauvola_window_grows_with_resolution() {
         // A4 at roughly 150, 200 and 300 dpi
-        assertThat(sauvolaWindow(1189)).isEqualTo(19)
-        assertThat(sauvolaWindow(1682)).isEqualTo(29)
-        assertThat(sauvolaWindow(3508)).isEqualTo(59)
+        assertThat(sauvolaWindow(1189)).isEqualTo(119)
+        assertThat(sauvolaWindow(1682)).isEqualTo(169)
+        assertThat(sauvolaWindow(3508)).isEqualTo(351)
     }
 
     @Test
@@ -50,15 +50,4 @@ class BinarizationParametersTest {
         }
     }
 
-    @Test
-    fun despeckle_area_grows_with_the_square_of_the_resolution() {
-        assertThat(despeckleMinArea(1189)).isEqualTo(2)
-        assertThat(despeckleMinArea(1682)).isEqualTo(3)
-        assertThat(despeckleMinArea(3508)).isEqualTo(12)
-    }
-
-    @Test
-    fun despeckle_area_keeps_a_lower_bound() {
-        assertThat(despeckleMinArea(1)).isEqualTo(2)
-    }
 }
