@@ -16,6 +16,7 @@ package org.fairscan.app.domain
 
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.platform.processedImage
+import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.EstimatedDimensions
 import org.fairscan.imageprocessing.estimateRealDimensions
 import org.fairscan.imageprocessing.resizeForMaxPixels
@@ -68,7 +69,7 @@ suspend fun pagesToExport(
             PageToExport(page) {
                 resizeImageForMaxPixels(
                     image = image(page, imageRepository),
-                    maxPixels = exportQuality.maxPixels.toDouble(),
+                    maxPixels = exportQuality.maxPixels(page.colorMode ?: ColorMode.COLOR).toDouble(),
                     jpegQuality = exportQuality.jpegQuality
                 )
             }
