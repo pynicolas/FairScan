@@ -15,10 +15,11 @@
 package org.fairscan.app.domain
 
 import org.fairscan.app.R
+import org.fairscan.imageprocessing.ColorMode
 
 enum class ExportQuality(
     val jpegQuality: Int,
-    val maxPixels: Long,
+    private val maxPixels: Long,
     val labelResource: Int
 ) {
     LOW(
@@ -35,5 +36,11 @@ enum class ExportQuality(
         jpegQuality = 80,
         maxPixels = 4_000_000,
         R.string.export_quality_high,
-    )
+    );
+    fun maxPixels(colorMode: ColorMode) =
+        if (colorMode == ColorMode.BLACK_AND_WHITE)
+            maxPixels * 4
+        else
+            maxPixels
+
 }
