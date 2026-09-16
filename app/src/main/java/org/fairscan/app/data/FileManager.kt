@@ -14,6 +14,7 @@
  */
 package org.fairscan.app.data
 
+import org.fairscan.app.domain.EncodedImage
 import org.fairscan.app.domain.PageToExport
 import java.io.File
 import java.io.FileOutputStream
@@ -27,7 +28,7 @@ data class GeneratedPdf(
 
 fun interface PdfWriter {
     suspend fun writePdfFromJpegs(
-        pages: List<PageToExport>,
+        pages: List<PageToExport<EncodedImage>>,
         outputStream: OutputStream,
         disableOcr: Boolean,
         onProgress: (Int) -> Unit,
@@ -49,7 +50,7 @@ class FileManager(
     }
 
     suspend fun generatePdf(
-        pages: List<PageToExport>,
+        pages: List<PageToExport<EncodedImage>>,
         disableOcr: Boolean,
         onProgress: (Int) -> Unit
     ): GeneratedPdf {

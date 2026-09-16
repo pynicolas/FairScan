@@ -32,25 +32,17 @@ sealed class EncodedImage(
 
     fun toMat(): Mat =
         decodeJpegOrPng(bytes)
-    abstract fun toJpeg(jpegQuality: Int): Jpeg
 }
 
 class Jpeg(override val bytes: ByteArray): EncodedImage(bytes) {
     companion object {
         fun fromMat(mat: Mat, jpegQuality: Int): Jpeg = Jpeg(encodeJpeg(mat, jpegQuality))
     }
-    override fun toJpeg(jpegQuality: Int): Jpeg = this
 }
 
 class Png(override val bytes: ByteArray): EncodedImage(bytes) {
     companion object {
         fun fromMat(mat: Mat): Png = Png(encodePng(mat))
-    }
-    override fun toJpeg(jpegQuality: Int): Jpeg {
-        val mat = toMat()
-        val jpeg = Jpeg.fromMat(mat, jpegQuality)
-        mat.release()
-        return jpeg
     }
 }
 
