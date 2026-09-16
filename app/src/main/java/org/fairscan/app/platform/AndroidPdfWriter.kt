@@ -34,6 +34,7 @@ import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
 import org.fairscan.app.BuildConfig
 import org.fairscan.app.data.PdfWriter
 import org.fairscan.app.domain.Bitonal
+import org.fairscan.app.domain.EncodedImage
 import org.fairscan.app.domain.OcrService
 import org.fairscan.app.domain.PageToExport
 import org.fairscan.app.domain.packBitonal
@@ -50,7 +51,7 @@ import java.util.Locale
 class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : PdfWriter {
 
     override suspend fun writePdfFromJpegs(
-        pages: List<PageToExport>,
+        pages: List<PageToExport<EncodedImage>>,
         outputStream: OutputStream,
         disableOcr: Boolean,
         onProgress: (Int) -> Unit,

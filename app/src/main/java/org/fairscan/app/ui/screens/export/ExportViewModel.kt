@@ -46,6 +46,7 @@ import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.ExportQuality
 import org.fairscan.app.domain.PageViewKey
+import org.fairscan.app.domain.jpegsToExport
 import org.fairscan.app.domain.pagesToExport
 import org.fairscan.app.ui.screens.settings.ExportFormat
 import org.fairscan.app.ui.screens.settings.ExportFormat.PDF
@@ -204,13 +205,12 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         exportQuality: ExportQuality,
         onProgress: (Int) -> Unit,
     ): ExportResult.Jpeg = withContext(Dispatchers.IO) {
-        val pageToExports = pagesToExport(imageRepository, exportQuality)
+        val jpegPages = jpegsToExport(imageRepository, exportQuality)
         val timestamp = System.currentTimeMillis()
         preparationDir.mkdirs()
-        val files = pageToExports.mapIndexed { index, page ->
+        val files = jpegPages.mapIndexed { index, page ->
             val file = File(preparationDir, "$timestamp-${index + 1}.jpg")
-            val jpeg = page.image.get().toJpeg(exportQuality.jpegQuality)
-            file.writeBytes(jpeg.bytes)
+            file.writeBytes(page.image.get().bytes)
             onProgress(index + 1)
             file
         }.toList()

@@ -23,13 +23,13 @@ import org.fairscan.imageprocessing.resizeForMaxPixels
 import org.fairscan.imageprocessing.scaledTo
 import org.opencv.core.Mat
 
-fun interface ImageProvider {
-    suspend fun get(): EncodedImage
+fun interface ImageProvider<T> {
+    suspend fun get(): T
 }
 
-data class PageToExport(
+data class PageToExport<T>(
     val page: ScanPage,
-    val image: ImageProvider,
+    val image: ImageProvider<T>,
 ) {
     fun estimatedDimensions(): EstimatedDimensions? {
         val metadata = page.metadata
@@ -57,7 +57,7 @@ private fun EstimatedDimensions.applyRotation(rotation: Rotation): EstimatedDime
 suspend fun pagesToExport(
     imageRepository: ImageRepository,
     exportQuality: ExportQuality
-): List<PageToExport> {
+): List<PageToExport<EncodedImage>> {
 
     val pages = imageRepository.pages()
     return when (exportQuality) {
@@ -89,6 +89,33 @@ suspend fun pagesToExport(
             }
         }
     }
+}
+
+suspend fun jpegsToExport(
+    imageRepository: ImageRepository,
+    exportQuality: ExportQuality
+): List<PageToExport<Jpeg>> {
+    return pagesToExport(imageRepository, exportQuality).map {
+        PageToExport(
+            it.page,
+            {
+                val image = it.image.get()
+                when (image) {
+                    is Jpeg -> image
+                    is Png -> resizeToJpeg(image, exportQuality)
+                }
+            })
+    }
+}
+
+fun resizeToJpeg(png: Png, exportQuality: ExportQuality): Jpeg {
+    val input = png.toMat()
+    // For JPEG, we resize to the same size as for ColorMode.COLOR
+    val resized = resizeForMaxPixels(input, exportQuality.maxPixels(ColorMode.COLOR).toDouble())
+    val jpeg = Jpeg.fromMat(resized, exportQuality.jpegQuality)
+    input.release()
+    resized.release()
+    return jpeg
 }
 
 private suspend fun image(page: ScanPage, imageRepository: ImageRepository): EncodedImage {
