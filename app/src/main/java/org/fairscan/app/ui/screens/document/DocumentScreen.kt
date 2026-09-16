@@ -302,7 +302,6 @@ fun ColorModeButton(
             ColorMode.entries.forEach { colorMode ->
                 DropdownMenuItem(
                     text = { Text(stringResource(colorMode.labelResource)) },
-                    leadingIcon = { Icon(colorMode.icon, contentDescription = null) },
                     onClick = {
                         onColorModeSelected(colorMode)
                         expanded = false
@@ -323,13 +322,6 @@ private val ColorMode.labelResource: Int
         COLOR -> R.string.color_mode_color
         GRAYSCALE -> R.string.color_mode_grayscale
         BLACK_AND_WHITE -> R.string.color_mode_black_and_white
-    }
-
-private val ColorMode.icon: ImageVector
-    get() = when (this) {
-        COLOR -> Icons.Default.Palette
-        GRAYSCALE -> Icons.Default.Contrast
-        BLACK_AND_WHITE -> Icons.Default.FontDownload
     }
 
 @Composable
