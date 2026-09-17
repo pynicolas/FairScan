@@ -50,4 +50,15 @@ class BinarizationParametersTest {
         }
     }
 
+    @Test
+    fun despeckle_area_grows_with_the_square_of_the_resolution() {
+        assertThat(despeckleMinArea(1189)).isEqualTo(2)
+        assertThat(despeckleMinArea(1682)).isEqualTo(3)
+        assertThat(despeckleMinArea(3508)).isEqualTo(12)
+    }
+
+    @Test
+    fun despeckle_area_keeps_a_lower_bound() {
+        assertThat(despeckleMinArea(1)).isEqualTo(2)
+    }
 }
