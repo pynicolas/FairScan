@@ -19,11 +19,13 @@ import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.MatOfFloat
 import org.opencv.core.MatOfInt
+import org.opencv.core.Rect
 import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 enum class ColorMode {
@@ -361,7 +363,14 @@ fun binarizeDocument(img: Mat, upscaleTo: Long = 0L): Mat {
     gray.release()
 
     val binary = sauvolaThreshold(src, window)
+    val fill = flatFill(src, window)
     src.release()
+
+    // A local threshold has no reference point inside a large flat fill: further than half a
+    // window from paper the mean is the fill itself, and the fill comes out white.
+    Core.subtract(binary, fill, binary)
+    fillHoles(binary, fill, window)
+    fill.release()
 
     val bgr = Mat()
     Imgproc.cvtColor(binary, bgr, Imgproc.COLOR_GRAY2BGR)
@@ -413,3 +422,141 @@ private fun sauvolaThreshold(src: Mat, window: Int): Mat {
 }
 
 internal fun sauvolaWindow(maxDim: Int): Int = (maxDim / 10).coerceIn(15, 1001) or 1
+
+// Window and deviation below which an area counts as a flat fill rather than texture.
+private const val FILL_WINDOW = 9.0
+private const val FILL_DEVIATION = 12.0
+
+// Step 4 of the grayscale pipeline stretches the page background to white.
+private const val FILL_LEVEL = 155.0
+
+// Dark pixels belonging to a flat fill: a smooth dark spot seeds the fill, the seed grows over
+// the area one local window covers, and the result is clipped back to the dark pixels. Texture
+// produces almost no seeds, so photographs stay on the local threshold.
+private fun flatFill(src: Mat, window: Int): Mat {
+    val dark = Mat()
+    Core.compare(src, Scalar(FILL_LEVEL), dark, Core.CMP_LT)
+
+    val deviation = localDeviation(src, FILL_WINDOW)
+    val seeds = Mat()
+    Core.compare(deviation, Scalar(FILL_DEVIATION), seeds, Core.CMP_LT)
+    deviation.release()
+    Core.bitwise_and(seeds, dark, seeds)
+
+    // Half the local window is enough: that is how far the threshold is disturbed around a
+    // bright feature sitting on the fill. A rectangle keeps the dilation fast at this size.
+    val reach = (window / 2).coerceAtLeast(3).toDouble()
+    val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(reach, reach))
+    val fill = Mat()
+    Imgproc.dilate(seeds, fill, kernel)
+    seeds.release(); kernel.release()
+
+    Core.bitwise_and(fill, dark, fill)
+    dark.release()
+    return fill
+}
+
+// Standard deviation of src over a square window, as CV_32F.
+private fun localDeviation(src: Mat, window: Double): Mat {
+    val windowSize = Size(window, window)
+    val mean = Mat()
+    Imgproc.boxFilter(src, mean, CvType.CV_32F, windowSize)
+    val squares = Mat()
+    Core.multiply(src, src, squares)
+    val deviation = Mat()
+    Imgproc.boxFilter(squares, deviation, CvType.CV_32F, windowSize)
+    squares.release()
+    Core.multiply(mean, mean, mean)
+    Core.subtract(deviation, mean, deviation)
+    mean.release()
+    Core.max(deviation, Scalar(0.0), deviation)
+    Core.sqrt(deviation, deviation)
+    return deviation
+}
+
+// Grows with the square of the resolution: at 300 dpi anything up to 3x3 counts as a speck.
+internal fun despeckleMinArea(maxDim: Int): Int {
+    val scale = maxDim / 3508.0
+    return max(2, (12.0 * scale * scale).roundToInt())
+}
+
+// How much larger than a speck a hole in a fill may be before it counts as content.
+private const val FILL_HOLE_FACTOR = 5
+
+// Smallest hole, in multiples of the speck size, that counts as a letter of light print.
+private const val LETTER_AREA_FACTOR = 4
+
+// Glare and uneven printing punch small holes into a filled area. The dot on an i in light
+// print is just as small, but it sits right next to its letter, so only holes with no letter
+// close by are closed.
+private fun fillHoles(binary: Mat, fill: Mat, window: Int) {
+    val minArea = despeckleMinArea(max(binary.cols(), binary.rows()))
+
+    val letters = binary.clone()
+    removeSpecks(letters, minArea * LETTER_AREA_FACTOR, ink = false)
+    val nearLetters = Mat()
+    // The dot on an i sits about its own size above the stem: reach twice that far.
+    val dotGap = (8 * sqrt(minArea.toDouble())).coerceAtLeast(3.0)
+    Imgproc.dilate(letters, nearLetters, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(dotGap, dotGap)))
+    letters.release()
+
+    val reach = (window / 4).coerceAtLeast(3).toDouble()
+    val inside = Mat()
+    Imgproc.dilate(fill, inside, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(reach, reach)))
+    val lonely = Mat()
+    Core.bitwise_not(nearLetters, lonely)
+    Core.bitwise_and(inside, lonely, inside)
+    nearLetters.release(); lonely.release()
+
+    removeSpecks(binary, minArea * FILL_HOLE_FACTOR, ink = false, within = inside)
+    inside.release()
+}
+
+// Drops connected areas below minArea, optionally only those centred in `within`. Only the
+// bounding box of each speck is touched, never the whole image.
+private fun removeSpecks(binary: Mat, minArea: Int, ink: Boolean, within: Mat? = null) {
+    val subject = Mat()
+    if (ink) Core.bitwise_not(binary, subject) else binary.copyTo(subject)
+
+    val labels = Mat()
+    val stats = Mat()
+    val centroids = Mat()
+    val count = Imgproc.connectedComponentsWithStats(
+        subject, labels, stats, centroids, 8, CvType.CV_32S)
+    subject.release()
+
+    if (count > 1) {
+        val statsData = IntArray(count * 5)
+        stats.get(0, 0, statsData)
+        val centres = DoubleArray(count * 2)
+        centroids.get(0, 0, centres)
+        val replacement = Scalar(if (ink) 255.0 else 0.0)
+
+        for (label in 1 until count) {
+            val offset = label * 5
+            if (statsData[offset + Imgproc.CC_STAT_AREA] >= minArea) continue
+            if (within != null && !isSet(within, centres[label * 2], centres[label * 2 + 1]))
+                continue
+            val box = Rect(
+                statsData[offset + Imgproc.CC_STAT_LEFT],
+                statsData[offset + Imgproc.CC_STAT_TOP],
+                statsData[offset + Imgproc.CC_STAT_WIDTH],
+                statsData[offset + Imgproc.CC_STAT_HEIGHT],
+            )
+            val labelBox = labels.submat(box)
+            val speck = Mat()
+            Core.compare(labelBox, Scalar(label.toDouble()), speck, Core.CMP_EQ)
+            val target = binary.submat(box)
+            target.setTo(replacement, speck)
+            labelBox.release(); speck.release(); target.release()
+        }
+    }
+
+    labels.release(); stats.release(); centroids.release()
+}
+
+private fun isSet(mask: Mat, x: Double, y: Double): Boolean {
+    val col = x.toInt().coerceIn(0, mask.cols() - 1)
+    val row = y.toInt().coerceIn(0, mask.rows() - 1)
+    return mask.get(row, col)[0] != 0.0
+}
