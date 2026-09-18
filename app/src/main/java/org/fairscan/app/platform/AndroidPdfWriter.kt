@@ -15,6 +15,7 @@
 package org.fairscan.app.platform
 
 import android.content.res.AssetManager
+import android.graphics.Bitmap
 import android.util.Log
 import com.tom_roush.pdfbox.cos.COSArray
 import com.tom_roush.pdfbox.cos.COSDictionary
@@ -63,7 +64,8 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
             val ocrDocument = OcrDocument(document, assets)
             for ((index, page) in pages.withIndex()) {
                 val jpegOrPng = page.image.get()
-                val image = if (page.page.colorMode == ColorMode.BLACK_AND_WHITE)
+                val blackAndWhite = page.page.colorMode == ColorMode.BLACK_AND_WHITE
+                val image = if (blackAndWhite)
                     createCcittG4Image(document, packBitonal(jpegOrPng))
                 else
                     JPEGFactory.createFromByteArray(document, jpegOrPng.bytes)
@@ -96,7 +98,10 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
 
                 if (!disableOcr) {
                     try {
-                        val bitmap = jpegOrPng.toBitmap()
+                        // Black and white pages carry four times the pixels for the PDF. Text
+                        // recognition gets the same size as with the other modes.
+                        val bitmap = if (blackAndWhite) halfSize(jpegOrPng.toBitmap())
+                        else jpegOrPng.toBitmap()
                         val ocrTextBoxes = ocrService.runOcr(bitmap)
                         val pdfPageDimensions = PageDimensions(
                             bitmap.width,
@@ -142,6 +147,12 @@ private fun createCcittG4Image(document: PDDocument, bitonal: Bitonal): PDImageX
     decodeParms.setInt(COSName.K, -1)
     image.cosObject.setItem(COSName.DECODE_PARMS, decodeParms)
     return image
+}
+
+private fun halfSize(bitmap: Bitmap): Bitmap {
+    val scaled = Bitmap.createScaledBitmap(bitmap, bitmap.width / 2, bitmap.height / 2, true)
+    bitmap.recycle()
+    return scaled
 }
 
 fun constrainToMaxFormat(widthMm: Double, heightMm: Double): Pair<Double, Double> {
