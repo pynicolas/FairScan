@@ -4,6 +4,7 @@
     <string name="app_tagline">シンプルで安心なドキュメントスキャナーです。</string>
     <string name="apply">適用</string>
     <string name="back">戻る</string>
+    <string name="black_and_white_jpeg_hint">白黒ページは PDF のほうが小さく鮮明になります。</string>
     <string name="camera_permission_denied">カメラの権限が拒否されました</string>
     <string name="camera_permission_rationale">ドキュメントをスキャンするためにカメラへのアクセスが必要です。撮影した画像はこのデバイスにのみ保存され、現在のスキャンを閉じると削除されます。</string>
     <string name="cancel">キャンセル</string>

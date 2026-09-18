@@ -4,6 +4,7 @@
     <string name="app_tagline">Aplikasi sederhana dan aman untuk memindai dokumen Anda</string>
     <string name="apply">Terapkan</string>
     <string name="back">Kembali</string>
+    <string name="black_and_white_jpeg_hint">Halaman hitam putih lebih kecil dan lebih tajam sebagai PDF.</string>
     <string name="camera_permission_denied">Izin penggunaan kamera ditolak</string>
     <string name="camera_permission_rationale">Aplikasi ini memerlukan akses kamera untuk memindai dokumen. Gambar yang diambil hanya disimpan di perangkat ini dan akan dihapus saat Anda menutup pemindaian saat ini.</string>
     <string name="cancel">Batalkan</string>

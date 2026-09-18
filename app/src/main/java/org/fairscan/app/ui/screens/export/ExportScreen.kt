@@ -300,6 +300,13 @@ private fun PdfInfos(
                     )
             }
 
+            if (uiState.blackAndWhiteAsJpeg) {
+                Text(
+                    stringResource(R.string.black_and_white_jpeg_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
             if (uiState.isGenerating) {
                 Text(
                     text = stringResource(R.string.creating_export),
