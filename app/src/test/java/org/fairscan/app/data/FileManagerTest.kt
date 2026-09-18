@@ -16,6 +16,7 @@ package org.fairscan.app.data
 
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
+import org.fairscan.app.domain.EncodedImage
 import org.fairscan.app.domain.Jpeg
 import org.fairscan.app.domain.PageToExport
 import org.fairscan.app.domain.Rotation
@@ -76,7 +77,7 @@ class FileManagerTest {
     fun generatePdf() = runTest {
         val fakePdfWriter = object : PdfWriter {
             override suspend fun writePdfFromJpegs(
-                pages: List<PageToExport>,
+                pages: List<PageToExport<EncodedImage>>,
                 outputStream: OutputStream,
                 disableOcr: Boolean,
                 onProgress: (Int) -> Unit,
@@ -87,7 +88,7 @@ class FileManagerTest {
         }
         val manager = FileManager(pdfDir, externalDir, fakePdfWriter)
         val pages = listOf(byteArrayOf(0x01, 0x02), byteArrayOf(0x11))
-            .map { PageToExport(ScanPage("1", Rotation.R0, null, 1, null)) { Jpeg(it) } }
+            .map { PageToExport<EncodedImage>(ScanPage("1", Rotation.R0, null, 1, null)) { Jpeg(it) } }
         val pdf = manager.generatePdf(pages, true) {}
         assertThat(pdf.pageCount).isEqualTo(2)
         assertThat(pdf.sizeInBytes).isEqualTo(3)
