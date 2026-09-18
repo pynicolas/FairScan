@@ -348,8 +348,9 @@ private fun flattenedGrayscale(img: Mat): Mat {
 private const val SAUVOLA_K = 0.25
 private const val SAUVOLA_R = 128.0
 
-// Returns BGR containing only 0 and 255, like the other color modes, so that storage and
-// preview stay unchanged. The export path packs it into one bit per pixel.
+// Returns a single channel containing only 0 and 255. Black and white pages are stored as
+// PNG, where two more copies of that channel would only take space. The export path packs
+// it into one bit per pixel.
 fun binarizeDocument(img: Mat, upscaleTo: Long = 0L): Mat {
     // Flatten the illumination at the captured resolution. Interpolated pixels carry no extra
     // information for that step, only for where the threshold puts an edge.
@@ -371,11 +372,7 @@ fun binarizeDocument(img: Mat, upscaleTo: Long = 0L): Mat {
     Core.subtract(binary, fill, binary)
     fillHoles(binary, fill, window)
     fill.release()
-
-    val bgr = Mat()
-    Imgproc.cvtColor(binary, bgr, Imgproc.COLOR_GRAY2BGR)
-    binary.release()
-    return bgr
+    return binary
 }
 
 private fun upscaleToPixels(img: Mat, targetPixels: Long): Mat {
