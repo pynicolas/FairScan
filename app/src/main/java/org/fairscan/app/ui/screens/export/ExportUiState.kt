@@ -23,6 +23,9 @@ data class ExportUiState(
     val isGenerating: Boolean = false,
     val progress: ExportProgress? = null,
     val ocrActivation: Boolean? = null,
+    // The output format is JPEG and the document has black and white pages, which are smaller
+    // and sharper as PDF.
+    val blackAndWhiteAsJpeg: Boolean = false,
     val isSaving: Boolean = false,
     val result: ExportResult? = null,
     val savedBundle: SavedBundle? = null,

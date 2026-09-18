@@ -28,6 +28,7 @@
     </plurals>
     <string name="text_recognition_disabled">Teksta atpazīšana: atspējota</string>
     <string name="back">Atpakaļ</string>
+    <string name="black_and_white_jpeg_hint">Melnbaltas lapas PDF formātā ir mazākas un asākas.</string>
     <string name="delete">Dzēst</string>
     <string name="support">Atbalsts</string>
     <string name="version">Versija</string>

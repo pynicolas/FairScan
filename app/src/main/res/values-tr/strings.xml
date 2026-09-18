@@ -4,6 +4,7 @@
     <string name="app_tagline">Belgelerinizi taramak için basit ve saygılı bir uygulama.</string>
     <string name="apply">Uygula</string>
     <string name="back">Geri</string>
+    <string name="black_and_white_jpeg_hint">Siyah beyaz sayfalar PDF olarak daha küçük ve daha net olur.</string>
     <string name="camera_permission_denied">Kamera izni reddedildi</string>
     <string name="camera_permission_rationale">Uygulama, belgeleri taramak için kamera erişimi gerektirir. Yakalanan görüntüler yalnızca bu cihazda saklanır ve geçerli taramayı kapattığınızda silinir.</string>
     <string name="cancel">İptal</string>

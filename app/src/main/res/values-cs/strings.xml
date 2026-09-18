@@ -4,6 +4,7 @@
     <string name="app_tagline">Jednoduchá a respektující aplikace pro skenování vašich dokumentů</string>
     <string name="apply">Použít</string>
     <string name="back">Zpět</string>
+    <string name="black_and_white_jpeg_hint">Černobílé stránky jsou v PDF menší a ostřejší.</string>
     <string name="camera_permission_denied">Byl odepřen přístup k fotoaparátu</string>
     <string name="camera_permission_rationale">Aby bylo možné skenovat dokumenty, tato aplikace potřebuje přístup k fotoaparátu. Nasnímané obrázky jsou ukládány pouze do tohoto zařízení a budou smazány, když ukončíte aktuální sken.</string>
     <string name="cancel">Zrušit</string>
