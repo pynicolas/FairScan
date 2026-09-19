@@ -5,6 +5,7 @@
     <string name="app_tagline">உங்கள் ஆவணங்களை வருடு செய்வதற்கான எளிய மற்றும் மரியாதைக்குரிய பயன்பாடு.</string>
     <string name="apply">இடு</string>
     <string name="back">பின்</string>
+    <string name="black_and_white_jpeg_hint">கருப்பு-வெள்ளை பக்கங்களை PDF-ஆக ஏற்றுமதி செய்தால், அவை சிறியதாகவும் தெளிவானதாகவும் இருக்கும்.</string>
     <string name="camera_permission_denied">கேமரா இசைவு மறுக்கப்பட்டது</string>
     <string name="camera_permission_rationale">ஆவணங்களை வருடு செய்ய பயன்பாட்டிற்கு கேமரா அணுகல் தேவை. கைப்பற்றப்பட்ட படங்கள் இந்தச் சாதனத்தில் மட்டுமே சேமிக்கப்படும், தற்போதைய ச்கேனை மூடும்போது அவை நீக்கப்படும்.</string>
     <string name="cancel">ரத்துசெய்</string>
@@ -13,6 +14,7 @@
     <string name="close">மூடு</string>
     <string name="color_mode">வடிப்பி</string>
     <string name="color_mode_auto">தானியங்கி</string>
+    <string name="color_mode_black_and_white">கருப்பு-வெள்ளை</string>
     <string name="color_mode_color">நிறம்</string>
     <string name="color_mode_default">இயல்பு வடிகட்டி</string>
     <string name="color_mode_grayscale">கிரேச்கேல்</string>

@@ -5,6 +5,7 @@
     <string name="app_tagline">یک برنامهٔ ساده و محترم برای پویش سندهایتان.</string>
     <string name="apply">اعمال</string>
     <string name="back">بازگشت</string>
+    <string name="black_and_white_jpeg_hint">اگر صفحات سیاه و سفید به صورت PDF خروجی گرفته شوند، حجم کمتر و وضوح بیشتری خواهند داشت.</string>
     <string name="camera_permission_denied">مجوز دوربین رد شد</string>
     <string name="camera_permission_rationale">این برنامه به دسترسی به دوربین برای پویش سندها نیاز دارد. عکس‌های گرفته‌شده فقط روی این دستگاه انبار میشوند و وقتی این پویش را ببندید حذف خواهند شد.</string>
     <string name="cancel">لغو</string>
@@ -13,6 +14,7 @@
     <string name="close">بستن</string>
     <string name="color_mode">پالایش</string>
     <string name="color_mode_auto">خودکار</string>
+    <string name="color_mode_black_and_white">سیاه و سفید</string>
     <string name="color_mode_color">رنگ</string>
     <string name="color_mode_default">پالایهٔ پیشفرض</string>
     <string name="color_mode_grayscale">خاکستری‌مقیاس</string>
