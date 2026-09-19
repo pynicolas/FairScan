@@ -17,7 +17,7 @@
     <!-- Icon description for ← at the top-left -->
     <string name="back">Back</string>
     <!-- Export screen, only when the output format is JPEG and the document has black & white pages -->
-    <string name="black_and_white_jpeg_hint">Black &amp; white pages are smaller and sharper as PDF.</string>
+    <string name="black_and_white_jpeg_hint">Black &amp; white pages would be smaller and sharper if exported as PDF.</string>
     <!-- Error message (as a toast) -->
     <string name="camera_permission_denied">Camera permission was denied</string>
     <!-- Appears on the Camera screen -->
