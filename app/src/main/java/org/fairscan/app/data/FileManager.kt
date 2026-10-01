@@ -31,7 +31,7 @@ fun interface PdfWriter {
         pages: List<PageToExport<EncodedImage>>,
         outputStream: OutputStream,
         disableOcr: Boolean,
-        onProgress: (Int) -> Unit,
+        onPageCompleted: (Int) -> Unit,
     )
 }
 
@@ -52,13 +52,13 @@ class FileManager(
     suspend fun generatePdf(
         pages: List<PageToExport<EncodedImage>>,
         disableOcr: Boolean,
-        onProgress: (Int) -> Unit
+        onPageCompleted: (Int) -> Unit
     ): GeneratedPdf {
         pdfDir.mkdirs()
         require(pdfDir.exists() && pdfDir.isDirectory) { "Invalid pdfDir: $pdfDir" }
         val file = File(pdfDir, "${System.currentTimeMillis()}.pdf")
         FileOutputStream(file).use {
-            pdfWriter.writePdfFromJpegs(pages, it, disableOcr, onProgress)
+            pdfWriter.writePdfFromJpegs(pages, it, disableOcr, onPageCompleted)
         }
         val sizeBytes = file.length()
         return GeneratedPdf(file, sizeBytes, pages.size)

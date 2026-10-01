@@ -55,7 +55,7 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
         pages: List<PageToExport<EncodedImage>>,
         outputStream: OutputStream,
         disableOcr: Boolean,
-        onProgress: (Int) -> Unit,
+        onPageCompleted: (Int) -> Unit,
     ) {
         val doc = PDDocument()
         doc.documentInformation.creationDate = Calendar.getInstance()
@@ -116,7 +116,7 @@ class AndroidPdfWriter(val ocrService: OcrService, val assets: AssetManager) : P
                 }
                 contentStream.close()
 
-                onProgress(index + 1)
+                onPageCompleted(index + 1)
             }
             // TODO So the whole document is in memory before this line...
             document.save(outputStream)
