@@ -80,7 +80,7 @@ class FileManagerTest {
                 pages: List<PageToExport<EncodedImage>>,
                 outputStream: OutputStream,
                 disableOcr: Boolean,
-                onProgress: (Int) -> Unit,
+                onPageCompleted: (Int) -> Unit,
             ) {
                 val list = pages.toList()
                 list.forEach { page -> outputStream.write(page.image.get().bytes) }

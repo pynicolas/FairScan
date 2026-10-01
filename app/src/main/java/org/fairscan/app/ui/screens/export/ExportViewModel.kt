@@ -31,6 +31,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -80,10 +81,10 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private suspend fun generatePdf(
         exportQuality: ExportQuality,
         disableOcr: Boolean,
-        onProgress: (Int) -> Unit,
+        onPageCompleted: (Int) -> Unit,
     ): ExportResult.Pdf = withContext(Dispatchers.IO) {
         val pageToExports = pagesToExport(imageRepository, exportQuality)
-        val pdf = fileManager.generatePdf(pageToExports, disableOcr, onProgress)
+        val pdf = fileManager.generatePdf(pageToExports, disableOcr, onPageCompleted)
         return@withContext ExportResult.Pdf(pdf.file, pdf.sizeInBytes, pdf.pageCount)
     }
 
@@ -159,6 +160,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 
             lastPreparationKey = key
             preparationJob?.cancel()
+            preparationJob?.join()
 
             preparationJob = launch {
                 val ocrActivation = if (exportFormat == PDF) ocrLanguageString.isNotEmpty() else null
@@ -174,7 +176,8 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                         blackAndWhiteAsJpeg = blackAndWhiteAsJpeg,
                     )
                 }
-                val onProgress: (Int) -> Unit = { completedPages ->
+                val onPageCompleted: (Int) -> Unit = { completedPages ->
+                    ensureActive()
                     _uiState.update {
                         it.copy(progress = ExportProgress(completedPages, pageCount))
                     }
@@ -182,9 +185,9 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                 try {
                     val t1 = System.currentTimeMillis()
                     val result = if (exportFormat == ExportFormat.JPEG) {
-                        generateJpegs(exportQuality, onProgress)
+                        generateJpegs(exportQuality, onPageCompleted)
                     } else {
-                        generatePdf(exportQuality, false, onProgress)
+                        generatePdf(exportQuality, false, onPageCompleted)
                     }
                     _uiState.update { it.copy(result = result) }
                     val t2 = System.currentTimeMillis()
@@ -207,7 +210,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 
     private suspend fun generateJpegs(
         exportQuality: ExportQuality,
-        onProgress: (Int) -> Unit,
+        onPageCompleted: (Int) -> Unit,
     ): ExportResult.Jpeg = withContext(Dispatchers.IO) {
         val jpegPages = jpegsToExport(imageRepository, exportQuality)
         val timestamp = System.currentTimeMillis()
@@ -215,7 +218,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         val files = jpegPages.mapIndexed { index, page ->
             val file = File(preparationDir, "$timestamp-${index + 1}.jpg")
             file.writeBytes(page.image.get().bytes)
-            onProgress(index + 1)
+            onPageCompleted(index + 1)
             file
         }.toList()
         val sizeInBytes = files.sumOf { it.length() }
