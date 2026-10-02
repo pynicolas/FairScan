@@ -55,9 +55,6 @@ import org.fairscan.imageprocessing.ColorMode
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -105,25 +102,24 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 
     fun setFilename(name: String) {
         _uiState.update {
-            it.copy(filename = name)
+            it.copy(filename = name, isUserDefinedFilename = true)
         }
     }
 
     fun resetFilename() {
-        _uiState.update {
-            it.copy(filename = "")
-        }
+        setFilename("")
     }
 
     private fun defaultFilename(): String {
-        val timestamp = SimpleDateFormat("yyyy-MM-dd HH.mm.ss", Locale.getDefault()).format(Date())
-        return "Scan $timestamp"
+        return settingsRepository.defaultFilenameStyle.value.filename()
     }
 
     private fun ensureValidFilename() {
         _uiState.update {
-            val normalized = it.filename.trim().ifEmpty { defaultFilename() }
-            if (normalized != it.filename) {
+            val normalized = it.filename.trim()
+            if (normalized.isEmpty() || !it.isUserDefinedFilename) {
+                it.copy(filename = defaultFilename(), isUserDefinedFilename = false)
+            } else if (normalized != it.filename) {
                 it.copy(filename = normalized)
             } else it
         }

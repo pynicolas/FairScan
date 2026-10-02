@@ -21,18 +21,27 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.documentfile.provider.DocumentFile
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.fairscan.app.R
 import org.fairscan.app.domain.ExportQuality
 import org.fairscan.imageprocessing.ColorMode
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SettingsRepository(
     private val context: Context,
     private val dataStore: DataStore<Preferences>,
+    private val scope: CoroutineScope,
 ) {
 
     private val DEFAULT_COLOR_MODE = stringPreferencesKey("default_color_mode")
+    private val DEFAULT_FILENAME_STYLE = stringPreferencesKey("default_filename_style")
     private val EXPORT_DIR_URI = stringPreferencesKey("export_dir_uri")
     private val EXPORT_FORMAT = stringPreferencesKey("export_format")
     private val EXPORT_QUALITY = stringPreferencesKey("export_quality")
@@ -76,6 +85,21 @@ class SettingsRepository(
             }
         }
 
+    val defaultFilenameStyle: StateFlow<DefaultFilenameStyle> =
+        dataStore.data
+            .map { prefs ->
+                when (prefs[DEFAULT_FILENAME_STYLE]) {
+                    "DATE" -> DefaultFilenameStyle.DATE
+                    "SCAN_DATE_TIME" -> DefaultFilenameStyle.SCAN_DATE_TIME
+                    else -> DefaultFilenameStyle.SCAN_DATE_TIME
+                }
+            }
+            .stateIn(
+                scope = scope,
+                started = SharingStarted.Eagerly,
+                initialValue = DefaultFilenameStyle.SCAN_DATE_TIME
+            )
+
     suspend fun setDefaultColorMode(mode: DefaultColorMode) {
         dataStore.edit { prefs ->
             prefs[DEFAULT_COLOR_MODE] = mode.name
@@ -103,6 +127,12 @@ class SettingsRepository(
             prefs[EXPORT_QUALITY] = quality.name
         }
     }
+
+    suspend fun setDefaultFilenameStyle(style: DefaultFilenameStyle) {
+        dataStore.edit { prefs ->
+            prefs[DEFAULT_FILENAME_STYLE] = style.name
+        }
+    }
 }
 
 enum class DefaultColorMode(val colorMode: ColorMode?, val labelResource: Int) {
@@ -115,4 +145,14 @@ enum class DefaultColorMode(val colorMode: ColorMode?, val labelResource: Int) {
 enum class ExportFormat(val mimeType: String) {
     PDF("application/pdf"),
     JPEG("image/jpeg"),
+}
+
+enum class DefaultFilenameStyle(val pattern: String) {
+    SCAN_DATE_TIME("'Scan' yyyy-MM-dd HH.mm.ss"),
+    DATE("yyyy-MM-dd");
+
+    fun filename(): String = filename(Date())
+
+    fun filename(date: Date): String =
+        SimpleDateFormat(pattern, Locale.ENGLISH).format(date)
 }
