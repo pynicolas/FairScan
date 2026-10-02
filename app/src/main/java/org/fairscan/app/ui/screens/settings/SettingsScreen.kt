@@ -73,6 +73,7 @@ fun SettingsScreen(
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
     onExportQualityChanged: (ExportQuality) -> Unit,
+    onDefaultFileNameStyleChanged: (DefaultFilenameStyle) -> Unit,
     navigation: Navigation,
 ) {
     BackHandler { navigation.back() }
@@ -91,13 +92,13 @@ fun SettingsScreen(
             onResetExportDirClick,
             onExportFormatChanged,
             onExportQualityChanged,
+            onDefaultFileNameStyleChanged,
             navigation,
             modifier = Modifier.padding(paddingValues),
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsContent(
     uiState: SettingsUiState,
@@ -106,6 +107,7 @@ private fun SettingsContent(
     onResetExportDirClick: () -> Unit,
     onExportFormatChanged: (ExportFormat) -> Unit,
     onExportQualityChanged: (ExportQuality) -> Unit,
+    onDefaultFileNameStyleChanged: (DefaultFilenameStyle) -> Unit,
     navigation: Navigation,
     modifier: Modifier = Modifier,
 ) {
@@ -182,6 +184,14 @@ private fun SettingsContent(
             selectedValue = export.format,
             onValueChanged = onExportFormatChanged,
             label = { it.name },
+        )
+
+        SingleChoiceSetting(
+            title = "Default filename", // TODO externalize
+            entries = DefaultFilenameStyle.entries,
+            selectedValue = export.filenameStyle,
+            onValueChanged = onDefaultFileNameStyleChanged,
+            label = { it.filename() },
         )
 
         Spacer(Modifier.height(16.dp))
@@ -360,6 +370,7 @@ fun SettingsScreenPreview(uiState: SettingsUiState) {
             onResetExportDirClick = {},
             onExportFormatChanged = {},
             onExportQualityChanged = {},
+            onDefaultFileNameStyleChanged = {},
             navigation = dummyNavigation(),
         )
     }

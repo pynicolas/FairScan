@@ -69,7 +69,7 @@ class AppContainer(context: Context) {
     val logger = FileLogger(logRepository)
     val imageSegmentationService = ImageSegmentationService(context, logger)
     val imageLoader = AndroidImageLoader(context.contentResolver)
-    val settingsRepository = SettingsRepository(context, dataStore)
+    val settingsRepository = SettingsRepository(context, dataStore, scope)
 
     init {
         scope.launch { imageSegmentationService.initialize() }
