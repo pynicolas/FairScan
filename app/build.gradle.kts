@@ -1,3 +1,40 @@
+import java.net.URL
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
+
+abstract class DownloadTFLiteModelTask : DefaultTask() {
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun download() {
+        val modelVersion = "v1.2.0"
+        val modelFileName = "fairscan-segmentation-model.tflite"
+        val modelUrl = "https://github.com/pynicolas/fairscan-segmentation-model/releases/download/$modelVersion/$modelFileName"
+
+        val outputFile = outputDirectory.file(modelFileName).get().asFile
+
+        if (!outputFile.exists()) {
+            println("Downloading $modelFileName from $modelUrl")
+            outputFile.parentFile.mkdirs()
+
+            URL(modelUrl).openStream().use { input ->
+                outputFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        } else {
+            println("Model already downloaded: ${outputFile.absolutePath}")
+        }
+    }
+}
+
+val downloadTFLiteModel = tasks.register<DownloadTFLiteModelTask>("downloadTFLiteModel") {
+    outputDirectory.set(layout.buildDirectory.dir("downloads/tflite"))
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -15,7 +52,6 @@ val abiCodes = mapOf(
 android {
     namespace = "org.fairscan.app"
     compileSdk = 36
-    sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/assets"))
 
     defaultConfig {
         applicationId = "org.fairscan.app"
@@ -99,7 +135,14 @@ android {
     }
 }
 
-apply(from = file("download-tflite.gradle.kts"))
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(
+            downloadTFLiteModel,
+            DownloadTFLiteModelTask::outputDirectory,
+        )
+    }
+}
 
 dependencies {
 
