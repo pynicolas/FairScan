@@ -64,6 +64,7 @@
     <string name="scan_discard_current">Abaikan pemindaian saat ini.</string>
     <string name="scan_resume">Ulangi pemindaian</string>
     <string name="settings">Pengaturan</string>
+    <string name="settings_default_filename">Nama file default</string>
     <string name="settings_ocr_download_error">Pengunduhan gagal. Periksa koneksi internet Anda dan pastikan akses jaringan diizinkan untuk aplikasi ini.</string>
     <string name="settings_ocr_download_intro">"Berkas bahasa diunduh dari proyek resmi Tesseract. Pengenalan teks tetap sepenuhnya offline."</string>
     <string name="settings_ocr_downloading">Mengunduh berkas bahasa</string>

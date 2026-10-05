@@ -64,6 +64,7 @@
     <string name="scan_discard_current">Descartar o escaneo actual</string>
     <string name="scan_resume">Retomar escaneo</string>
     <string name="settings">Configuración</string>
+    <string name="settings_default_filename">Nome de ficheiro predeterminado</string>
     <string name="settings_ocr_download_error">Produciuse un erro na descarga. Comproba a túa conexión á Internet e asegúrate de que esta aplicación ten permitido o acceso á rede.</string>
     <string name="settings_ocr_download_intro">Os ficheiros de idioma descárganse desde o proxecto oficial Tesseract. O recoñecemento de texto segue sendo completamente sen conexión.</string>
     <string name="settings_ocr_downloading">Descargando ficheiro de idioma</string>

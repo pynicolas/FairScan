@@ -65,6 +65,7 @@
     <string name="scan_discard_current">Aktuellen Scan verwerfen</string>
     <string name="scan_resume">Scan fortsetzen</string>
     <string name="settings">Einstellungen</string>
+    <string name="settings_default_filename">Standarddateiname</string>
     <string name="settings_ocr_download_error">Download fehlgeschlagen. Überprüfen Sie Ihre Internetverbindung und stellen Sie sicher, dass der Netzwerkzugriff für diese App erlaubt ist.</string>
     <string name="settings_ocr_download_intro">Sprachdateien werden vom offiziellen Tesseract-Projekt heruntergeladen. Die Texterkennung bleibt vollständig offline.</string>
     <string name="settings_ocr_downloading">Sprachdatei wird heruntergeladen</string>

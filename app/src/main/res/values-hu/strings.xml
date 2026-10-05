@@ -64,6 +64,7 @@
     <string name="scan_discard_current">A folyamatban lévő szkennelés elvetése</string>
     <string name="scan_resume">Szkennelés folytatása</string>
     <string name="settings">Beállítások</string>
+    <string name="settings_default_filename">Alapértelmezett fájlnév</string>
     <string name="settings_ocr_download_error">A letöltés sikertelen. Ellenőrizd az internetkapcsolatodat, valamint hogy a hálózati hozzáférés engedélyezett-e az alkalmazás számára.</string>
     <string name="settings_ocr_download_intro">"A nyelvi fájlok a hivatalos Tesseract projektből kerülnek letöltésre. A szövegfelismerés ezt követően teljes mértékben offline történik."</string>
     <string name="settings_ocr_downloading">Nyelvi fájl letöltése</string>

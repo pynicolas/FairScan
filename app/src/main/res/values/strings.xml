@@ -140,6 +140,8 @@
     <string name="scan_resume">Resume scan</string>
     <!-- Settings screen: title. It's also an item of the ⋮ menu -->
     <string name="settings">Settings</string>
+    <!-- Settings screen, in the "Export" section -->
+    <string name="settings_default_filename">Default filename</string>
     <!-- OCR Languages screen -->
     <string name="settings_ocr_download_error">Download failed. Check your internet connection and that network access is allowed for this app.</string>
     <!-- OCR Languages screen -->

@@ -64,6 +64,7 @@
     <string name="scan_discard_current">放棄目前掃描</string>
     <string name="scan_resume">繼續掃描</string>
     <string name="settings">設定</string>
+    <string name="settings_default_filename">預設檔案名稱</string>
     <string name="settings_ocr_download_error">下載失敗。請檢查您的網路連線，並確認已允許此應用程式存取網路。</string>
     <string name="settings_ocr_download_intro">語言檔案會從官方 Tesseract 專案下載。文字辨識始終完全離線運作。</string>
     <string name="settings_ocr_downloading">正在下載語言檔案</string>

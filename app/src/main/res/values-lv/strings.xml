@@ -87,6 +87,7 @@
     <string name="scan_current">Pašreizējais skenējums</string>
     <string name="scan_discard_current">Atmestīs pašreizējo skenējumu</string>
     <string name="scan_resume">Turpināt skenējumu</string>
+    <string name="settings_default_filename">Noklusējuma faila nosaukums</string>
     <string name="settings_ocr_download_error">Neizdevās lejupielādēt. Pārbaudiet savu interneta savienojumu un pārliecinieties, ka šai lietotnei ir tīkla piekļuves atļauja.</string>
     <string name="settings_ocr_suggested">Iesaka</string>
     <string name="app_tagline">Vienkārša un cieņpilna lietotne, kas veic jūsu dokumentu skenējumus.</string>

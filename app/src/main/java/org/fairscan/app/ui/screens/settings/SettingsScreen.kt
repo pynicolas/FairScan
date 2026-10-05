@@ -187,7 +187,7 @@ private fun SettingsContent(
         )
 
         SingleChoiceSetting(
-            title = "Default filename", // TODO externalize
+            title = stringResource(R.string.settings_default_filename),
             entries = DefaultFilenameStyle.entries,
             selectedValue = export.filenameStyle,
             onValueChanged = onDefaultFileNameStyleChanged,
