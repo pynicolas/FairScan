@@ -65,6 +65,7 @@
     <string name="licensed_under">Käesolev rakendus on litsentseeritud GNU Üldise Avaliku Litsentsi versiooni 3.0 alusel.</string>
     <string name="scan_resume">Jätka skaneerimisega</string>
     <string name="settings">Seadistused</string>
+    <string name="settings_default_filename">Vaikimisi failinimi</string>
     <string name="settings_ocr_download_error">Allalaadimine ei õnnestunud. Palun vaata, et sinu nutiseadme internetiühendus toimiks ja ligipääs võrgule on selle rakenduse jaoks lubatud.</string>
     <string name="settings_ocr_download_intro">Keelefailid on laaditud alla Tesseracti projekti ametlikust veebisaidist. Tekstituvastus toimib täies mahus ilma võrguühendust kasutamata.</string>
     <string name="settings_ocr_downloading">Keelefaili allalaadimine</string>

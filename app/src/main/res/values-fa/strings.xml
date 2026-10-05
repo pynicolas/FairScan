@@ -58,6 +58,7 @@
     <string name="scan_discard_current">دور انداختن پویش کنونی</string>
     <string name="scan_resume">ادامه دادن پویش</string>
     <string name="settings">تنظیمات</string>
+    <string name="settings_default_filename">نام پیش‌فرض فایل</string>
     <string name="settings_ocr_download_error">بارگیری شکست خورد. ارتباط اینترنت خود و اینکه دسترسی به شبکه برای این برنامه مجاز است را بررسی کنید.</string>
     <string name="settings_ocr_download_intro">پرونده‌های زبان از پروژهٔ رسمی تسرکت بارگیری شده‌اند. تشخیص متن کاملا برون‌خط خواهد ماند.</string>
     <string name="settings_ocr_downloading">بارگیری پروندهٔ زبان</string>

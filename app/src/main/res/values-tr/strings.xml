@@ -65,6 +65,7 @@
     <string name="scan_discard_current">Geçerli taramayı sil</string>
     <string name="scan_resume">Taramaya devam et</string>
     <string name="settings">Ayarlar</string>
+    <string name="settings_default_filename">Varsayılan dosya adı</string>
     <string name="settings_ocr_download_error">İndirme başarısız oldu. İnternet bağlantınızı kontrol edin ve bu uygulama için ağ erişimine izin verildiğinden emin olun.</string>
     <string name="settings_ocr_download_intro">Dil dosyaları resmi Tesseract projesinden indirilir. Metin tanıma tamamen çevrimdışı olarak çalışır.</string>
     <string name="settings_ocr_downloading">Dil dosyası indiriliyor</string>

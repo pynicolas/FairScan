@@ -42,6 +42,7 @@ data class ExportSettingsUiState(
     val dirName: String? = null,
     val format: ExportFormat = ExportFormat.PDF,
     val quality: ExportQuality = ExportQuality.BALANCED,
+    val filenameStyle: DefaultFilenameStyle = DefaultFilenameStyle.SCAN_DATE_TIME,
 )
 
 data class OcrDownloadUiState(
@@ -70,9 +71,10 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
             dirName,
             repo.exportFormat,
             repo.exportQuality,
+            repo.defaultFilenameStyle,
         ) {
-            dirUri, dirName, format, quality ->
-            ExportSettingsUiState(dirUri, dirName, format, quality)
+            dirUri, dirName, format, quality, filenameStyle ->
+            ExportSettingsUiState(dirUri, dirName, format, quality, filenameStyle)
         }
     val uiState = combine(
         repo.defaultColorMode,
@@ -127,6 +129,12 @@ class SettingsViewModel(container: AppContainer) : ViewModel() {
     fun setExportQuality(quality: ExportQuality) {
         viewModelScope.launch {
             repo.setExportQuality(quality)
+        }
+    }
+
+    fun setDefaultFilenameStyle(style: DefaultFilenameStyle) {
+        viewModelScope.launch {
+            repo.setDefaultFilenameStyle(style)
         }
     }
 

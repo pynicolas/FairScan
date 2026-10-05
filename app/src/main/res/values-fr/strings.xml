@@ -65,6 +65,7 @@
     <string name="scan_discard_current">Abandonner le scan en cours</string>
     <string name="scan_resume">Reprendre le scan</string>
     <string name="settings">Paramètres</string>
+    <string name="settings_default_filename">Nom de fichier par défaut</string>
     <string name="settings_ocr_download_error">Échec du téléchargement. Vérifiez votre connexion Internet et assurez-vous que l\'accès au réseau est autorisé pour cette application.</string>
     <string name="settings_ocr_download_intro">Les fichiers de langue sont téléchargés depuis le projet officiel Tesseract. La reconnaissance de texte reste entièrement hors ligne.</string>
     <string name="settings_ocr_downloading">Téléchargement du fichier de langue</string>

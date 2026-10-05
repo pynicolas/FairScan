@@ -65,6 +65,7 @@
     <string name="scan_discard_current">தற்போதைய ச்கேனை நிராகரிக்கவும்</string>
     <string name="scan_resume">மீண்டும் வருடு செய்யவும்</string>
     <string name="settings">அமைப்புகள்</string>
+    <string name="settings_default_filename">இயல்புநிலை கோப்புப் பெயர்</string>
     <string name="settings_ocr_download_error">பதிவிறக்கம் தோல்வியடைந்தது. உங்கள் இணைய இணைப்பைச் சரிபார்த்து, இந்தப் பயன்பாட்டிற்கு பிணையம் அணுகல் அனுமதிக்கப்பட்டுள்ளது.</string>
     <string name="settings_ocr_download_intro">அதிகாரப்பூர்வ டெசராக்ட் திட்டத்தில் இருந்து மொழி கோப்புகள் பதிவிறக்கம் செய்யப்படுகின்றன. உரை ஏற்பு முழுமையாக ஆஃப்லைனில் இருக்கும்.</string>
     <string name="settings_ocr_downloading">மொழிக் கோப்பைப் பதிவிறக்குகிறது</string>

@@ -64,6 +64,7 @@
     <string name="scan_discard_current">Отменить текущее сканирование</string>
     <string name="scan_resume">Продолжить сканирование</string>
     <string name="settings">Настройки</string>
+    <string name="settings_default_filename">Имя файла по умолчанию</string>
     <string name="settings_ocr_download_error">Не удалось загрузить файл. Проверьте подключение к Интернету и убедитесь, что для этого приложения разрешён доступ к сети.</string>
     <string name="settings_ocr_download_intro">Языковые файлы загружаются из официального проекта Tesseract. Распознавание текста остаётся полностью офлайн.</string>
     <string name="settings_ocr_downloading">Загрузка языкового файла</string>
