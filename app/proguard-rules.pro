@@ -24,7 +24,8 @@
 -dontwarn com.gemalto.jp2.JP2Encoder
 -dontwarn org.bouncycastle.**
 
--keep class org.fairscan.app.RecentDocument* { *; }
--keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite { *; }
 # to have at least org.opencv.core.CvException
 -keep class org.opencv.core.** { *; }
+# to avoid crashes with LiteRT
+-keep class org.tensorflow.lite.support.image.** { *; }
+-keep class org.tensorflow.lite.support.common.** { *; }
