@@ -37,7 +37,6 @@ val downloadTFLiteModel = tasks.register<DownloadTFLiteModelTask>("downloadTFLit
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.aboutLibrariesAndroid)
     alias(libs.plugins.kotlin.serialization)
