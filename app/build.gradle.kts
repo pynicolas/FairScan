@@ -1,3 +1,4 @@
+import com.android.build.api.variant.FilterConfiguration
 import java.net.URL
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
@@ -109,15 +110,6 @@ android {
             isUniversalApk = false
         }
     }
-    applicationVariants.all {
-        val variant = this
-        variant.outputs
-            .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
-            .forEach { output ->
-                val abi = output.getFilter("ABI")
-                output.outputFileName = "FairScan-${variant.versionName}-${abi}.apk"
-            }
-    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -140,6 +132,12 @@ androidComponents {
             downloadTFLiteModel,
             DownloadTFLiteModelTask::outputDirectory,
         )
+        variant.outputs.forEach { output ->
+            val abi = output.filters
+                .find { it.filterType == FilterConfiguration.FilterType.ABI }
+                ?.identifier
+            output.outputFileName = "FairScan-${output.versionName.get()}-${abi}.apk"
+        }
     }
 }
 
@@ -178,6 +176,7 @@ dependencies {
     implementation(libs.reorderable)
     implementation(libs.aboutlibraries.compose.m3)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.collections.immutable)
     implementation(libs.tesseract4android)
 
     testImplementation(libs.junit)
