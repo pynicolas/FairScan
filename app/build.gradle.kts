@@ -51,7 +51,7 @@ val abiCodes = mapOf(
 
 android {
     namespace = "org.fairscan.app"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "org.fairscan.app"
@@ -60,7 +60,7 @@ android {
         // LiteRT documentation only states that version 1.2.0 requires Android 12:
         // https://ai.google.dev/edge/litert/android/index
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 96 // increment by 3 because of ABI-specific APKs
         versionName = "2.3.0"
 
