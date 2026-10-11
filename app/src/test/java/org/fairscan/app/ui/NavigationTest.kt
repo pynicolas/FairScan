@@ -16,6 +16,7 @@ package org.fairscan.app.ui
 
 import org.assertj.core.api.Assertions.assertThat
 import org.fairscan.app.ui.Screen.Main.Camera
+import org.fairscan.app.ui.Screen.Main.Home
 import org.fairscan.app.ui.Screen.Main.Document
 import org.fairscan.app.ui.Screen.Main.Export
 import org.fairscan.app.ui.Screen.Overlay.About
@@ -27,13 +28,14 @@ class NavigationTest {
     @Test
     fun empty_ScreenStack() {
         val empty = NavigationState.initial()
-        assertThat(empty.current).isEqualTo(Camera)
+        assertThat(empty.current).isEqualTo(Home)
         assertThat(empty.navigateBack()).isEqualTo(empty)
     }
 
     @Test
     fun navigate_between_fixed_screens() {
-        val atCamera = NavigationState.initial()
+        val home = NavigationState.initial()
+        val atCamera = home.navigateTo(Camera)
         val atDocument = atCamera.navigateTo(Document())
         val atExport = atCamera.navigateTo(Export)
 
@@ -45,7 +47,7 @@ class NavigationTest {
         assertThat(atDocument.navigateTo(Export)).isEqualTo(atExport)
         assertThat(atDocument.navigateTo(Camera)).isEqualTo(atCamera)
 
-        assertThat(atCamera.navigateBack()).isEqualTo(atCamera)
+        assertThat(atCamera.navigateBack()).isEqualTo(home)
         assertThat(atDocument.navigateBack()).isEqualTo(atCamera)
         assertThat(atExport.navigateBack()).isEqualTo(atCamera)
     }
@@ -70,8 +72,18 @@ class NavigationTest {
 
     @Test
     fun external_call() {
-        val initial = NavigationState.initial()
+        val initial = NavigationState.initial(externalScan = true)
         assertThat(initial.current).isEqualTo(Camera)
         assertThat(initial.navigateBack().current).isEqualTo(Camera)
+    }
+
+    @Test
+    fun library_document_returns_to_home() {
+        val home = NavigationState.initial()
+        val viewer = Screen.Main.LibraryDocument("content://document/1", "scan.pdf", "application/pdf")
+        val atViewer = home.navigateTo(viewer)
+
+        assertThat(atViewer.current).isEqualTo(viewer)
+        assertThat(atViewer.navigateBack()).isEqualTo(home)
     }
 }
