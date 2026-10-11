@@ -54,7 +54,11 @@ import org.fairscan.imageprocessing.Quad
 import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MainViewModel(val imageRepository: ImageRepository, logger: Logger): ViewModel() {
+class MainViewModel(
+    val imageRepository: ImageRepository,
+    logger: Logger,
+    private val launchMode: LaunchMode = LaunchMode.NORMAL,
+): ViewModel() {
 
     private val _navigationState = MutableStateFlow<NavigationState?>(null)
     val currentScreen: StateFlow<Screen?> = _navigationState.map { it?.current }
@@ -69,12 +73,9 @@ class MainViewModel(val imageRepository: ImageRepository, logger: Logger): ViewM
 
             _pages.value = pages
 
-            _navigationState.value =
-                if (pages.isEmpty()) {
-                    NavigationState.initial()
-                } else {
-                    NavigationState.initial().navigateTo(Screen.Main.ResumeScan)
-                }
+            _navigationState.value = NavigationState.initial(
+                externalScan = launchMode == LaunchMode.EXTERNAL_SCAN_TO_PDF
+            )
         }
     }
 
@@ -140,6 +141,10 @@ class MainViewModel(val imageRepository: ImageRepository, logger: Logger): ViewM
 
     fun navigateBack() {
         _navigationState.update { stack -> stack?.navigateBack() }
+    }
+
+    fun openScanner() {
+        navigateTo(if (_pages.value.isEmpty()) Screen.Main.Camera else Screen.Main.ResumeScan)
     }
 
     fun rotateCurrentPage(clockwise: Boolean) {
@@ -217,12 +222,14 @@ class MainViewModel(val imageRepository: ImageRepository, logger: Logger): ViewM
             "No current page for index $index (${pages.size} pages)")
     }
 
-    fun startNewDocument() {
+    fun startNewDocument(onCleared: () -> Unit = {}) {
         _pages.value = persistentListOf()
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 imageRepository.clear()
             }
+            _currentPageIndex.value = 0
+            onCleared()
         }
     }
 

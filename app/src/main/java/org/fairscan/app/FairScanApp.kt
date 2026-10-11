@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.fairscan.app.data.FileLogger
+import org.fairscan.app.data.DocumentLibrary
 import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.LogRepository
 import org.fairscan.app.data.OcrLanguageRepository
@@ -57,6 +58,7 @@ class AppContainer(context: Context) {
     private val cacheDir = context.cacheDir
     private val dataStore = context.dataStore
     val preparationDir = File(context.cacheDir, "pdfs")
+    val documentLibrary = DocumentLibrary(context.applicationContext)
     val ocrLanguageRepository =
         OcrLanguageRepository(dataStore, File(context.filesDir, "tesseract/tessdata"))
     val ocrService = OcrService(ocrLanguageRepository, scope)
