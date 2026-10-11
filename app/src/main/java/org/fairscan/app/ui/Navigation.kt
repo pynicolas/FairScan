@@ -16,9 +16,11 @@ package org.fairscan.app.ui
 
 sealed class Screen {
     sealed class Main : Screen() {
+        object Home : Main()
         object Camera : Main()
         object EditImage : Main()
         data class Document(val initialPage: Int = 0) : Main()
+        data class LibraryDocument(val uri: String, val name: String, val mimeType: String) : Main()
         object Export : Main()
         object ResumeScan : Main()
     }
@@ -47,8 +49,8 @@ data class Navigation(
 data class NavigationState private constructor(val stack: List<Screen>, val root: Screen.Main) {
 
     companion object {
-        fun initial(): NavigationState {
-            val root = Screen.Main.Camera
+        fun initial(externalScan: Boolean = false): NavigationState {
+            val root = if (externalScan) Screen.Main.Camera else Screen.Main.Home
             return NavigationState(listOf(root), root)
         }
     }
@@ -66,9 +68,11 @@ data class NavigationState private constructor(val stack: List<Screen>, val root
     fun navigateBack(): NavigationState {
         return when (current) {
             root -> this // Back handled by system
-            is Screen.Main.ResumeScan -> this // Back handled by system
-            is Screen.Main.Camera -> this // Back handled by system
+            is Screen.Main.Home -> this
+            is Screen.Main.ResumeScan -> copy(stack = listOf(root))
+            is Screen.Main.Camera -> copy(stack = listOf(root))
             is Screen.Main.Document -> copy(stack = listOf(Screen.Main.Camera))
+            is Screen.Main.LibraryDocument -> copy(stack = listOf(root))
             is Screen.Main.EditImage -> copy(stack = listOf(Screen.Main.Document()))
             is Screen.Main.Export -> copy(stack = listOf(Screen.Main.Camera))
             is Screen.Overlay -> copy(stack = stack.dropLast(1))
