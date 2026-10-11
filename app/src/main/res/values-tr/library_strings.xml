@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_title">Belgelerim</string>
+    <string name="library_folder_name">Belgeler/FairScan</string>
+    <string name="library_location">Telefonunuzdaki Belgeler/FairScan klasörüne kaydedilir</string>
+    <string name="library_empty">Henüz kayıtlı belge yok</string>
+    <string name="library_empty_hint">İlk belgenizi taramak için kamera düğmesine dokunun. Tamamladığınız ve paylaştığınız taramalar burada görünür.</string>
+    <string name="library_draft">Yarım kalan tarama</string>
+    <string name="library_resume">Taramaya devam etmek için dokunun</string>
+    <string name="library_load_error">Belgeler yüklenemedi. Depolama erişimini kontrol edip tekrar deneyin.</string>
+    <string name="library_retry">Tekrar dene</string>
+    <string name="library_share_file">%1$s belgesini paylaş</string>
+    <string name="library_finish">Kaydet ve belgelere dön</string>
+    <string name="library_view_error">Bu belge açılamadı.</string>
+    <string name="library_add_documents">Belge ekle</string>
+    <string name="library_manage_documents">Belgeleri seç</string>
+    <string name="library_selected_count">%1$d seçildi</string>
+    <string name="library_cancel_selection">Vazgeç</string>
+    <string name="library_share_selected">Seçilen belgeleri paylaş</string>
+    <string name="library_delete_selected">Seçilen belgeleri sil</string>
+    <string name="library_delete_title">Belgeler silinsin mi?</string>
+    <string name="library_delete_message">Seçilen %1$d belge silinsin mi? Bu işlem geri alınamaz.</string>
+    <string name="library_delete_confirm">Sil</string>
+    <string name="library_document_menu">%1$s için seçenekler</string>
+    <string name="library_rename_document">Yeniden adlandır</string>
+    <string name="library_rename_confirm">Kaydet</string>
+    <string name="library_rename_name">Dosya adı</string>
+    <string name="library_page_count">%1$d / %2$d</string>
+    <string name="library_zoom_in">Yakınlaştır</string>
+    <string name="library_zoom_out">Uzaklaştır</string>
+    <string name="library_fit_page">Sayfayı ekrana sığdır</string>
+    <string name="library_go_to_page">Sayfaya git</string>
+</resources>
