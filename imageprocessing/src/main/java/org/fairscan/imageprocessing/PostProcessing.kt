@@ -367,6 +367,12 @@ fun binarizeDocument(img: Mat, upscaleTo: Long = 0L): Mat {
     val fill = flatFill(src, window)
     src.release()
 
+    // The flattening lightens a fill of medium size towards paper, since it cannot tell it
+    // from a shadow. The color of the capture still can, so fills are also looked for there.
+    val captured = capturedFill(img, binary.size())
+    Core.bitwise_or(fill, captured, fill)
+    captured.release()
+
     // A local threshold has no reference point inside a large flat fill: further than half a
     // window from paper the mean is the fill itself, and the fill comes out white.
     Core.subtract(binary, fill, binary)
@@ -433,7 +439,14 @@ private const val FILL_LEVEL = 155.0
 private fun flatFill(src: Mat, window: Int): Mat {
     val dark = Mat()
     Core.compare(src, Scalar(FILL_LEVEL), dark, Core.CMP_LT)
+    val fill = growFill(src, dark, window)
+    dark.release()
+    return fill
+}
 
+// The smooth part of `dark` seeds the fill, the seed grows over the area one local window
+// covers, and the result is clipped back to `dark`.
+private fun growFill(src: Mat, dark: Mat, window: Int): Mat {
     val deviation = localDeviation(src, FILL_WINDOW)
     val seeds = Mat()
     Core.compare(deviation, Scalar(FILL_DEVIATION), seeds, Core.CMP_LT)
@@ -449,8 +462,82 @@ private fun flatFill(src: Mat, window: Int): Mat {
     seeds.release(); kernel.release()
 
     Core.bitwise_and(fill, dark, fill)
-    dark.release()
     return fill
+}
+
+// A fill is darker than this share of the paper around it, and has a color of its own: a
+// shadow keeps the hue of the paper. Color distance in Lab a/b units.
+private const val FILL_RATIO = 0.6
+private const val FILL_COLOR_DISTANCE = 12.0
+
+// Fills from the capture itself: the paper level is the local maximum over a quarter of the
+// page, and everything well below it in a color other than the paper's is a fill. Gray fills
+// are left to flatFill, since a shadow looks the same. The mask is built at a reduced size,
+// it only has to cover areas.
+private fun capturedFill(img: Mat, size: Size): Mat {
+    if (img.channels() < 3) return Mat.zeros(size, CvType.CV_8U)
+    val bgr = Mat()
+    if (img.channels() == 4) Imgproc.cvtColor(img, bgr, Imgproc.COLOR_BGRA2BGR) else img.copyTo(bgr)
+    val small = resizeForMaxPixels(bgr, 2_000_000.0)
+    bgr.release()
+    val maxDim = max(small.cols(), small.rows())
+
+    val gray = Mat()
+    Imgproc.cvtColor(small, gray, Imgproc.COLOR_BGR2GRAY)
+    val paperWindow = ((maxDim / 4) or 1).toDouble()
+    val paper = Mat()
+    Imgproc.dilate(gray, paper, Imgproc.getStructuringElement(
+        Imgproc.MORPH_RECT, Size(paperWindow, paperWindow)))
+    val paperLevel = Mat()
+    Imgproc.blur(paper, paperLevel, Size(paperWindow, paperWindow))
+    paper.release()
+    paperLevel.convertTo(paperLevel, CvType.CV_32F)
+    val src = Mat()
+    gray.convertTo(src, CvType.CV_32F)
+    gray.release()
+
+    // The paper's own color, from the bright pixels
+    val lab = Mat()
+    Imgproc.cvtColor(small, lab, Imgproc.COLOR_BGR2Lab)
+    small.release()
+    val channels = ArrayList<Mat>(3)
+    Core.split(lab, channels)
+    lab.release()
+    channels[0].release()
+    val a = Mat(); channels[1].convertTo(a, CvType.CV_32F); channels[1].release()
+    val b = Mat(); channels[2].convertTo(b, CvType.CV_32F); channels[2].release()
+    val bright = Mat()
+    val paperBright = Mat()
+    Core.multiply(paperLevel, Scalar(0.8), paperBright)
+    Core.compare(src, paperBright, bright, Core.CMP_GT)
+    paperBright.release()
+    val paperA = Core.mean(a, bright).`val`[0]
+    val paperB = Core.mean(b, bright).`val`[0]
+    bright.release()
+    Core.subtract(a, Scalar(paperA), a)
+    Core.subtract(b, Scalar(paperB), b)
+    Core.multiply(a, a, a)
+    Core.multiply(b, b, b)
+    Core.add(a, b, a)
+    b.release()
+    val colored = Mat()
+    Core.compare(a, Scalar(FILL_COLOR_DISTANCE * FILL_COLOR_DISTANCE), colored, Core.CMP_GT)
+    a.release()
+
+    Core.multiply(paperLevel, Scalar(FILL_RATIO), paperLevel)
+    val dark = Mat()
+    Core.compare(src, paperLevel, dark, Core.CMP_LT)
+    paperLevel.release()
+    Core.bitwise_and(dark, colored, dark)
+    colored.release()
+
+    val fill = growFill(src, dark, sauvolaWindow(maxDim))
+    src.release(); dark.release()
+
+    val full = Mat()
+    Imgproc.resize(fill, full, size, 0.0, 0.0, Imgproc.INTER_NEAREST)
+    fill.release()
+    return full
 }
 
 // Standard deviation of src over a square window, as CV_32F.
