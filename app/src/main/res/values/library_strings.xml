@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This personal feature is localized in English and Turkish. Other locales use English
+     until translations are contributed through the upstream translation workflow. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="library_title">My documents</string>
+    <string name="library_folder_name">Documents/FairScan</string>
+    <string name="library_location">Saved in Documents/FairScan on your phone</string>
+    <string name="library_empty">No saved documents yet</string>
+    <string name="library_empty_hint">Tap the camera to scan your first document. Completed and shared scans will appear here.</string>
+    <string name="library_draft">Unfinished scan</string>
+    <string name="library_resume">Tap to continue scanning</string>
+    <string name="library_load_error">Could not load your documents. Check storage access and try again.</string>
+    <string name="library_retry">Try again</string>
+    <string name="library_share_file">Share %1$s</string>
+    <string name="library_finish">Save and return to documents</string>
+    <string name="library_view_error">This document could not be opened.</string>
+    <string name="library_add_documents">Add documents</string>
+    <string name="library_manage_documents">Select documents</string>
+    <string name="library_selected_count">%1$d selected</string>
+    <string name="library_cancel_selection">Cancel</string>
+    <string name="library_share_selected">Share selected documents</string>
+    <string name="library_delete_selected">Delete selected documents</string>
+    <string name="library_delete_title">Delete documents?</string>
+    <string name="library_delete_message">Delete %1$d selected document(s)? This cannot be undone.</string>
+    <string name="library_delete_confirm">Delete</string>
+    <string name="library_document_menu">Options for %1$s</string>
+    <string name="library_rename_document">Rename</string>
+    <string name="library_rename_confirm">Save</string>
+    <string name="library_rename_name">File name</string>
+    <string name="library_page_count">%1$d / %2$d</string>
+    <string name="library_zoom_in">Zoom in</string>
+    <string name="library_zoom_out">Zoom out</string>
+    <string name="library_fit_page">Fit page</string>
+    <string name="library_go_to_page">Go to page</string>
+</resources>
