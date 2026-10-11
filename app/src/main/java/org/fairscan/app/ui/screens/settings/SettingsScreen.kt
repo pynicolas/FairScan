@@ -115,7 +115,7 @@ private fun SettingsContent(
     val export = uiState.export
     val (folderLabel, folderLabelColor) = when {
         export.dirUri == null ->
-            stringResource(R.string.download_dirname) to
+            stringResource(R.string.library_folder_name) to
                     MaterialTheme.colorScheme.onSurface
 
         export.dirName != null ->
