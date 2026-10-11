@@ -14,15 +14,9 @@
  */
 package org.fairscan.app.ui.screens.export
 
-import android.content.ContentValues
 import android.content.Context
-import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
@@ -43,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.fairscan.app.AppContainer
 import org.fairscan.app.R
+import org.fairscan.app.data.safeDocumentName
 import org.fairscan.app.data.FileManager
 import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.domain.ExportQuality
@@ -56,18 +51,26 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.util.concurrent.CancellationException
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 sealed interface ExportEvent {
-    data object RequestSave : ExportEvent
-    data class Share(val result: ExportResult) : ExportEvent
+    data class RequestSave(
+        val shareAfter: Boolean = false,
+        val closeAfter: Boolean = false,
+        val copyToCustomFolder: Boolean = false,
+    ) : ExportEvent
+    data class Share(val result: SavedBundle) : ExportEvent
+    data object Finished : ExportEvent
 }
 
 class ExportViewModel(container: AppContainer, val imageRepository: ImageRepository): ViewModel() {
 
     private val preparationDir = container.preparationDir
     private val fileManager = container.fileManager
+    private val documentLibrary = container.documentLibrary
+    private var archivedKey: Pair<ExportPreparationKey?, String>? = null
+    private var archivedBundle: SavedBundle? = null
+    var pendingRequest = ExportEvent.RequestSave()
+        private set
     private val settingsRepository = container.settingsRepository
     private val ocrService = container.ocrService
     private val logger = container.logger
@@ -101,13 +104,17 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     private var preparationJob: Job? = null
 
     fun setFilename(name: String) {
+        if (_uiState.value.isSaving) return
         _uiState.update {
-            it.copy(filename = name, isUserDefinedFilename = true)
+            it.copy(filename = name, isUserDefinedFilename = true, savedBundle = null, hasShared = false)
         }
     }
 
     fun resetFilename() {
-        setFilename("")
+        _uiState.value = ExportUiState()
+        lastPreparationKey = null
+        archivedKey = null
+        archivedBundle = null
     }
 
     private fun defaultFilename(): String {
@@ -116,7 +123,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
 
     private fun ensureValidFilename() {
         _uiState.update {
-            val normalized = it.filename.trim()
+            val normalized = if (it.filename.isBlank()) "" else safeDocumentName(it.filename)
             if (normalized.isEmpty() || !it.isUserDefinedFilename) {
                 it.copy(filename = defaultFilename(), isUserDefinedFilename = false)
             } else if (normalized != it.filename) {
@@ -259,137 +266,78 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         return updated
     }
 
-    fun onShareClicked() {
-        viewModelScope.launch {
-            try {
-                val result = applyRenaming()
-                _events.emit(ExportEvent.Share(result))
-                _uiState.update { it.copy(hasShared = true) }
-            } catch (e: Exception) {
-                val message = "Failed to prepare share"
-                logger.e("FairScan", message, e)
-                _uiState.update { it.copy(error = ExportError.OnPrepareOrShare(message, e)) }
-            }
-        }
+    private fun requestSave(request: ExportEvent.RequestSave) {
+        if (_uiState.value.isSaving || _uiState.value.isGenerating || _uiState.value.result == null) return
+        pendingRequest = request
+        viewModelScope.launch { _events.emit(request) }
     }
 
-    fun onSaveClicked() {
-        viewModelScope.launch {
-            _events.emit(ExportEvent.RequestSave)
-        }
-    }
+    fun onShareClicked() = requestSave(ExportEvent.RequestSave(shareAfter = true))
 
-    fun onRequestSave(context: Context) {
+    fun onSaveClicked() = requestSave(ExportEvent.RequestSave(copyToCustomFolder = true))
+
+    fun onFinishClicked() = requestSave(ExportEvent.RequestSave(closeAfter = true))
+
+    fun onRequestSave(context: Context, request: ExportEvent.RequestSave) {
+        if (_uiState.value.isSaving || _uiState.value.result == null) return
+        _uiState.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
-            _uiState.update {it.copy(isSaving = true, error = null, savedBundle = null) }
-            val exportFormat = uiState.value.format
-            val saveDir = saveDir(context)
+            var destination: SaveDir? = null
             try {
-                // Must not run on the main thread: some SAF providers (e.g. Nextcloud)
-                // may perform network I/O
-                withContext(Dispatchers.IO) {
-                    save(context, saveDir, exportFormat)
+                val libraryBundle = withContext(Dispatchers.IO) {
+                    val result = applyRenaming()
+                    val key = lastPreparationKey to _uiState.value.filename
+                    val bundle = if (key == archivedKey && archivedBundle != null) {
+                        archivedBundle!!
+                    } else {
+                        documentLibrary.save(result).also {
+                            archivedKey = key
+                            archivedBundle = it
+                        }
+                    }
+                    // The library copy is always retained, including when exporting elsewhere.
+                    _uiState.update { it.copy(savedBundle = bundle) }
+                    if (request.copyToCustomFolder) {
+                        destination = saveDir(context)
+                        destination?.let { dir ->
+                            if (!context.contentResolver.persistedUriPermissions.any {
+                                it.uri == dir.uri && it.isWritePermission
+                            }) throw MissingExportDirPermissionException(dir.uri)
+                            val items = result.files.map { file ->
+                                val target = saveViaSaf(context, file, dir.uri, result.format)
+                                SavedItem(target.uri, target.name ?: file.name, result.format)
+                            }
+                            _uiState.update { it.copy(savedBundle = SavedBundle(items, dir)) }
+                        }
+                    }
+                    bundle
                 }
+                if (request.shareAfter) {
+                    _events.emit(ExportEvent.Share(libraryBundle))
+                    _uiState.update { it.copy(hasShared = true) }
+                }
+                if (request.closeAfter) {
+                    _uiState.update { it.copy(isSaving = false) }
+                    _events.emit(ExportEvent.Finished)
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: MissingExportDirPermissionException) {
                 logger.e("FairScan", "Missing export dir permission", e)
-                _uiState.update {
-                    it.copy(error =
-                        ExportError.OnSave(R.string.error_export_dir_permission_lost, saveDir))
-                }
+                _uiState.update { it.copy(error = ExportError.OnSave(
+                    R.string.error_export_dir_permission_lost, destination, e)) }
             } catch (e: Exception) {
-                logger.e("FairScan", "Failed to save PDF", e)
-                _uiState.update {
-                    it.copy(error = ExportError.OnSave(R.string.error_save, saveDir, e))
-                }
+                logger.e("FairScan", "Failed to save document", e)
+                _uiState.update { it.copy(error = ExportError.OnSave(R.string.error_save, destination, e)) }
             } finally {
                 _uiState.update { it.copy(isSaving = false) }
             }
         }
     }
 
-    private suspend fun saveDir(context:Context): SaveDir? {
+    private suspend fun saveDir(context: Context): SaveDir? {
         val uri = settingsRepository.exportDirUri.first()?.toUri() ?: return null
-        val name = resolveExportDirName(context, uri)
-        return SaveDir(uri, name)
-    }
-
-    private suspend fun save(context: Context, saveDir: SaveDir?, exportFormat: ExportFormat) {
-        val result = applyRenaming()
-        val savedItems = mutableListOf<SavedItem>()
-        val filesForMediaScan = mutableListOf<File>()
-
-        for (file in result.files) {
-            val saved = if (saveDir == null) {
-                // No export dir defined -> save to Downloads
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // Android 10+: use MediaStore API
-                    val uri = saveViaMediaStore(context, file, exportFormat)
-                    SavedItem(uri, file.name, exportFormat)
-                } else {
-                    // Android 8 and 9: use File API
-                    // (MediaStore doesn't allow to choose Downloads for Android<10)
-                    val out = fileManager.copyToExternalDir(file)
-                    filesForMediaScan.add(out)
-                    SavedItem(out.toUri(), out.name, exportFormat)
-                }
-            } else {
-                // Use Storage Access Framework to save to the chosen directory
-                if (!context.contentResolver.persistedUriPermissions.any { perm ->
-                        perm.uri == saveDir.uri && perm.isWritePermission
-                    }) {
-                    throw MissingExportDirPermissionException(saveDir.uri)
-                }
-                val safFile = saveViaSaf(context, file, saveDir.uri, exportFormat)
-                SavedItem(safFile.uri, safFile.name ?: file.name, exportFormat)
-            }
-            savedItems += saved
-        }
-
-        val bundle = SavedBundle(savedItems, saveDir)
-        _uiState.update { it.copy(savedBundle = bundle) }
-
-        filesForMediaScan.forEach { f -> mediaScan(context, f, exportFormat.mimeType) }
-    }
-
-    private suspend fun mediaScan(
-        context: Context,
-        file: File,
-        mimeType: String
-    ): Uri? = suspendCoroutine { cont ->
-        MediaScannerConnection.scanFile(
-            context,
-            arrayOf(file.absolutePath),
-            arrayOf(mimeType)
-        ) { _, uri ->
-            cont.resume(uri)
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun saveViaMediaStore(
-        context: Context,
-        source: File,
-        format: ExportFormat
-    ): Uri {
-        val resolver = context.contentResolver
-
-        val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, source.name)
-            put(MediaStore.MediaColumns.MIME_TYPE, format.mimeType)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-        }
-
-        val collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
-        val uri = resolver.insert(collection, values)
-            ?: throw IOException("Failed to create MediaStore entry")
-
-        resolver.openOutputStream(uri)?.use { out ->
-            source.inputStream().use { input ->
-                input.copyTo(out)
-            }
-        } ?: throw IOException("Failed to open output stream")
-
-        return uri
+        return SaveDir(uri, resolveExportDirName(context, uri))
     }
 
     private fun saveViaSaf(

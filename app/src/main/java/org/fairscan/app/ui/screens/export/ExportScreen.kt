@@ -67,9 +67,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -93,7 +91,6 @@ import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.components.AppOverflowMenu
 import org.fairscan.app.ui.components.BackButton
 import org.fairscan.app.ui.components.MainActionButton
-import org.fairscan.app.ui.components.NewDocumentDialog
 import org.fairscan.app.ui.components.isLandscape
 import org.fairscan.app.ui.components.pageCountText
 import org.fairscan.app.ui.dummyNavigation
@@ -112,9 +109,7 @@ fun ExportScreenWrapper(
     exportActions: ExportActions,
     onCloseScan: () -> Unit,
 ) {
-    BackHandler { navigation.back() }
-
-    val showConfirmationDialog = rememberSaveable { mutableStateOf(false) }
+    BackHandler { if (!uiState.isSaving) navigation.back() }
 
     LaunchedEffect(Unit) {
         exportActions.prepareExportIfNeeded()
@@ -147,17 +142,11 @@ fun ExportScreenWrapper(
         onOpen = exportActions.open,
         onCloseScan = {
             if (!uiState.isSaving) {
-                if (uiState.hasSavedOrShared)
-                    onCloseScan()
-                else
-                    showConfirmationDialog.value = true
+                onCloseScan()
             }
         },
     )
 
-    if (showConfirmationDialog.value) {
-        NewDocumentDialog(onCloseScan, showConfirmationDialog, stringResource(R.string.scan_new))
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -176,9 +165,9 @@ fun ExportScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.export_as, uiState.format)) },
-                navigationIcon = { BackButton(navigation.back) },
+                navigationIcon = { BackButton(onClick = { if (!uiState.isSaving) navigation.back() }) },
                 actions = {
-                    AppOverflowMenu(navigation)
+                    if (!uiState.isSaving) AppOverflowMenu(navigation)
                 }
             )
         }
@@ -401,7 +390,7 @@ private fun MainActions(
             ) {
                 ExportButton(
                     onClick = onShare,
-                    enabled = uiState.result != null,
+                    enabled = uiState.result != null && !uiState.isGenerating && !uiState.isSaving,
                     isPrimary = !uiState.hasSavedOrShared,
                     icon = Icons.Default.Share,
                     text = stringResource(R.string.share),
@@ -409,7 +398,7 @@ private fun MainActions(
                 )
                 ExportButton(
                     onClick = onSave,
-                    enabled = uiState.result != null,
+                    enabled = uiState.result != null && !uiState.isGenerating && !uiState.isSaving,
                     isPrimary = !uiState.hasSavedOrShared,
                     icon = Icons.Default.Download,
                     text = stringResource(R.string.save),
@@ -420,7 +409,8 @@ private fun MainActions(
         }
         ExportButton(
             icon = Icons.Default.Done,
-            text = stringResource(R.string.scan_new),
+            text = stringResource(R.string.library_finish),
+            enabled = uiState.result != null && !uiState.isGenerating && !uiState.isSaving,
             onClick = onCloseScan,
             modifier = Modifier.fillMaxWidth(),
             isPrimary = uiState.hasSavedOrShared,
@@ -492,7 +482,7 @@ private fun SaveInfoBar(
     savedBundle: SavedBundle,
     onOpen: (SavedItem) -> Unit,
 ) {
-    val dirName = savedBundle.saveDir?.name ?: stringResource(R.string.download_dirname)
+    val dirName = savedBundle.saveDir?.name ?: stringResource(R.string.library_folder_name)
     val items = savedBundle.items
     val nbFiles = items.size
     val firstFileName = items[0].fileName
@@ -636,7 +626,7 @@ private fun ExportError.toDisplayText(): Pair<String, String?> {
 private fun buildErrorContextLines(
     saveDir: SaveDir?,
 ): List<String> {
-    val defaultDirName = stringResource(R.string.download_dirname)
+    val defaultDirName = stringResource(R.string.library_folder_name)
 
     val folderLine = when {
         saveDir == null ->
