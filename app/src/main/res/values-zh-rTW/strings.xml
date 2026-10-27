@@ -5,7 +5,7 @@
     <string name="app_tagline">一個簡單且尊重隱私的文件掃描應用程式。</string>
     <string name="apply">套用</string>
     <string name="back">返回</string>
-    <string name="black_and_white_jpeg_hint">黑白頁面匯出為 PDF 時更小、更清晰。</string>
+    <string name="black_and_white_jpeg_hint">黑白頁面匯出為 PDF 時會更清晰，檔案亦較小。</string>
     <string name="camera_permission_denied">已拒絕相機權限</string>
     <string name="camera_permission_rationale">此應用程式需要相機存取權限才能掃描文件。擷取的影像僅儲存在此裝置上，並會在您關閉目前掃描時刪除。</string>
     <string name="cancel">取消</string>
@@ -60,7 +60,7 @@
     <string name="rotate_left">向左旋轉</string>
     <string name="rotate_right">向右旋轉</string>
     <string name="save">儲存</string>
-    <string name="scan_new">開始掃描</string>
+    <string name="scan_new">開新掃描</string>
     <string name="scan_current">目前掃描</string>
     <string name="scan_discard_current">放棄目前掃描</string>
     <string name="scan_resume">繼續掃描</string>
