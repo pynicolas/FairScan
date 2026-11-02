@@ -18,7 +18,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,9 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
-import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
+import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import com.mikepenz.aboutlibraries.ui.compose.variant.LibrariesDensity
+import com.mikepenz.aboutlibraries.ui.compose.variant.LibrariesVariant
 import org.fairscan.app.R
 import org.fairscan.app.ui.components.BackButton
 
@@ -49,13 +49,11 @@ fun LibrariesScreen(onBack: () -> Unit) {
             .fillMaxSize()
             .padding(padding)
         ) {
-            val librariesState by rememberLibraries(R.raw.aboutlibraries)
+            val librariesState by produceLibraries(R.raw.aboutlibraries)
             LibrariesContainer(
                 libraries = librariesState,
-                textStyles = LibraryDefaults.libraryTextStyles(
-                    nameTextStyle = MaterialTheme.typography.titleMedium,
-                    licensesTextStyle = MaterialTheme.typography.labelSmall
-                ),
+                density = LibrariesDensity.Compact,
+                variant = LibrariesVariant.Refined,
             )
         }
     }
