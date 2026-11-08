@@ -233,7 +233,7 @@ fun enhanceGrayscaleImage(img: Mat): Mat {
 
 // Steps 1 to 5 of enhanceGrayscaleImage, without the conversion back to BGR.
 // Binarization reuses it for the same illumination flattening.
-private fun flattenedGrayscale(img: Mat): Mat {
+internal fun flattenedGrayscale(img: Mat): Mat {
 
     // -- 1. Convert to grayscale --------
     val gray = Mat()
