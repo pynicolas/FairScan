@@ -16,6 +16,7 @@ package org.fairscan.app.ui.screens.camera
 
 import android.content.res.Configuration
 import android.util.Log
+import androidx.camera.core.CameraState
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloat
@@ -94,6 +95,8 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Observer
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CompletableDeferred
@@ -138,17 +141,26 @@ fun CameraScreen(
     val thumbnailCoords = remember { mutableStateOf(Offset.Zero) }
     var isDebugMode by remember { mutableStateOf(false) }
     val isTorchEnabled by cameraViewModel.isTorchEnabled.collectAsStateWithLifecycle()
-    var torchReapplied by remember { mutableStateOf(false) }
 
     val captureController = remember { CameraCaptureController() }
     DisposableEffect(Unit) {
         onDispose {
             captureController.shutdown()
-            torchReapplied = false
         }
     }
-    LaunchedEffect(captureController.cameraControl, isTorchEnabled) {
-        captureController.cameraControl?.enableTorch(isTorchEnabled)
+    val camera = captureController.camera
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(camera, lifecycleOwner, isTorchEnabled) {
+        // CameraX resets the torch on stop; restore it each time the camera opens.
+        val observer = Observer<CameraState> { state ->
+            if (state.type == CameraState.Type.OPEN) {
+                camera?.cameraControl?.enableTorch(isTorchEnabled)
+            }
+        }
+        camera?.cameraInfo?.cameraState?.observe(lifecycleOwner, observer)
+        onDispose {
+            camera?.cameraInfo?.cameraState?.removeObserver(observer)
+        }
     }
 
     val captureState by cameraViewModel.captureState.collectAsStateWithLifecycle()
@@ -207,14 +219,7 @@ fun CameraScreen(
     CameraScreenScaffold(
         cameraPreview = {
             CameraPreview(
-                onImageAnalyzed = {
-                    onImageAnalyzed(it)
-                    // Re-apply torch once the camera session is actually active (first analysis)
-                    if (!torchReapplied) {
-                        captureController.cameraControl?.enableTorch(isTorchEnabled)
-                        torchReapplied = true
-                    }
-                },
+                onImageAnalyzed = onImageAnalyzed,
                 captureController = captureController,
                 onPreviewViewReady = { view ->
                     previewView = view

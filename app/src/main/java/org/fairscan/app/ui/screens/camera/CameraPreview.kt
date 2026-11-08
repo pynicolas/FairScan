@@ -28,7 +28,7 @@ import androidx.annotation.OptIn
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
-import androidx.camera.core.CameraControl
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
@@ -234,7 +234,7 @@ fun bindCameraUseCases(
 
     val camera = cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector,
         imageAnalysis, preview, imageCapture)
-    captureController.cameraControl = camera.cameraControl
+    captureController.camera = camera
     captureController.setCameraCharacteristics(Camera2CameraInfo.from(camera.cameraInfo))
 }
 
@@ -312,7 +312,8 @@ fun replaceColor(bitmap: Bitmap, toReplace: Color, replacement: Color): Bitmap {
 fun Point.toOffset() = Offset(x.toFloat(), y.toFloat())
 
 class CameraCaptureController {
-    var cameraControl: CameraControl? = null
+    var camera by mutableStateOf<Camera?>(null)
+    val cameraControl get() = camera?.cameraControl
     var imageCapture: ImageCapture? = null
     private val executor = Executors.newSingleThreadExecutor()
     var previewView: PreviewView? = null
