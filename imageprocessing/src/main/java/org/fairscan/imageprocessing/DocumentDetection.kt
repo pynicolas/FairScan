@@ -164,6 +164,7 @@ fun extractDocument(
     quad: Quad,
     rotationDegrees: Int,
     colorMode: ColorMode,
+    autoColorMode: ColorMode,
     maxPixels: Long,
     opticalMeasures: OpticalMeasures? = null,
 ): Mat {
@@ -193,7 +194,7 @@ fun extractDocument(
     Imgproc.warpPerspective(inputMat, warped, transform, outputSize)
 
     val resized = resizeForMaxPixels(warped, maxPixels.toDouble())
-    val enhanced = enhanceCapturedImage(resized, colorMode, maxPixels)
+    val enhanced = enhanceCapturedImage(resized, colorMode, autoColorMode, maxPixels)
     val rotated = rotate(enhanced, rotationDegrees)
 
     warped.release()

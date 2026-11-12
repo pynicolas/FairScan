@@ -65,7 +65,7 @@ object ColorDetectionEvaluator {
 
             if (quad == null) continue
             val colorMode = autoColorMode(mat, mask, quad)
-            val extracted = extractDocument(mat, quad, 0, colorMode, 2_000_000)
+            val extracted = extractDocument(mat, quad, 0, colorMode, colorMode,2_000_000)
 
             val detected = colorMode == ColorMode.COLOR
 
