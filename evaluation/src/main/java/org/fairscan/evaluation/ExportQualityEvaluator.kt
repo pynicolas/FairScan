@@ -72,7 +72,7 @@ object ExportQualityEvaluator {
 
                 for (maxPixels in maxPixelsList) {
                     val outputMat =
-                        extractDocument(sourceMat, quad, 0, colorMode, maxPixels.toLong())
+                        extractDocument(sourceMat, quad, 0, colorMode, colorMode, maxPixels.toLong())
 
                     val outputFile = File(outputDir, "$imgName-$quality-$maxPixels.jpg")
                     val params = MatOfInt(Imgcodecs.IMWRITE_JPEG_QUALITY, quality)

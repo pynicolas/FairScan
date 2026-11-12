@@ -34,11 +34,13 @@ enum class ColorMode {
     BLACK_AND_WHITE,
 }
 
-fun enhanceCapturedImage(img: Mat, colorMode: ColorMode, maxPixels: Long = 0L): Mat {
+fun enhanceCapturedImage(
+    img: Mat, colorMode: ColorMode, autoColorMode: ColorMode, maxPixels: Long = 0L
+): Mat {
     return when (colorMode) {
         ColorMode.COLOR -> multiScaleRetinexOnL(img)
         ColorMode.GRAYSCALE -> enhanceGrayscaleImage(img)
-        ColorMode.BLACK_AND_WHITE -> binarizeDocument(img, maxPixels)
+        ColorMode.BLACK_AND_WHITE -> binarizeDocument(img, autoColorMode, maxPixels)
     }
 }
 
@@ -351,7 +353,7 @@ private const val SAUVOLA_R = 128.0
 // Returns a single channel containing only 0 and 255. Black and white pages are stored as
 // PNG, where two more copies of that channel would only take space. The export path packs
 // it into one bit per pixel.
-fun binarizeDocument(img: Mat, upscaleTo: Long = 0L): Mat {
+fun binarizeDocument(img: Mat, autoColorMode: ColorMode, upscaleTo: Long = 0L): Mat {
     // Flatten the illumination at the captured resolution. Interpolated pixels carry no extra
     // information for that step, only for where the threshold puts an edge.
     val flattened = flattenedGrayscale(img)
@@ -369,9 +371,11 @@ fun binarizeDocument(img: Mat, upscaleTo: Long = 0L): Mat {
 
     // The flattening lightens a fill of medium size towards paper, since it cannot tell it
     // from a shadow. The color of the capture still can, so fills are also looked for there.
-    val captured = capturedFill(img, binary.size())
-    Core.bitwise_or(fill, captured, fill)
-    captured.release()
+    if (autoColorMode == ColorMode.COLOR) {
+        val captured = capturedFill(img, binary.size())
+        Core.bitwise_or(fill, captured, fill)
+        captured.release()
+    }
 
     // A local threshold has no reference point inside a large flat fill: further than half a
     // window from paper the mean is the fill itself, and the fill comes out white.

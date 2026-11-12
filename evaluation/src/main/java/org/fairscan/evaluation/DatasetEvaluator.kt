@@ -78,7 +78,7 @@ object DatasetEvaluator {
                 inputMat.clone()
             else {
                 val colorMode = autoColorMode(inputMat, mask, quad)
-                extractDocument(inputMat, quad = quad, rotationDegrees = 0, colorMode, 2_000_000)
+                extractDocument(inputMat, quad = quad, rotationDegrees = 0, colorMode, colorMode, 2_000_000)
             }
 
             val inputOut = File(outputDir, "${e.name}_input.jpg")
