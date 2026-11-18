@@ -32,6 +32,18 @@ And **respectful**: open source, minimal permissions, no tracking, no ads.
 
 ---
 
+## APK signature verification
+
+APKs downloaded from [GitHub releases](https://github.com/pynicolas/FairScan/releases) are signed with the following certificate:
+
+**SHA-256 certificate fingerprint:**
+
+`82:07:10:96:13:28:E1:83:4B:CB:81:58:09:2E:6B:6C:5B:51:9F:CD:3B:DB:2E:53:19:EB:DA:F0:8F:9E:A1:E8`
+
+This fingerprint can be used to verify the authenticity of downloaded APKs.
+
+---
+
 ## Contributing
 
 Contributions are welcome, but please read the guidelines first: [CONTRIBUTING.md](CONTRIBUTING.md)
