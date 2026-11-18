@@ -2,7 +2,7 @@
 <resources>
     <string name="about">关于</string>
     <string name="add_page">添加页面</string>
-    <string name="app_tagline">一个简单且克制的文档扫描应用</string>
+    <string name="app_tagline">简单且尊重用户的文档扫描应用。</string>
     <string name="apply">应用</string>
     <string name="back">返回</string>
     <string name="black_and_white_jpeg_hint">黑白页面导出为 PDF 时更小、更清晰。</string>
