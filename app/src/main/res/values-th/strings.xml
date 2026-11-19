@@ -3,7 +3,7 @@
     <string name="about">เกี่ยวกับ</string>
     <string name="add_page">เพิ่มหน้า</string>
     <string name="app_tagline">แอปที่เรียบง่ายและเคารพในการสแกนเอกสารของคุณ</string>
-    <string name="apply">ใช้</string>
+    <string name="apply">นำไปใช้</string>
     <string name="back">ถอยกลับ</string>
     <string name="black_and_white_jpeg_hint">หน้าขาวดำจะมีขนาดเล็กและคมขึ้นกว่าหากส่งออกเป็น PDF</string>
     <string name="camera_permission_denied">การอนุญาตการเข้าถึงกล้องถูกปฏิเสธ</string>
@@ -64,14 +64,14 @@
     <string name="scan_current">การสแกนปัจจุบัน</string>
     <string name="scan_discard_current">ทิ้งการสแกนปัจจุบัน</string>
     <string name="scan_resume">สแกนต่อ</string>
-    <string name="settings">ตั้งค่า</string>
+    <string name="settings">การตั้งค่า</string>
     <string name="settings_default_filename">ชื่อไฟล์เริ่มต้น</string>
     <string name="settings_ocr_download_error">ดาวน์โหลดล้มเหลว ตรวจสอบการเชื่อมต่อเครื่อข่ายของคุณ และการอนุญาตเข้าถึงเครื่อข่ายสำหรับแอปนี้</string>
-    <string name="settings_ocr_download_intro">ไฟล์ภาษาถูกดาวน์โหลดจากโปรเจค Tesseract อย่างเป็นทางการ การจดจำข้อความยังคงทำงานออฟไลน์อย่างสมบูรณ์</string>
+    <string name="settings_ocr_download_intro">ไฟล์ภาษาจะถูกดาวน์โหลดจากโปรเจคทางการของ Tesseract การจดจำข้อความยังคงทำงานแบบออฟไลน์อย่างสมบูรณ์</string>
     <string name="settings_ocr_downloading">กำลังดาวน์โหลดไฟล์ภาษา</string>
     <string name="settings_ocr_languages">ภาษา</string>
     <string name="settings_ocr_languages_available">ภาษาที่รองรับ</string>
-    <string name="settings_ocr_languages_disabled">ถูกปิดใช้งาน</string>
+    <string name="settings_ocr_languages_disabled">ปิดใช้งานอยู่</string>
     <string name="settings_ocr_languages_installed">ติดตั้งแล้ว</string>
     <string name="settings_ocr_suggested">ที่แนะนำ</string>
     <string name="settings_section_ocr">การจดจำข้อความ</string>
