@@ -5,7 +5,7 @@ import tensorflow as tf
 import cv2
 from pathlib import Path
 
-SEG_MODEL_FILE_PATH = "../../app/build/downloads/fairscan-segmentation-model.tflite"
+SEG_MODEL_FILE_PATH = "../../app/build/downloads/tflite/fairscan-segmentation-model.tflite"
 DATASET_DIR = Path("../dataset")
 
 INPUT_WIDTH = 256

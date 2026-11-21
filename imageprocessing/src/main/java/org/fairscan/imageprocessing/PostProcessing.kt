@@ -38,17 +38,23 @@ fun enhanceCapturedImage(
     img: Mat, colorMode: ColorMode, autoColorMode: ColorMode, maxPixels: Long = 0L
 ): Mat {
     return when (colorMode) {
-        ColorMode.COLOR -> multiScaleRetinexOnL(img)
+        ColorMode.COLOR -> enhanceColorImage(img)
         ColorMode.GRAYSCALE -> enhanceGrayscaleImage(img)
         ColorMode.BLACK_AND_WHITE -> binarizeDocument(img, autoColorMode, maxPixels)
     }
 }
 
-fun multiScaleRetinexOnL(bgr: Mat): Mat {
+fun enhanceColorImage(bgr: Mat, enableWhiteBalance: Boolean = true): Mat {
+    val input =
+        if (enableWhiteBalance)
+            analyzeWhiteBalance(bgr).gains.applyTo(bgr)
+        else
+            bgr.clone()
 
     // --- 1. BGR -> Lab ---
     val lab = Mat()
-    Imgproc.cvtColor(bgr, lab, Imgproc.COLOR_BGR2Lab)
+    Imgproc.cvtColor(input, lab, Imgproc.COLOR_BGR2Lab)
+    input.release()
 
     val labChannels = ArrayList<Mat>(3)
     Core.split(lab, labChannels)

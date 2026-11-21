@@ -18,6 +18,7 @@ import org.fairscan.imageprocessing.Mask
 import org.fairscan.imageprocessing.Mode
 import org.fairscan.imageprocessing.autoColorMode
 import org.fairscan.imageprocessing.detectDocumentQuad
+import org.fairscan.imageprocessing.enhanceCapturedImage
 import org.fairscan.imageprocessing.extractDocument
 import org.fairscan.imageprocessing.scaledTo
 import org.fairscan.imageprocessing.toImageSize
@@ -27,7 +28,7 @@ import java.io.File
 
 fun main() {
     nu.pattern.OpenCV.loadLocally()
-    DatasetEvaluator.runDatasetEvaluation()
+    DatasetEvaluator.run()
 }
 
 class MatMask(private val mat: Mat) : Mask {
@@ -35,6 +36,24 @@ class MatMask(private val mat: Mat) : Mask {
     override val height: Int get() = mat.height()
 
     override fun toMat(): Mat = mat.clone()
+}
+
+data class EvaluationImage(
+    val image: Mat,
+    val caption: String? = null
+)
+
+data class EvaluationResult(
+    val images: List<EvaluationImage>,
+    val description: String? = null,
+)
+
+fun interface DatasetEvaluation {
+    fun evaluate(
+        name: String,
+        image: Mat,
+        enhanced: Mat,
+    ): EvaluationResult
 }
 
 object DatasetEvaluator {
@@ -45,10 +64,16 @@ object DatasetEvaluator {
         val maskFile: File
     )
 
-    fun runDatasetEvaluation() {
-        val inputDir = File("evaluation/dataset/images")
+    fun run(
+        evaluation: DatasetEvaluation = { name, _, enhanced ->
+            println("Processing $name")
+            EvaluationResult(listOf(EvaluationImage(enhanced, "end result")))
+        },
+        inputDir: File = File("evaluation/dataset/images"),
+        outputDir: File = File("evaluation/reports/results")
+    ) {
         val maskDir = File("evaluation/dataset/masks")
-        val outputDir = File("evaluation/reports/results").apply { mkdirs() }
+        outputDir.mkdirs()
 
         val entries = inputDir.listFiles { f -> f.extension.lowercase() in listOf("jpg", "jpeg") }
             ?.mapNotNull { img ->
@@ -59,62 +84,88 @@ object DatasetEvaluator {
 
         val htmlFragments = mutableListOf<String>()
 
-        for (e in entries) {
-            println("Processing ${e.name}...")
-
-            val inputMat = Imgcodecs.imread(e.inputFile.absolutePath)
+        for (entry in entries) {
+            val inputMat = Imgcodecs.imread(entry.inputFile.absolutePath)
             if (inputMat.empty()) continue
 
-            val maskMat = Imgcodecs.imread(e.maskFile.absolutePath, Imgcodecs.IMREAD_UNCHANGED)
-            if (maskMat.empty()) continue
-
-            val mask = MatMask(maskMat)
-
-            val originalSize = inputMat.size().toImageSize()
-            val quad = detectDocumentQuad(mask, originalSize, Mode.CAPTURE)
-                ?.scaledTo(mask.width, mask.height, inputMat.width(), inputMat.height())
-
-            val corrected = if (quad == null)
-                inputMat.clone()
-            else {
-                val colorMode = autoColorMode(inputMat, mask, quad)
-                extractDocument(inputMat, quad = quad, rotationDegrees = 0, colorMode, colorMode, 2_000_000)
+            val maskMat = Imgcodecs.imread(entry.maskFile.absolutePath, Imgcodecs.IMREAD_UNCHANGED)
+            if (maskMat.empty()) {
+                inputMat.release()
+                continue
             }
 
-            val inputOut = File(outputDir, "${e.name}_input.jpg")
-            Imgcodecs.imwrite(inputOut.absolutePath, inputMat)
-
-            val outputOut = File(outputDir, "${e.name}_output.jpg")
-            Imgcodecs.imwrite(outputOut.absolutePath, corrected)
-
-            htmlFragments += """
-                <div class="entry">
-                    <h3>${e.name}</h3>
-                    <div class="row">
-                        <img src="results/${e.name}_input.jpg" />
-                        <img src="results/${e.name}_output.jpg" />
-                    </div>
-                </div>
-            """.trimIndent()
+            val mask = MatMask(maskMat)
+            val quad = detectDocumentQuad(mask, inputMat.size().toImageSize(), Mode.CAPTURE)
+                ?.scaledTo(mask.width, mask.height, inputMat.width(), inputMat.height())
+            if (quad != null) {
+                val maxPixels = 2_000_000L
+                val colorMode = autoColorMode(inputMat, mask, quad)
+                val cropped = extractDocument(inputMat, quad, 0, maxPixels, { i -> i })
+                val enhanced = enhanceCapturedImage(cropped, colorMode, colorMode, maxPixels)
+                val result = evaluation.evaluate(entry.name, cropped, enhanced)
+                htmlFragments += renderEntry(entry.name, inputMat, result, outputDir)
+                cropped.release()
+            }
+            inputMat.release()
+            maskMat.release()
         }
 
         buildHtmlReport(htmlFragments)
-        println("Done! report at: reports/index.html")
     }
 
+    private fun renderEntry(
+        name: String,
+        inputMat: Mat,
+        result: EvaluationResult,
+        outputDir: File
+    ): String {
+        val inputFileName = "${name}_input.jpg"
+        Imgcodecs.imwrite(File(outputDir, inputFileName).absolutePath, inputMat)
+
+        val outputImages = result.images.mapIndexed { index, image ->
+            val fileName = "${name}_output$index.jpg"
+            Imgcodecs.imwrite(File(outputDir, fileName).absolutePath, image.image)
+            image.image.release()
+
+            imgHtml(fileName, image.caption)
+        }
+
+        return """
+            <div class="entry">
+                <h3>$name</h3>
+                ${result.description?.let { """<div class="description">$it</div>""" }.orEmpty()}
+                <div class="row">
+                    ${imgHtml(inputFileName, "captured")}
+                    ${outputImages.joinToString("\n")}
+                </div>
+            </div>
+        """.trimIndent()
+        }
+
+    private fun imgHtml(fileName: String, caption: String?) = """
+        <figure class="cell">
+            <figcaption>${caption.orEmpty()}</figcaption>
+            <a href="results/$fileName"><img src="results/$fileName" /></a>
+        </figure>
+    """.trimIndent()
+
     private fun buildHtmlReport(parts: List<String>) {
+        val css = """
+           body { font-family: sans-serif; padding: 20px; }
+          .entry { margin-bottom: 40px; }
+          .description { margin-bottom: 12px; }
+          .row { display: flex; flex-direction: row; align-items: flex-start; gap: 20px; }
+          .cell { display: flex; flex-direction: column; margin: 0; width: 400px; flex-shrink: 0; }
+          .cell img { max-width: 100%; height: auto; object-fit: contain; }
+          .cell figcaption { margin-top: 6px; font-size: 12px; color: #555; text-align: center; min-height: 1.2em; }
+        """
         val html = """
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="UTF-8" />
                 <title>Dataset Evaluation</title>
-                <style>
-                    body { font-family: sans-serif; padding: 20px; }
-                    img { max-width: 400px; margin-right: 20px; }
-                    .row { display: flex; flex-direction: row; align-items: center; }
-                    .entry { margin-bottom: 40px; }
-                </style>
+                <style>$css</style>
             </head>
             <body>
                 <h1>Dataset Evaluation</h1>
@@ -123,6 +174,8 @@ object DatasetEvaluator {
             </html>
         """.trimIndent()
 
-        File("evaluation/reports/index.html").writeText(html)
+        val file = File("evaluation/reports/index.html")
+        file.writeText(html)
+        println("Done! report at: $file")
     }
 }
