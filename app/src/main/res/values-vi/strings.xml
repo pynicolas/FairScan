@@ -14,8 +14,8 @@
     <string name="color_mode_auto">Tự động</string>
     <string name="color_mode_color">Màu sắc</string>
     <string name="color_mode_default">Bộ lọc tự động</string>
-    <string name="color_mode_grayscale">Grayscale</string>
-    <string name="app_tagline">Một ứng dụng đơn giản và tôn trọng để quét tài liệu của bạn.</string>
+    <string name="color_mode_grayscale">Thang độ xám</string>
+    <string name="app_tagline">Một ứng dụng quét tài liệu đơn giản, tôn trọng người dùng.</string>
     <string name="contact">Liên hệ</string>
     <string name="copied_logs">Nhật ký đã được sao chép vào bộ nhớ tạm</string>
     <string name="copy_logs">Sao chép nhật ký</string>
@@ -26,7 +26,7 @@
     <string name="delete_page_warning">Bạn có muốn xóa trang này không?</string>
     <string name="developer">Nhà phát triển</string>
     <string name="download_dirname">Tải xuống</string>
-    <string name="error_context_folder">Thư mục xuất: %1$s</string>
+    <string name="error_context_folder">Thư mục xuất tệp: %1$s</string>
     <string name="error_context_provider">Nhà cung cấp: %1$s</string>
     <string name="error_export_dir_permission_lost">Thư mục xuất đã chọn không thể truy cập. Vui lòng chọn thư mục khác.</string>
     <string name="error_no_app">Không tìm thấy ứng dụng để mở tệp này</string>
@@ -49,4 +49,55 @@
     <string name="libraries">Thư viện</string>
     <string name="libraries_open_source">Thư viện nguồn mở</string>
     <string name="license">Giấy phép</string>
+    <string name="black_and_white_jpeg_hint">Các trang trắng &amp; đen sẽ trông nhỏ và sắc nét hơn khi xuất dưới định dạng PDF.</string>
+    <string name="color_mode_black_and_white">Trắng &amp; đen</string>
+    <string name="licensed_under">Ứng dụng này được cấp phép dưới Giấy phép Công cộng GNU Phiên bản 3.0.</string>
+    <string name="menu">Menu</string>
+    <string name="new_document_warning">Lượt quét hiện tại sẽ bị hủy. Bạn có muốn tiếp tục?</string>
+    <string name="open">Mở</string>
+    <string name="open_file">Mở tệp</string>
+    <string name="reset_to_default">Cài lại về mặc định</string>
+    <string name="rotate_left">Xoay trái</string>
+    <string name="rotate_right">Xoay phải</string>
+    <string name="save">Lưu</string>
+    <string name="scan_new">Lượt quét mới</string>
+    <string name="scan_current">Lượt quét hiện tại</string>
+    <string name="scan_discard_current">Hủy lượt quét hiện tại</string>
+    <string name="scan_resume">Tiếp tục quét</string>
+    <string name="settings">Cài đặt</string>
+    <string name="settings_default_filename">Tên tệp mặc định</string>
+    <string name="settings_ocr_download_error">Tải xuống thất bại. Kiểm tra kết nối internet và đảm bảo ứng dụng được cấp quyền truy cập mạng.</string>
+    <string name="settings_ocr_download_intro">Các tệp ngôn ngữ được tải xuống từ dự án Tesseract. Chức năng nhận diện văn bản có thể sử dụng ngoại tuyến.</string>
+    <string name="settings_ocr_downloading">Đang tải xuống tệp ngôn ngữ</string>
+    <string name="settings_ocr_languages">Ngôn ngữ</string>
+    <string name="settings_ocr_languages_available">Ngôn ngữ có sẵn</string>
+    <string name="settings_ocr_languages_disabled">Đã vô hiệu hoá</string>
+    <string name="settings_ocr_languages_installed">Đã được cài đặt</string>
+    <string name="settings_ocr_suggested">Được khuyến nghị</string>
+    <string name="settings_section_ocr">Nhân diện văn bản</string>
+    <string name="settings_section_scan">Quét</string>
+    <string name="settings_section_export">Xuất</string>
+    <string name="share">Chia sẻ</string>
+    <string name="share_document">Chia sẻ tài liệu</string>
+    <string name="storage_permission_denied">Không thể lưu tệp: ứng dụng không được ủy quyền</string>
+    <string name="support">Hỗ trợ</string>
+    <string name="support_last_image">Báo cáo vấn đề với ảnh được chụp lần cuối</string>
+    <string name="text_recognition_disabled">Nhận diện văn bản: đã vô hiệu hoá</string>
+    <string name="text_recognition_enabled">Nhận diện văn bản: đã được kích hoạt</string>
+    <string name="turn_off_torch">Tắt đèn pin</string>
+    <string name="turn_on_torch">Bật đèn pin</string>
+    <string name="unknown_size">Kích cỡ không xác định</string>
+    <string name="version">Phiên bản</string>
+    <string name="view_full_list">Xem danh sách đầy đủ</string>
+    <string name="view_the_full_license">Xem giấy phép đầy đủ</string>
+    <string name="yes">Có</string>
+    <plurals name="files_saved_to">
+        <item quantity="other">%2$s đã được lưu vào %3$s;%1$d tệp đã được lưu vào %3$s</item>
+    </plurals>
+    <plurals name="importing_photos">
+        <item quantity="other">Đang nhập %d ảnh</item>
+    </plurals>
+    <plurals name="page_count">
+        <item quantity="other">%d trang</item>
+    </plurals>
 </resources>
