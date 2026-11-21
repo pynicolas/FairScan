@@ -14,8 +14,11 @@
  */
 package org.fairscan.imageprocessing
 
+import org.opencv.core.Core
+import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.MatOfByte
+import org.opencv.core.MatOfFloat
 import org.opencv.core.MatOfInt
 import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
@@ -73,4 +76,49 @@ fun decodeJpegOrPng(bytes: ByteArray): Mat {
         throw IllegalStateException("Failed to decode JPEG/PNG")
     }
     return decoded
+}
+
+/**
+ * Smallest 8-bit level such that a share `p` (0..1) of the pixels is at or below it.
+ * Only the pixels selected by `mask` are counted, if there is one.
+ * Without a mask, values outside [0, 256[ are ignored by the histogram but still counted in the total.
+ */
+fun percentile(channel: Mat, p: Double, mask: Mat = Mat()): Double =
+    Mat().use { hist ->
+        Imgproc.calcHist(
+            listOf(channel), MatOfInt(0), mask, hist, MatOfInt(256), MatOfFloat(0f, 256f)
+        )
+        val total =
+            if (mask.empty())
+                channel.total().toDouble()
+            else
+                Core.countNonZero(mask).toDouble()
+
+        var sum = 0.0
+        for (i in 0 until 256) {
+            sum += hist.get(i, 0)[0]
+            if (sum / total >= p) return@use i.toDouble()
+        }
+        255.0
+    }
+
+inline fun <R> Mat.use(block: (Mat) -> R): R =
+    try {
+        block(this)
+    } finally {
+        release()
+    }
+
+// Chroma of the Lab image from its a and b channels (8-bit, centered on 128), as CV_32F
+// https://en.wikipedia.org/wiki/CIELAB_color_space
+fun labChroma(a: Mat, b: Mat): Mat {
+    val aShifted = Mat()
+    val bShifted = Mat()
+    a.convertTo(aShifted, CvType.CV_32F, 1.0, -128.0)
+    b.convertTo(bShifted, CvType.CV_32F, 1.0, -128.0)
+    val chroma = Mat()
+    Core.magnitude(aShifted, bShifted, chroma)
+    aShifted.release()
+    bShifted.release()
+    return chroma
 }

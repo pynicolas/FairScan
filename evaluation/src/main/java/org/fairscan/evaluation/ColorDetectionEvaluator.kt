@@ -46,8 +46,8 @@ object ColorDetectionEvaluator {
         for (meta in imageMetas) {
             val expected = documentMetas[meta.docId]?.isColored ?: continue
             val imgName = meta.imgName.removeSuffix(".jpg")
-            val imgFile = File(datasetDir, "images/$imgName.jpg")
-            val maskFile = File(datasetDir, "masks/$imgName.png")
+            val imgFile = File(datasetDir, "images/dataset-2.1/$imgName.jpg")
+            val maskFile = File(datasetDir, "masks/ground_truth/$imgName.png")
             if (!imgFile.exists() || !maskFile.exists()) continue
 
             val mat = Imgcodecs.imread(imgFile.absolutePath)
@@ -56,7 +56,7 @@ object ColorDetectionEvaluator {
             val maskMat = Imgcodecs.imread(maskFile.absolutePath, Imgcodecs.IMREAD_UNCHANGED)
             if (maskMat.empty()) continue
 
-            println("Processing ${imgName}...")
+
 
             val mask = MatMask(maskMat)
 
@@ -68,6 +68,8 @@ object ColorDetectionEvaluator {
             val extracted = extractDocument(mat, quad, 0, colorMode, colorMode,2_000_000)
 
             val detected = colorMode == ColorMode.COLOR
+
+            println("$imgName | $detected")
 
             nbProcessedImages++
 

@@ -30,7 +30,7 @@ fun autoColorMode(
     img: Mat,
     mask: Mask,
     quad: Quad,
-    chromaThreshold: Double = 17.5,
+    chromaThreshold: Double = 19.0,
     proportionThreshold: Double = 0.0003,
     luminanceMin: Double = 40.0,
     luminanceMax: Double = 180.0
@@ -43,8 +43,13 @@ fun autoColorMode(
     // 1) Compute doc mask (mask ∩ quad)
     val docMask = documentMask(mask, quad, img.size(), workSize)
 
-    // 2) Apply white balance only inside document
-    val whiteBalanced = applyGrayWorldToDocument(resizedImg, docMask)
+    // 2) Apply white balance
+    val box = Imgproc.boundingRect(docMask)
+    val region = Mat(resizedImg, box)
+    val regionMask = Mat(docMask, box)
+    val wb = analyzeWhiteBalance(region, regionMask)
+    val whiteBalanced = wb.gains.applyTo(resizedImg)
+    region.release(); regionMask.release()
 
     // 3) Convert to Lab, see https://en.wikipedia.org/wiki/CIELAB_color_space
     val lab = Mat()
@@ -58,7 +63,7 @@ fun autoColorMode(
     val b = channels[2]
 
     // 5) Compute chroma
-    val chroma = chroma(a, b)
+    val chroma = labChroma(a, b)
 
     val colorMask = Mat()
     Imgproc.threshold(chroma, colorMask, chromaThreshold, 255.0, Imgproc.THRESH_BINARY)
@@ -97,28 +102,6 @@ fun autoColorMode(
         ColorMode.COLOR
     else
         ColorMode.GRAYSCALE
-}
-
-private fun chroma(a: Mat, b: Mat): Mat {
-    val aFloat = Mat()
-    val bFloat = Mat()
-    a.convertTo(aFloat, CvType.CV_32F)
-    b.convertTo(bFloat, CvType.CV_32F)
-
-    val aShifted = Mat()
-    val bShifted = Mat()
-    Core.subtract(aFloat, Scalar(128.0), aShifted)
-    Core.subtract(bFloat, Scalar(128.0), bShifted)
-
-    val chroma = Mat()
-    Core.magnitude(aShifted, bShifted, chroma)
-
-    aFloat.release()
-    bFloat.release()
-    aShifted.release()
-    bShifted.release()
-
-    return chroma
 }
 
 private fun erodeBorder(mask: Mat, quad: Quad): Mat {
@@ -165,62 +148,4 @@ private fun documentMask(
     maskMat.release()
 
     return docMask
-}
-
-fun applyGrayWorldToDocument(
-    img: Mat,
-    docMask: Mat,
-): Mat {
-    require(img.type() == CvType.CV_8UC3)
-
-    val nonZero = Core.countNonZero(docMask)
-    if (nonZero == 0) {
-        docMask.release()
-        return img.clone()
-    }
-
-    // compute mean per channel on docMask (B,G,R)
-    val meanScalar = Core.mean(img, docMask) // Scalar(bMean, gMean, rMean, alpha)
-    val meanB = meanScalar.`val`[0]
-    val meanG = meanScalar.`val`[1]
-    val meanR = meanScalar.`val`[2]
-
-    // safety: avoid division by very small values
-    val eps = 1e-6
-    val meanBsafe = if (meanB < eps) eps else meanB
-    val meanGsafe = if (meanG < eps) eps else meanG
-    val meanRsafe = if (meanR < eps) eps else meanR
-
-    val meanGray = (meanBsafe + meanGsafe + meanRsafe) / 3.0
-
-    val scaleB = meanGray / meanBsafe
-    val scaleG = meanGray / meanGsafe
-    val scaleR = meanGray / meanRsafe
-
-    // apply per-channel scaling only on docMask
-    // convert to float
-    val imgF = Mat()
-    img.convertTo(imgF, CvType.CV_32FC3)
-
-    // build scales scalar in BGR order
-    val scales = Scalar(scaleB, scaleG, scaleR)
-
-    // prepare scaled full image (float)
-    val scaledF = Mat()
-    Core.multiply(imgF, scales, scaledF)
-
-    // convert scaledF back to 8U
-    val scaled8 = Mat()
-    scaledF.convertTo(scaled8, CvType.CV_8UC3)
-
-    // result = original copy, then copy scaled pixels where docMask != 0
-    val result = img.clone()
-    scaled8.copyTo(result, docMask)
-
-    // cleanup
-    imgF.release()
-    scaledF.release()
-    scaled8.release()
-
-    return result
 }
