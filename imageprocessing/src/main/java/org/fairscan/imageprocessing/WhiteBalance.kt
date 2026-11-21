@@ -20,6 +20,7 @@ import org.opencv.core.Mat
 import org.opencv.core.MatOfFloat
 import org.opencv.core.MatOfInt
 import org.opencv.core.Scalar
+import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import kotlin.math.abs
 import kotlin.math.max
@@ -32,12 +33,19 @@ data class WhiteBalanceAnalysis(
     val topChroma: Double,
 )
 
-fun analyzeWhiteBalance(img: Mat): WhiteBalanceAnalysis {
+fun analyzeWhiteBalance(img: Mat, docMask: Mat? = null): WhiteBalanceAnalysis {
     val small = smallBgr(img)
-    val paperColor = estimateBrightPercentile(small)
-    val topChroma = topChroma(small, gainsFor(paperColor))
+    val mask = smallMask(docMask, small.size())
+
+    if (Core.countNonZero(mask) == 0) {
+        small.release(); mask.release()
+        return WhiteBalanceAnalysis(PaperColor(255.0, 255.0, 255.0), ChannelGains.IDENTITY, 0.0, 0.0)
+    }
+
+    val paperColor = estimateBrightPercentile(small, mask)
+    val topChroma = topChroma(small, gainsFor(paperColor), mask)
     val strength = ramp(topChroma)
-    small.release()
+    small.release(); mask.release()
     return WhiteBalanceAnalysis(
         paperColor = paperColor,
         gains = gainsFor(paperColor, strength = strength),
@@ -82,13 +90,13 @@ data class ChannelGains(val b: Double, val g: Double, val r: Double) {
 // Share of the brightest pixels (by gray level) considered to be "paper"
 private const val BRIGHT_SHARE = 0.15
 
-// Median color of the brightest pixels of the whole image
-private fun estimateBrightPercentile(small: Mat): PaperColor {
+// Median color of the brightest pixels of the masked area
+private fun estimateBrightPercentile(small: Mat, mask: Mat): PaperColor {
     val gray = Mat()
     Imgproc.cvtColor(small, gray, Imgproc.COLOR_BGR2GRAY)
-    val mask = brightestMask(gray, BRIGHT_SHARE)
-    val result = medianPaperColor(small, mask)
-    gray.release(); mask.release()
+    val brightest = brightestMask(gray, BRIGHT_SHARE, mask)
+    val result = medianPaperColor(small, brightest)
+    gray.release(); brightest.release()
     return result
 }
 
@@ -97,9 +105,9 @@ private const val TOP_CHROMA_NONE = 6.0
 // Share of the brightest pixels looked at by the top-chroma metric.
 private const val TOP_SHARE = 0.08
 
-// Applies the gains and measures the chroma of the brightest TOP_SHARE of them
+// Applies the gains and measures the chroma of the brightest TOP_SHARE of the masked pixels
 // https://en.wikipedia.org/wiki/CIELAB_color_space
-private fun topChroma(small: Mat, gains: ChannelGains): Double {
+private fun topChroma(small: Mat, gains: ChannelGains, mask: Mat): Double {
     val corrected = gains.applyTo(small)
     val lab = Mat()
     Imgproc.cvtColor(corrected, lab, Imgproc.COLOR_BGR2Lab)
@@ -108,25 +116,22 @@ private fun topChroma(small: Mat, gains: ChannelGains): Double {
     Core.split(lab, channels)
     lab.release()
 
-    val top = brightestMask(channels[0], TOP_SHARE)
-    val a = Mat()
-    val b = Mat()
-    channels[1].convertTo(a, CvType.CV_32F, 1.0, -128.0)
-    channels[2].convertTo(b, CvType.CV_32F, 1.0, -128.0)
-    val chroma = Mat()
-    Core.magnitude(a, b, chroma)
+    val top = brightestMask(channels[0], TOP_SHARE, mask)
+    val chroma = labChroma(channels[1], channels[2])
     val mean = Core.mean(chroma, top).`val`[0]
 
-    listOf(top, a, b, chroma).forEach { it.release() }
+    listOf(top, chroma).forEach { it.release() }
     channels.forEach { it.release() }
     return mean
 }
 
-private fun brightestMask(l: Mat, share: Double): Mat {
-    val threshold = percentileL(l, 1.0 - share)
-    val mask = Mat()
-    Core.compare(l, Scalar(threshold), mask, Core.CMP_GE)
-    return mask
+// The brightest `share` of the pixels selected by `mask` (the threshold is computed among them)
+private fun brightestMask(l: Mat, share: Double, mask: Mat): Mat {
+    val threshold = percentile(l, 1.0 - share, mask)
+    val brightest = Mat()
+    Core.compare(l, Scalar(threshold), brightest, Core.CMP_GE)
+    Core.bitwise_and(brightest, mask, brightest)
+    return brightest
 }
 
 private fun ramp(topChroma: Double): Double {
@@ -170,6 +175,15 @@ private fun smallBgr(img: Mat): Mat {
     val small = resizeForMaxPixels(bgr, ESTIMATION_PIXELS)
     bgr.release()
     return small
+}
+
+// The document mask at the size of the reduced image
+private fun smallMask(docMask: Mat?, size: Size): Mat {
+    if (docMask == null) return Mat(size, CvType.CV_8UC1, Scalar(255.0))
+    val out = Mat()
+    // Nearest neighbor keeps the mask binary
+    Imgproc.resize(docMask, out, size, 0.0, 0.0, Imgproc.INTER_NEAREST)
+    return out
 }
 
 // Median of each channel over the pixels selected by `mask` from a histogram

@@ -148,9 +148,9 @@ fun enhanceColorImage(bgr: Mat, enableWhiteBalance: Boolean = true): Mat {
     )
 
     // --- 7. Restore contrast ---
-    val pLowOrig = percentileL(lOriginalFloat, 0.001)
-    val pLow = percentileL(correctedL, 0.001)
-    val pHigh = percentileL(correctedL, 0.995)
+    val pLowOrig = percentile(lOriginalFloat, 0.001)
+    val pLow = percentile(correctedL, 0.001)
+    val pHigh = percentile(correctedL, 0.995)
 
     val targetLow = min(pLow, pLowOrig)
     val targetHigh = 245.0
@@ -186,31 +186,6 @@ fun enhanceColorImage(bgr: Mat, enableWhiteBalance: Boolean = true): Mat {
     labChannels.forEach { it.release() }
 
     return result
-}
-
-// Expects values in [0..255]
-fun percentileL(l: Mat, p: Double): Double {
-    val hist = Mat()
-    Imgproc.calcHist(
-        listOf(l),
-        MatOfInt(0),
-        Mat(),
-        hist,
-        MatOfInt(256),
-        MatOfFloat(0f, 256f)
-    )
-
-    val total = l.total()
-    var sum = 0.0
-    for (i in 0 until 256) {
-        sum += hist.get(i, 0)[0]
-        if (sum / total >= p) {
-            hist.release()
-            return i.toDouble()
-        }
-    }
-    hist.release()
-    return 255.0
 }
 
 // Estimate 2 percentiles in `src` on a subsample rather than the full image.
