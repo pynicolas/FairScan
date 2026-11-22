@@ -8,12 +8,12 @@
     <string name="camera_permission_rationale">Ứng dụng này yêu cầu truy cập máy ảnh để quét tài liệu. Ảnh được chụp chỉ được lưu trữ trên thiết bị này và sẽ được xóa khi bạn đóng lượt quét hiện tại.</string>
     <string name="cancel">Hủy</string>
     <string name="change_directory">Thay đổi thư mục</string>
-    <string name="clear_text">Xóa chữ</string>
+    <string name="clear_text">Xóa hết văn bản</string>
     <string name="close">Đóng</string>
     <string name="color_mode">Lọc</string>
     <string name="color_mode_auto">Tự động</string>
     <string name="color_mode_color">Màu sắc</string>
-    <string name="color_mode_default">Bộ lọc tự động</string>
+    <string name="color_mode_default">Bộ lọc mặc định</string>
     <string name="color_mode_grayscale">Thang độ xám</string>
     <string name="app_tagline">Một ứng dụng quét tài liệu đơn giản, tôn trọng người dùng.</string>
     <string name="contact">Liên hệ</string>
@@ -36,8 +36,8 @@
     <string name="export_as">Xuất dưới dạng %1$s</string>
     <string name="export_directory">Thư mục xuất</string>
     <string name="export_folder_permission_lost">Mất quyền truy cập thư mục</string>
-    <string name="export_format">Xuất định dạng</string>
-    <string name="export_quality">Xuất chất lượng</string>
+    <string name="export_format">Định dạng xuất</string>
+    <string name="export_quality">Chất lượng xuất</string>
     <string name="export_quality_low">Thấp</string>
     <string name="export_quality_balanced">Cân bằng</string>
     <string name="export_quality_high">Cao</string>
@@ -47,7 +47,7 @@
     <string name="grant_permission">Cấp quyền</string>
     <string name="import_photos">Nhập</string>
     <string name="libraries">Thư viện</string>
-    <string name="libraries_open_source">Thư viện nguồn mở</string>
+    <string name="libraries_open_source">Thư viện mã nguồn mở</string>
     <string name="license">Giấy phép</string>
     <string name="black_and_white_jpeg_hint">Các trang trắng &amp; đen sẽ trông nhỏ và sắc nét hơn khi xuất dưới định dạng PDF.</string>
     <string name="color_mode_black_and_white">Trắng &amp; đen</string>
