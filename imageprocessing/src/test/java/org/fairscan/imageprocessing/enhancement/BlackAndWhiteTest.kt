@@ -18,6 +18,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.binarizeDocument
 import org.fairscan.imageprocessing.flattenedGrayscale
+import org.fairscan.imageprocessing.releaseAll
 import org.junit.Ignore
 import org.junit.Test
 import org.opencv.core.Core
@@ -83,7 +84,7 @@ class BlackAndWhiteTest {
             assertThat(output.blackRatio(gap)).describedAs("gap after line $line").isLessThan(0.005)
         }
 
-        input.release(); output.release()
+        releaseAll(input, output)
     }
 
     @Test
@@ -104,7 +105,7 @@ class BlackAndWhiteTest {
         val inside = greyArea.inset(3)
         assertThat(output.blackRatio(inside)).describedAs("inside of grey area").isGreaterThan(0.99)
 
-        input.release(); output.release()
+        releaseAll(input, output)
     }
 
     @Test
@@ -124,7 +125,7 @@ class BlackAndWhiteTest {
         val inside = darkArea.inset(10)
         assertThat(output.blackRatio(inside)).describedAs("inside of dark area").isGreaterThan(0.99)
 
-        input.release(); output.release()
+        releaseAll(input, output)
     }
 
     @Test
@@ -151,7 +152,7 @@ class BlackAndWhiteTest {
         val inside = darkArea.inset(10)
         assertThat(output.blackRatio(inside)).describedAs("inside of dark area").isGreaterThan(0.99)
 
-        input.release(); output.release()
+        releaseAll(input, output)
     }
 
     @Test
@@ -176,7 +177,7 @@ class BlackAndWhiteTest {
         val center = Rect(button.x + button.width / 2 - 40, button.y + button.height / 2 - 40, 80, 80)
         assertThat(output.blackRatio(center)).describedAs("center of the area").isGreaterThan(0.99)
 
-        input.release(); output.release()
+        releaseAll(input, output)
     }
 
     private fun Rect.grow(margin: Int) = Rect(x - margin, y - margin, width + 2 * margin, height + 2 * margin)
@@ -213,6 +214,6 @@ class BlackAndWhiteTest {
         // Noise: the same dot alone is closed, the surroundings are fully black
         assertThat(output.blackRatio(lonelyDot.grow(3))).describedAs("lonely dot").isGreaterThan(0.99)
 
-        input.release(); output.release()
+        releaseAll(input, output)
     }
 }

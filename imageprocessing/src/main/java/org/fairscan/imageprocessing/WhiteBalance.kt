@@ -38,14 +38,14 @@ fun analyzeWhiteBalance(img: Mat, docMask: Mat? = null): WhiteBalanceAnalysis {
     val mask = smallMask(docMask, small.size())
 
     if (Core.countNonZero(mask) == 0) {
-        small.release(); mask.release()
+        releaseAll(small, mask)
         return WhiteBalanceAnalysis(PaperColor(255.0, 255.0, 255.0), ChannelGains.IDENTITY, 0.0, 0.0)
     }
 
     val paperColor = estimateBrightPercentile(small, mask)
     val topChroma = topChroma(small, gainsFor(paperColor), mask)
     val strength = ramp(topChroma)
-    small.release(); mask.release()
+    releaseAll(small, mask)
     return WhiteBalanceAnalysis(
         paperColor = paperColor,
         gains = gainsFor(paperColor, strength = strength),
@@ -96,7 +96,7 @@ private fun estimateBrightPercentile(small: Mat, mask: Mat): PaperColor {
     Imgproc.cvtColor(small, gray, Imgproc.COLOR_BGR2GRAY)
     val brightest = brightestMask(gray, BRIGHT_SHARE, mask)
     val result = medianPaperColor(small, brightest)
-    gray.release(); brightest.release()
+    releaseAll(gray, brightest)
     return result
 }
 
@@ -120,8 +120,8 @@ private fun topChroma(small: Mat, gains: ChannelGains, mask: Mat): Double {
     val chroma = labChroma(channels[1], channels[2])
     val mean = Core.mean(chroma, top).`val`[0]
 
-    listOf(top, chroma).forEach { it.release() }
-    channels.forEach { it.release() }
+    releaseAll(top, chroma)
+    releaseAll(channels)
     return mean
 }
 
@@ -191,7 +191,7 @@ private fun medianPaperColor(small: Mat, mask: Mat): PaperColor {
     val channels = ArrayList<Mat>(3)
     Core.split(small, channels)
     val medians = channels.map { histogramMedian(it, mask) }
-    channels.forEach { it.release() }
+    releaseAll(channels)
     return PaperColor(medians[0], medians[1], medians[2])
 }
 

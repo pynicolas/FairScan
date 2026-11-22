@@ -88,8 +88,7 @@ fun findQuadFromOrientationWithAdaptiveThreshold(
         bin.release()
     }
 
-    probmapSmooth.release()
-    probmapU8.release()
+    releaseAll(probmapSmooth, probmapU8)
     return bestQuad
 }
 
@@ -211,9 +210,7 @@ fun extractDocument(
     val enhanced = enhancement(resized)
     val rotated = rotate(enhanced, rotationDegrees)
 
-    warped.release()
-    resized.release()
-    enhanced.release()
+    releaseAll(warped, resized, enhanced)
 
     return rotated
 }

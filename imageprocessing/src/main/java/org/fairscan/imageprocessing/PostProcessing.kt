@@ -172,18 +172,20 @@ fun enhanceColorImage(bgr: Mat, enableWhiteBalance: Boolean = true): Mat {
     Imgproc.cvtColor(lab, result, Imgproc.COLOR_Lab2BGR)
 
     // --- Cleanup ---
-    lab.release()
-    lFloat.release()
-    lSmall.release()
-    logLSmall.release()
-    blurLog.release()
-    diff.release()
-    retinexSmall.release()
-    retinexNormSmall.release()
-    retinexNorm.release()
-    lOriginalFloat.release()
-    correctedL.release()
-    labChannels.forEach { it.release() }
+    releaseAll(
+        lab,
+        lFloat,
+        lSmall,
+        logLSmall,
+        blurLog,
+        diff,
+        retinexSmall,
+        retinexNormSmall,
+        retinexNorm,
+        lOriginalFloat,
+        correctedL
+    )
+    releaseAll(labChannels)
 
     return result
 }
@@ -198,9 +200,7 @@ private fun percentiles(src: Mat, low: Double, high: Double): Pair<Double, Doubl
     val n = sorted.cols()
     val pLow = sorted.get(0, (n * low).toInt().coerceIn(0, n - 1))[0]
     val pHigh = sorted.get(0, (n * high).toInt().coerceIn(0, n - 1))[0]
-    flat.release()
-    sorted.release()
-    sample.release()
+    releaseAll(flat, sorted, sample)
     return pLow to pHigh
 }
 
@@ -320,10 +320,7 @@ internal fun flattenedGrayscale(img: Mat): Mat {
     Imgproc.bilateralFilter(stretched8u, denoised, 9, 20.0, 10.0)
 
     // -- Cleanup -----------
-    gray.release(); imgFloat.release(); logImg.release()
-    blur.release(); logBlur.release(); diff.release()
-    retinex.release(); result8u.release()
-    stretched8u.release()
+    releaseAll(gray, imgFloat, logImg, blur, logBlur, diff, retinex, result8u, stretched8u)
 
     return denoised
 }
@@ -400,7 +397,7 @@ private fun sauvolaThreshold(src: Mat, window: Int): Mat {
     Core.add(deviation, Scalar(1.0 - SAUVOLA_K), deviation)
     val threshold = Mat()
     Core.multiply(mean, deviation, threshold)
-    mean.release(); deviation.release()
+    releaseAll(mean, deviation)
 
     val binary = Mat()
     Core.compare(src, threshold, binary, Core.CMP_GT)
@@ -444,7 +441,7 @@ private fun growFill(src: Mat, dark: Mat, window: Int): Mat {
     val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(reach, reach))
     val fill = Mat()
     Imgproc.dilate(seeds, fill, kernel)
-    seeds.release(); kernel.release()
+    releaseAll(seeds, kernel)
 
     Core.bitwise_and(fill, dark, fill)
     return fill
@@ -617,11 +614,11 @@ private fun removeSpecks(binary: Mat, minArea: Int, ink: Boolean, within: Mat? =
             Core.compare(labelBox, Scalar(label.toDouble()), speck, Core.CMP_EQ)
             val target = binary.submat(box)
             target.setTo(replacement, speck)
-            labelBox.release(); speck.release(); target.release()
+            releaseAll(labelBox, speck, target)
         }
     }
 
-    labels.release(); stats.release(); centroids.release()
+    releaseAll(labels, stats, centroids)
 }
 
 private fun isSet(mask: Mat, x: Double, y: Double): Boolean {

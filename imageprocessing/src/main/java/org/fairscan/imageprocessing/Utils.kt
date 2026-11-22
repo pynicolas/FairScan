@@ -109,6 +109,9 @@ inline fun <R> Mat.use(block: (Mat) -> R): R =
         release()
     }
 
+internal fun releaseAll(vararg mats: Mat) = mats.forEach { it.release() }
+internal fun releaseAll(mats: Iterable<Mat>) = mats.forEach { it.release() }
+
 // Chroma of the Lab image from its a and b channels (8-bit, centered on 128), as CV_32F
 // https://en.wikipedia.org/wiki/CIELAB_color_space
 fun labChroma(a: Mat, b: Mat): Mat {
@@ -118,7 +121,6 @@ fun labChroma(a: Mat, b: Mat): Mat {
     b.convertTo(bShifted, CvType.CV_32F, 1.0, -128.0)
     val chroma = Mat()
     Core.magnitude(aShifted, bShifted, chroma)
-    aShifted.release()
-    bShifted.release()
+    releaseAll(aShifted, bShifted)
     return chroma
 }
