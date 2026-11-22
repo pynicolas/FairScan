@@ -49,7 +49,7 @@ fun autoColorMode(
     val regionMask = Mat(docMask, box)
     val wb = analyzeWhiteBalance(region, regionMask)
     val whiteBalanced = wb.gains.applyTo(resizedImg)
-    region.release(); regionMask.release()
+    releaseAll(region, regionMask, resizedImg)
 
     // 3) Convert to Lab, see https://en.wikipedia.org/wiki/CIELAB_color_space
     val lab = Mat()
@@ -84,16 +84,8 @@ fun autoColorMode(
     val totalPixels = Core.countNonZero(docMask)
 
     // 8) Cleanup
-    resizedImg.release()
-    whiteBalanced.release()
-    lab.release()
-    channels.forEach { it.release() }
-    chroma.release()
-    colorMask.release()
-    luminanceMask.release()
-    tmp.release()
-    restrictedMask.release()
-    docMask.release()
+    releaseAll(channels)
+    releaseAll(whiteBalanced, lab, chroma, colorMask, luminanceMask, tmp, restrictedMask, docMask)
 
     if (totalPixels == 0) return ColorMode.GRAYSCALE
 
@@ -141,11 +133,7 @@ private fun documentMask(
     val docMask = Mat()
     Core.bitwise_and(erodedMask, quadMask, docMask)
 
-    quadMask.release()
-    pts.release()
-    erodedMask.release()
-    resizedMask.release()
-    maskMat.release()
+    releaseAll(quadMask, pts, erodedMask, resizedMask, maskMat)
 
     return docMask
 }
