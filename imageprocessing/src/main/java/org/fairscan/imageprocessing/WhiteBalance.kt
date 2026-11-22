@@ -134,7 +134,7 @@ private fun brightestMask(l: Mat, share: Double, mask: Mat): Mat {
     return brightest
 }
 
-private fun ramp(topChroma: Double): Double {
+internal fun ramp(topChroma: Double): Double {
     val t = ((TOP_CHROMA_NONE - topChroma) / (TOP_CHROMA_NONE - TOP_CHROMA_FULL)).coerceIn(0.0, 1.0)
     // https://en.wikipedia.org/wiki/Smoothstep
     return t * t * (3.0 - 2.0 * t)
@@ -148,7 +148,7 @@ private fun ramp(topChroma: Double): Double {
  * stronger than that is unlikely to be only light, and the paper color of a colorful cover
  * is then left partly colored, which topChroma detects.
  */
-private fun gainsFor(
+internal fun gainsFor(
     paper: PaperColor,
     strength: Double = 1.0,
     minGain: Double = 0.75,

@@ -37,6 +37,11 @@ class SyntheticPage(val width: Int = 1200, val height: Int = 1700) {
         Scalar(PAPER_LEVEL.toDouble(), PAPER_LEVEL.toDouble(), PAPER_LEVEL.toDouble()))
     private var lightFalloff = 0.0
 
+    private var illuminant = Scalar(1.0, 1.0, 1.0)
+
+    /** Colored light, as factors on B, G, R. PAPER_LEVEL * factor must stay under 255, or the paper clips. */
+    fun illuminant(b: Double, g: Double, r: Double) = apply { illuminant = Scalar(b, g, r) }
+
     fun lightFalloff(fraction: Double) = apply { lightFalloff = fraction }
 
     /** Gray rectangle (0 = black, 255 = white). */
@@ -68,6 +73,8 @@ class SyntheticPage(val width: Int = 1200, val height: Int = 1700) {
             Core.multiply(image, shading3, image)
             ramp.release(); shading.release(); shading3.release()
         }
+
+        Core.multiply(image, illuminant, image)
 
         if (noiseSigma > 0) {
             val random = Random(seed)
