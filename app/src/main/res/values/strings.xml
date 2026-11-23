@@ -192,10 +192,12 @@
     <string name="view_the_full_license">View the full license</string>
     <!-- Dialogs: button -->
     <string name="yes">Yes</string>
-    <!-- Export screen. %1$d: number of files; %2$s: file name; %3$s: folder name -->
+    <!-- Export screen. %1$s: file name; %2$s: folder name -->
+    <string name="file_saved_to">%1$s saved to %2$s</string>
+    <!-- Export screen. %1$d: number of files; %2$s: folder name (in practice, never called for fewer than 2 files) -->
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s saved to %3$s</item>
-        <item quantity="other">%1$d files saved to %3$s</item>
+        <item quantity="one">%1$d file saved to %2$s</item>
+        <item quantity="other">%1$d files saved to %2$s</item>
     </plurals>
     <!-- Camera screen. %d: number of photos -->
     <plurals name="importing_photos">

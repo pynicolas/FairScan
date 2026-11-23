@@ -90,9 +90,9 @@
     <string name="view_full_list">Lihat daftar lengkap</string>
     <string name="view_the_full_license">Lihat lisensi lengkapnya</string>
     <string name="yes">Yes</string>
+    <string name="file_saved_to">%1$s disimpan ke %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s disimpan ke %3$s</item>
-        <item quantity="other">%1$d berkas yang disimpan ke %3$s</item>
+        <item quantity="other">%1$d berkas yang disimpan ke %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">Impor 1 foto</item>

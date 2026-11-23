@@ -496,6 +496,12 @@ private fun SaveInfoBar(
     val items = savedBundle.items
     val nbFiles = items.size
     val firstFileName = items[0].fileName
+    val message =
+        if (nbFiles == 1)
+            stringResource(R.string.file_saved_to, firstFileName, dirName)
+        else
+            LocalResources.current.getQuantityString(
+                R.plurals.files_saved_to, nbFiles, nbFiles, dirName)
 
     Surface(
         shape = RoundedCornerShape(10.dp),
@@ -516,11 +522,7 @@ private fun SaveInfoBar(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = LocalResources.current.getQuantityString(
-                        R.plurals.files_saved_to,
-                        nbFiles,
-                        nbFiles, firstFileName, dirName
-                    ),
+                    text = message,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f)
                 )

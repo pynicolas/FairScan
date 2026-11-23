@@ -91,9 +91,10 @@
     <string name="view_full_list">Vollständige Liste anzeigen</string>
     <string name="view_the_full_license">Vollständige Lizenz anzeigen</string>
     <string name="yes">Ja</string>
+    <string name="file_saved_to">%1$s gespeichert in %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s gespeichert in %3$s</item>
-        <item quantity="other">%1$d Dateien gespeichert in %3$s</item>
+        <item quantity="one">%1$d Dateien gespeichert in %2$s</item>
+        <item quantity="other">%1$d Dateien gespeichert in %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">1 Foto wird importiert</item>

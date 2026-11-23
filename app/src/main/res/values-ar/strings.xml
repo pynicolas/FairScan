@@ -90,13 +90,14 @@
     <string name="view_full_list">اعرض القائمة الكاملة</string>
     <string name="view_the_full_license">اعرض الترخيص الكامل</string>
     <string name="yes">نعم</string>
+    <string name="file_saved_to">حُفظ %1$s في %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="zero">لم يُحفظ أي ملفات في %3$s</item>
-        <item quantity="one">حُفظ %2$s في %3$s</item>
-        <item quantity="two">حُفظ ملفين في %3$s</item>
-        <item quantity="few">حُفظ %1$d ملفات في %3$s</item>
-        <item quantity="many">حُفظ %1$d ملفًا في %3$s</item>
-        <item quantity="other">حُفظ %1$d ملف في %3$s</item>
+        <item quantity="zero">لم يُحفظ أي ملفات في %2$s</item>
+        <item quantity="one">حُفظ %1$d ملف في %2$s</item>
+        <item quantity="two">حُفظ ملفين في %2$s</item>
+        <item quantity="few">حُفظ %1$d ملفات في %2$s</item>
+        <item quantity="many">حُفظ %1$d ملفًا في %2$s</item>
+        <item quantity="other">حُفظ %1$d ملف في %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="zero">جارٍ استيراد 0 صورة</item>

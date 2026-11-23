@@ -91,8 +91,9 @@
     <string name="view_full_list">ดูรายการเต็ม</string>
     <string name="view_the_full_license">ดูใบอนุญาตเต็ม</string>
     <string name="yes">ใช่</string>
+    <string name="file_saved_to">บันทึก %1$s ไปยัง %2$s แล้ว</string>
     <plurals name="files_saved_to">
-        <item quantity="other">%1$d ถูกบันทึกไปยัง %3$s</item>
+        <item quantity="other">%1$d ถูกบันทึกไปยัง %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="other">กำลังนำเข้า %d ภาพ</item>

@@ -91,9 +91,10 @@
     <string name="view_full_list">முழு பட்டியலையும் பார்க்கவும்</string>
     <string name="view_the_full_license">முழு உரிமத்தையும் பார்க்கவும்</string>
     <string name="yes">ஆம்</string>
+    <string name="file_saved_to">%1$s %2$s இல் சேமிக்கப்பட்டது</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s %3$s இல் சேமிக்கப்பட்டது</item>
-        <item quantity="other">%1$d கோப்புகள் %3$s இல் சேமிக்கப்பட்டன</item>
+        <item quantity="one">%1$d கோப்புகள் %2$s இல் சேமிக்கப்பட்டன</item>
+        <item quantity="other">%1$d கோப்புகள் %2$s இல் சேமிக்கப்பட்டன</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">1 படத்தை இறக்குமதி செய்கிறது</item>

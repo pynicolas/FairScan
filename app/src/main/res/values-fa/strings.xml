@@ -84,9 +84,10 @@
     <string name="view_full_list">دیدن کل سیاهه</string>
     <string name="view_the_full_license">دیدن کل پروانه</string>
     <string name="yes">بله</string>
+    <string name="file_saved_to">%1$s در %2$s ذخیره شد</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s در %3$s ذخیره شد</item>
-        <item quantity="other">%1$d پرونده در %3$s ذخیره شدند</item>
+        <item quantity="one">%1$d پرونده در %2$s ذخیره شدند</item>
+        <item quantity="other">%1$d پرونده در %2$s ذخیره شدند</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one" tools:ignore="ImpliedQuantity">وارد کردن ۱ عکس</item>

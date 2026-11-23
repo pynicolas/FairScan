@@ -91,9 +91,10 @@
     <string name="view_full_list">Ikusi zerrenda osoa</string>
     <string name="view_the_full_license">Ikusi lizentzia osoa</string>
     <string name="yes">Bai</string>
+    <string name="file_saved_to">Fitxategi %1$s gorde da %2$s-n</string>
     <plurals name="files_saved_to">
-        <item quantity="one">Fitxategi %2$s gorde da %3$s-n</item>
-        <item quantity="other">%1$d fitxategi gorde dira %3$s-n</item>
+        <item quantity="one">%1$d fitxategi gorde dira %2$s-n</item>
+        <item quantity="other">%1$d fitxategi gorde dira %2$s-n</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">Argazki 1 inportatzen</item>

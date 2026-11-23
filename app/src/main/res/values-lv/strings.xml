@@ -21,10 +21,11 @@
     <string name="yes">Jā</string>
     <string name="filename">Datnes nosaukums</string>
     <string name="camera_permission_denied">Piekļuve kamerai liegta</string>
+    <string name="file_saved_to">%1$s saglabāts %2$s mapē</string>
     <plurals name="files_saved_to">
-        <item quantity="zero">%1$d datnes saglabātas %3$s mapē</item>
-        <item quantity="one">%2$s saglabāts %3$s mapē</item>
-        <item quantity="other">%1$d datnes saglabātas %3$s mapē</item>
+        <item quantity="zero">%1$d datnes saglabātas %2$s mapē</item>
+        <item quantity="one">%1$d datnes saglabātas %2$s mapē</item>
+        <item quantity="other">%1$d datnes saglabātas %2$s mapē</item>
     </plurals>
     <string name="text_recognition_disabled">Teksta atpazīšana: atspējota</string>
     <string name="back">Atpakaļ</string>

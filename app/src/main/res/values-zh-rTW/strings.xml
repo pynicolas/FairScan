@@ -91,15 +91,14 @@
     <string name="view_full_list">查看完整清單</string>
     <string name="view_the_full_license">查看完整授權內容</string>
     <string name="yes">是</string>
+    <string name="file_saved_to">%1$s 已儲存至 %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s 已儲存至 %3$s</item>
-        <item quantity="other">%1$d 個檔案已儲存至 %3$s</item>
+        <item quantity="other">%1$d 個檔案已儲存至 %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="other">正在匯入 %d 張照片</item>
     </plurals>
     <plurals name="page_count">
-        <item quantity="one">%d 頁</item>
         <item quantity="other">%d 頁</item>
     </plurals>
 </resources>

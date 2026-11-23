@@ -90,9 +90,10 @@
     <string name="view_full_list">Visa hela listan</string>
     <string name="view_the_full_license">Visa hela licensen</string>
     <string name="yes">Ja</string>
+    <string name="file_saved_to">%1$s har sparats i %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s har sparats i %3$s</item>
-        <item quantity="other">%1$d filer har sparats i %3$s</item>
+        <item quantity="one">%1$d filer har sparats i %2$s</item>
+        <item quantity="other">%1$d filer har sparats i %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">Importerar 1 foto</item>

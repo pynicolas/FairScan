@@ -90,9 +90,10 @@
     <string name="view_full_list">Vedi l\'elenco completo</string>
     <string name="view_the_full_license">Vedi la licenza completa</string>
     <string name="yes">Sì</string>
+    <string name="file_saved_to">%1$s salvato in %2$s</string>
     <plurals name="files_saved_to" tools:ignore="MissingQuantity">
-        <item quantity="one">%2$s salvato in %3$s</item>
-        <item quantity="other">%1$d file salvati in %3$s</item>
+        <item quantity="one">%1$d salvato in %2$s</item>
+        <item quantity="other">%1$d file salvati in %2$s</item>
     </plurals>
     <plurals name="importing_photos" tools:ignore="MissingQuantity">
         <item quantity="one">Importazione di 1 foto</item>

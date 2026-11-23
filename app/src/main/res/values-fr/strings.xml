@@ -91,9 +91,10 @@
     <string name="view_full_list">Voir la liste complète</string>
     <string name="view_the_full_license">Voir la licence complète</string>
     <string name="yes">Oui</string>
+    <string name="file_saved_to">%1$s enregistré dans %2$s</string>
     <plurals name="files_saved_to" tools:ignore="MissingQuantity">
-        <item quantity="one">%2$s enregistré dans %3$s</item>
-        <item quantity="other">%1$d fichiers enregistrés dans %3$s</item>
+        <item quantity="one">%1$d fichier enregistré dans %2$s</item>
+        <item quantity="other">%1$d fichiers enregistrés dans %2$s</item>
     </plurals>
     <plurals name="importing_photos" tools:ignore="MissingQuantity">
         <item quantity="one">Import de %d photo</item>

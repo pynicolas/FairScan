@@ -91,9 +91,10 @@
     <string name="view_full_list">Tam listeyi görüntüle</string>
     <string name="view_the_full_license">Tam lisansı görüntüle</string>
     <string name="yes">Evet</string>
+    <string name="file_saved_to">%1$s, %2$s konumuna kaydedildi</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s, %3$s konumuna kaydedildi</item>
-        <item quantity="other">%1$d dosya %3$s konumuna kaydedildi</item>
+        <item quantity="one">%1$d dosya %2$s konumuna kaydedildi</item>
+        <item quantity="other">%1$d dosya %2$s konumuna kaydedildi</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">1 fotoğraf içe aktarılıyor</item>

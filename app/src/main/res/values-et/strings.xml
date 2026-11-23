@@ -91,9 +91,10 @@
     <string name="view_full_list">Vaata täismahus loendit</string>
     <string name="view_the_full_license">Vaata täismahus litsentsi</string>
     <string name="yes">Jah</string>
+    <string name="file_saved_to">%1$s fail on salvestatud kausta %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s fail on salvestatud kausta %3$s</item>
-        <item quantity="other">%1$d faili on salvestatud kausta %3$s</item>
+        <item quantity="one">%1$d faili on salvestatud kausta %2$s</item>
+        <item quantity="other">%1$d faili on salvestatud kausta %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">Importimisel on 1 foto</item>
