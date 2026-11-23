@@ -90,11 +90,12 @@
     <string name="view_full_list">Zobrazit úplný seznam</string>
     <string name="view_the_full_license">Zobrazit úplnou licenci</string>
     <string name="yes">Ano</string>
+    <string name="file_saved_to">%1$s uložen do %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s uložen do %3$s</item>
-        <item quantity="few">%1$d soubory uloženy do %3$s</item>
-        <item quantity="many">%1$d souborů uloženo do %3$s</item>
-        <item quantity="other">%1$d souborů uloženo do %3$s</item>
+        <item quantity="one">%1$d souborů uloženo do %2$s</item>
+        <item quantity="few">%1$d soubory uloženy do %2$s</item>
+        <item quantity="many">%1$d souborů uloženo do %2$s</item>
+        <item quantity="other">%1$d souborů uloženo do %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">Importování 1 fotografie</item>

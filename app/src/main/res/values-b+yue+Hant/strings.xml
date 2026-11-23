@@ -86,8 +86,9 @@
     <string name="view_full_list">睇過完整清單</string>
     <string name="view_the_full_license">睇過完整授權協議</string>
     <string name="yes">係</string>
+    <string name="file_saved_to">%1$s 已儲存到 %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="other">%1$d 個檔案已儲存至 %3$s</item>
+        <item quantity="other">%1$d 個檔案已儲存至 %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="other">匯入緊 %d 幅相</item>

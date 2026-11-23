@@ -91,9 +91,10 @@
     <string name="view_full_list">Teljes lista megtekintése</string>
     <string name="view_the_full_license">A teljes licenc megtekintése</string>
     <string name="yes">Igen</string>
+    <string name="file_saved_to">%1$s elmentve ide: %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s elmentve ide: %3$s</item>
-        <item quantity="other">%1$d fájl elmentve ide: %3$s</item>
+        <item quantity="one">%1$d fájl elmentve ide: %2$s</item>
+        <item quantity="other">%1$d fájl elmentve ide: %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">1 fénykép importálása</item>

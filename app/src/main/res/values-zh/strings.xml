@@ -91,8 +91,9 @@
     <string name="view_full_list">查看完整列表</string>
     <string name="view_the_full_license">查看完整许可证</string>
     <string name="yes">是</string>
+    <string name="file_saved_to">%1$s 已保存到 %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="other">%1$d 个文件已保存到 %3$s</item>
+        <item quantity="other">%1$d 个文件已保存到 %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="other">正在导入 %d 张照片</item>

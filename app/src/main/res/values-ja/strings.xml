@@ -91,8 +91,9 @@
     <string name="view_full_list">全リストを表示</string>
     <string name="view_the_full_license">ライセンス全文を表示</string>
     <string name="yes">はい</string>
+    <string name="file_saved_to">%1$s を %2$s に保存しました</string>
     <plurals name="files_saved_to" tools:ignore="MissingQuantity">
-        <item quantity="other">%3$s に %1$d 件のファイルを保存しました</item>
+        <item quantity="other">%2$s に %1$d 件のファイルを保存しました</item>
     </plurals>
     <plurals name="importing_photos" tools:ignore="MissingQuantity">
         <item quantity="other">%d 枚の写真をインポート中</item>

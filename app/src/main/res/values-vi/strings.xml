@@ -91,8 +91,9 @@
     <string name="view_full_list">Xem danh sách đầy đủ</string>
     <string name="view_the_full_license">Xem giấy phép đầy đủ</string>
     <string name="yes">Có</string>
+    <string name="file_saved_to">%1$s đã được lưu vào %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="other">%2$s đã được lưu vào %3$s;%1$d tệp đã được lưu vào %3$s</item>
+        <item quantity="other">%1$d tệp đã được lưu vào %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="other">Đang nhập %d ảnh</item>

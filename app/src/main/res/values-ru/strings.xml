@@ -90,11 +90,12 @@
     <string name="view_full_list">Просмотреть полный список</string>
     <string name="view_the_full_license">Просмотреть полную лицензию</string>
     <string name="yes">Да</string>
+    <string name="file_saved_to">%1$s сохранён в %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s сохранён в %3$s</item>
-        <item quantity="few">%1$d файла сохранены в %3$s</item>
-        <item quantity="many">%1$d файлов сохранено в %3$s</item>
-        <item quantity="other">%1$d файла сохранено в %3$s</item>
+        <item quantity="one">%1$d файла сохранено в %2$s</item>
+        <item quantity="few">%1$d файла сохранены в %2$s</item>
+        <item quantity="many">%1$d файлов сохранено в %2$s</item>
+        <item quantity="other">%1$d файла сохранено в %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">Импорт %d фото</item>

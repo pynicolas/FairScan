@@ -90,9 +90,10 @@
     <string name="view_full_list">Ver lista completa</string>
     <string name="view_the_full_license">Ver a licenza completa</string>
     <string name="yes">Si</string>
+    <string name="file_saved_to">%1$s gardado en %2$s</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%2$s gardado en %3$s</item>
-        <item quantity="other">%1$d ficheiros gardados en %3$s</item>
+        <item quantity="one">%1$d ficheiros gardados en %2$s</item>
+        <item quantity="other">%1$d ficheiros gardados en %2$s</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">Importando 1 foto</item>
