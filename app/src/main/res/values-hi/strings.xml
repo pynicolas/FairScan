@@ -95,7 +95,7 @@
         <item quantity="other">%1$d फाइलें %3$s सेव हुई है</item>
     </plurals>
     <plurals name="importing_photos">
-        <item quantity="one">1 तस्वीर लाई जा रही है</item>
+        <item quantity="one">%d तस्वीर लाई जा रही है</item>
         <item quantity="other">%d तस्वीरें लाई जा रही हैं</item>
     </plurals>
     <plurals name="page_count">
