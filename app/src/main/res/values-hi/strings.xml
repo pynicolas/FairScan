@@ -92,8 +92,8 @@
     <string name="yes">हाँ, करो</string>
     <string name="file_saved_to">%1$s फ़ाइल %2$s सेव हुई है</string>
     <plurals name="files_saved_to">
-        <item quantity="one">%1$d फाइलें %2$s सेव हुई है</item>
-        <item quantity="other">%1$d फाइलें %2$s सेव हुई है</item>
+        <item quantity="one">%1$d फाइल %2$s में सेव हुई है</item>
+        <item quantity="other">%1$d फाइलें %2$s में सेव हुई है</item>
     </plurals>
     <plurals name="importing_photos">
         <item quantity="one">%d तस्वीर लाई जा रही है</item>
