@@ -165,6 +165,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                 _uiState.update {
                     ExportUiState(
                         filename = it.filename,
+                        isUserDefinedFilename = it.isUserDefinedFilename,
                         format = exportFormat,
                         isGenerating = true,
                         progress = ExportProgress(0, pageCount),
