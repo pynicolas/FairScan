@@ -238,10 +238,10 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         val filename = _uiState.value.filename
         val updated = when (result) {
             is ExportResult.Pdf -> {
-                val fileName = FileManager.addPdfExtensionIfMissing(filename)
-                val newFile = File(result.file.parentFile, fileName)
+                val fileNameWithExtension = FileManager.addPdfExtensionIfMissing(filename)
+                val newFile = File(result.file.parentFile, fileNameWithExtension)
                 renameFile(result.file, newFile)
-                ExportResult.Pdf(newFile, result.sizeInBytes, result.pageCount)
+                ExportResult.Pdf(newFile, result.sizeInBytes, result.pageCount, filename)
             }
             is ExportResult.Jpeg -> {
                 val base = filename.removeSuffix(".jpg")
@@ -252,7 +252,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                     renameFile(file, newFile)
                     newFile
                 }
-                result.copy(jpegFiles = renamedFiles)
+                result.copy(jpegFiles = renamedFiles, subject = base)
             }
         }
         _uiState.update { it.copy(result = updated) }
@@ -437,6 +437,7 @@ data class ExportPreparationKey(
 )
 
 sealed class ExportResult {
+    abstract val subject: String
     abstract val files: List<File>
     abstract val sizeInBytes: Long
     abstract val pageCount: Int
@@ -446,6 +447,7 @@ sealed class ExportResult {
         val file: File,
         override val sizeInBytes: Long,
         override val pageCount: Int,
+        override val subject: String = "",
     ) : ExportResult() {
         override val files get() = listOf(file)
         override val format: ExportFormat = PDF
@@ -454,6 +456,7 @@ sealed class ExportResult {
     data class Jpeg(
         val jpegFiles: List<File>,
         override val sizeInBytes: Long,
+        override val subject: String = "",
     ) : ExportResult() {
         override val files get() = jpegFiles
         override val pageCount get() = jpegFiles.size
