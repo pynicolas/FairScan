@@ -162,6 +162,7 @@ fun CameraScreen(
             camera?.cameraInfo?.cameraState?.removeObserver(observer)
         }
     }
+    val torchState = TorchState(camera?.cameraInfo?.hasFlashUnit() == true, isTorchEnabled)
 
     val captureState by cameraViewModel.captureState.collectAsStateWithLifecycle()
     if (captureState is CaptureState.CapturePreview) {
@@ -246,7 +247,7 @@ fun CameraScreen(
             showDetectionError,
             isLandscape = isLandscape,
             isDebugMode,
-            isTorchEnabled),
+            torchState),
         onCapture = onCapture,
         onFinalizePressed = onFinalizePressed,
         onDebugModeSwitched = { isDebugMode = !isDebugMode },
@@ -403,18 +404,21 @@ private fun CameraPreviewBox(
                 .align(Alignment.BottomCenter)
                 .padding(16.dp)
         )
-        IconButton(
-            onClick = onTorchSwitched,
-            modifier = Modifier.align(Alignment.BottomStart)
-        ) {
-            val torchEnabled = cameraUiState.isTorchEnabled
-            Icon(
-                imageVector = Icons.Default.Highlight,
-                contentDescription =
-                    stringResource(
-                        if (torchEnabled) R.string.turn_off_torch else R.string.turn_on_torch),
-                tint = if (torchEnabled) Color.White else Color.White.copy(alpha = 0.5f)
-            )
+        if (cameraUiState.torchState.isAvailable) {
+            IconButton(
+                onClick = onTorchSwitched,
+                modifier = Modifier.align(Alignment.BottomStart)
+            ) {
+                val torchEnabled = cameraUiState.torchState.isEnabled
+                Icon(
+                    imageVector = Icons.Default.Highlight,
+                    contentDescription =
+                        stringResource(
+                            if (torchEnabled) R.string.turn_off_torch else R.string.turn_on_torch
+                        ),
+                    tint = if (torchEnabled) Color.White else Color.White.copy(alpha = 0.5f)
+                )
+            }
         }
     }
 }
@@ -721,7 +725,7 @@ private fun ScreenPreview(
                     showPageNumbers = false,
                 ),
             cameraUiState = CameraUiState(pageCount = 4, LiveAnalysisState(), captureState,
-                importState, false, rotationDegrees > 0, false, false),
+                importState, false, rotationDegrees > 0, false, TorchState(true, false)),
             onCapture = {},
             onFinalizePressed = {},
             onDebugModeSwitched = {},

@@ -41,5 +41,10 @@ data class CameraUiState(
     val showCaptureError: Boolean,
     val isLandscape: Boolean,
     val isDebugMode: Boolean,
-    val isTorchEnabled: Boolean,
+    val torchState: TorchState,
+)
+
+data class TorchState(
+    val isAvailable: Boolean,
+    val isEnabled: Boolean,
 )
