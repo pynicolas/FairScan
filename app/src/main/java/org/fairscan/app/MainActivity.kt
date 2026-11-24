@@ -413,6 +413,7 @@ class MainActivity : ComponentActivity() {
             action = if (uris.size == 1) Intent.ACTION_SEND else Intent.ACTION_SEND_MULTIPLE
             type = result.format.mimeType
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            putExtra(Intent.EXTRA_SUBJECT, result.subject)
 
             if (uris.size == 1) {
                 putExtra(Intent.EXTRA_STREAM, uris[0])
