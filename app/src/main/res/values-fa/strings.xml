@@ -18,6 +18,7 @@
     <string name="color_mode_color">رنگ</string>
     <string name="color_mode_default">پالایهٔ پیشفرض</string>
     <string name="color_mode_grayscale">خاکستری‌مقیاس</string>
+    <string name="color_mode_original">اصلی</string>
     <string name="contact">ارتباط</string>
     <string name="copied_logs">لاگ‌ها به تخته‌گیره رونوشت شدند</string>
     <string name="copy_logs">رونوشت کردن لاگ‌ها</string>

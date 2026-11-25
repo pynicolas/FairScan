@@ -17,6 +17,7 @@
     <string name="color_mode_color">Warna</string>
     <string name="color_mode_default">Filter bawaan</string>
     <string name="color_mode_grayscale">Abu-abu</string>
+    <string name="color_mode_original">Asli</string>
     <string name="contact">Kontak</string>
     <string name="copied_logs">Log disalin ke papan klip</string>
     <string name="copy_logs">Salin log</string>

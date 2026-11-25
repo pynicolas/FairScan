@@ -17,6 +17,7 @@
     <string name="color_mode_black_and_white">काला और सफेद</string>
     <string name="color_mode_color">रंगीन</string>
     <string name="color_mode_default">पूर्व निर्धारित रंग</string>
+    <string name="color_mode_original">मूल</string>
     <string name="contact">मुझे यहाँ संपर्क करें</string>
     <string name="copied_logs">लॉग कॉपी हो गए हैं</string>
     <string name="copy_logs">लॉग कॉपी करें</string>

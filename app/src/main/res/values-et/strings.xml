@@ -18,6 +18,7 @@
     <string name="color_mode_color">Värvid</string>
     <string name="color_mode_default">Vaikimisi filter</string>
     <string name="color_mode_grayscale">Halltoonides</string>
+    <string name="color_mode_original">Algne</string>
     <string name="contact">Kontakt</string>
     <string name="copied_logs">Logid on kopeeritud lõikelauale</string>
     <string name="copy_logs">Kopeeri logid</string>

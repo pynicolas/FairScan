@@ -15,6 +15,7 @@
     <string name="color_mode_color">Màu sắc</string>
     <string name="color_mode_default">Bộ lọc mặc định</string>
     <string name="color_mode_grayscale">Thang độ xám</string>
+    <string name="color_mode_original">Gốc</string>
     <string name="app_tagline">Một ứng dụng quét tài liệu đơn giản, tôn trọng người dùng.</string>
     <string name="contact">Liên hệ</string>
     <string name="copied_logs">Nhật ký đã được sao chép vào bộ nhớ tạm</string>

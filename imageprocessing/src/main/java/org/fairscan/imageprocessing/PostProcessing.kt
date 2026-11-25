@@ -29,6 +29,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 enum class ColorMode {
+    ORIGINAL,
     COLOR,
     GRAYSCALE,
     BLACK_AND_WHITE,
@@ -38,6 +39,7 @@ fun enhanceCapturedImage(
     img: Mat, colorMode: ColorMode, autoColorMode: ColorMode, maxPixels: Long = 0L
 ): Mat {
     return when (colorMode) {
+        ColorMode.ORIGINAL -> img.clone()
         ColorMode.COLOR -> enhanceColorImage(img)
         ColorMode.GRAYSCALE -> enhanceGrayscaleImage(img)
         ColorMode.BLACK_AND_WHITE -> binarizeDocument(img, autoColorMode, maxPixels)

@@ -18,6 +18,7 @@
     <string name="color_mode_color">Farbe</string>
     <string name="color_mode_default">Standardfilter</string>
     <string name="color_mode_grayscale">Graustufen</string>
+    <string name="color_mode_original">Original</string>
     <string name="contact">Kontakt</string>
     <string name="copied_logs">Logs in die Zwischenablage kopiert</string>
     <string name="copy_logs">Logs kopieren</string>

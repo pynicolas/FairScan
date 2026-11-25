@@ -18,6 +18,7 @@
     <string name="color_mode_color">สี</string>
     <string name="color_mode_default">ฟิลเตอร์ค่าเริ่มต้น</string>
     <string name="color_mode_grayscale">สีเทา</string>
+    <string name="color_mode_original">ต้นฉบับ</string>
     <string name="contact">ติดต่อ</string>
     <string name="copied_logs">คัดลอกล็อกไปยังคลิปบอร์ดแล้ว</string>
     <string name="copy_logs">คัดลอกล็อก</string>
