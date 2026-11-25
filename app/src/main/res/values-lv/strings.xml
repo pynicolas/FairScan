@@ -35,6 +35,7 @@
     <string name="version">Versija</string>
     <string name="export_quality_low">Zema</string>
     <string name="export_quality_high">Augsta</string>
+    <string name="color_mode_original">Oriģināls</string>
     <string name="contact">Kontakti</string>
     <string name="libraries_open_source">Atvērtā pirmkoda bibliotēkas</string>
     <string name="error_save">Neizdevās saglabāt datni</string>

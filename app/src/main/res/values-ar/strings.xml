@@ -17,6 +17,7 @@
     <string name="color_mode_color">ألوان</string>
     <string name="color_mode_default">الفلتر الافتراضي</string>
     <string name="color_mode_grayscale">تدرج الرمادي</string>
+    <string name="color_mode_original">الأصلي</string>
     <string name="contact">تواصل</string>
     <string name="copied_logs">نُسخت السجلات إلى الحافظة</string>
     <string name="copy_logs">انسخ السجلات</string>

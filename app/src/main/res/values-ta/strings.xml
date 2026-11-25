@@ -18,6 +18,7 @@
     <string name="color_mode_color">நிறம்</string>
     <string name="color_mode_default">இயல்பு வடிகட்டி</string>
     <string name="color_mode_grayscale">கிரேச்கேல்</string>
+    <string name="color_mode_original">அசல்</string>
     <string name="contact">தொடர்பு</string>
     <string name="copied_logs">பதிவுகள் இடைநிலைப்பலகைக்கு நகலெடுக்கப்பட்டன</string>
     <string name="copy_logs">பதிவுகளை நகலெடுக்கவும்</string>

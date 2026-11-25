@@ -18,6 +18,7 @@
     <string name="color_mode_color">Couleur</string>
     <string name="color_mode_default">Filtre par défaut</string>
     <string name="color_mode_grayscale">Niveaux de gris</string>
+    <string name="color_mode_original">Original</string>
     <string name="contact">Contact</string>
     <string name="copied_logs">Logs copiés dans le presse-papiers</string>
     <string name="copy_logs">Copier les logs</string>

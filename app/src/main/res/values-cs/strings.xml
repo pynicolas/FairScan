@@ -17,6 +17,7 @@
     <string name="color_mode_color">Barva</string>
     <string name="color_mode_default">Výchozí filtr</string>
     <string name="color_mode_grayscale">Odstíny šedi</string>
+    <string name="color_mode_original">Původní</string>
     <string name="contact">Kontakt</string>
     <string name="copied_logs">Protokoly zkopírovány do schránky</string>
     <string name="copy_logs">Kopírovat protokoly</string>

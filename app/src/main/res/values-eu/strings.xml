@@ -18,6 +18,7 @@
     <string name="color_mode_color">Koloreduna</string>
     <string name="color_mode_default">Iragazki lehenetsia</string>
     <string name="color_mode_grayscale">Gris eskala</string>
+    <string name="color_mode_original">Jatorrizkoa</string>
     <string name="contact">Kontaktua</string>
     <string name="copied_logs">Erregistroak arbelean kopiatu dira</string>
     <string name="copy_logs">Kopiatu erregistroak</string>

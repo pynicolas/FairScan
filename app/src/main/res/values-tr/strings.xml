@@ -18,6 +18,7 @@
     <string name="color_mode_color">Renkli</string>
     <string name="color_mode_default">Varsayılan filtre</string>
     <string name="color_mode_grayscale">Gri tonlama</string>
+    <string name="color_mode_original">Orijinal</string>
     <string name="contact">İletişim</string>
     <string name="copied_logs">Günlükler panoya kopyalandı</string>
     <string name="copy_logs">Günlükleri kopyala</string>

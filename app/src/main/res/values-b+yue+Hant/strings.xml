@@ -14,6 +14,7 @@
     <string name="color_mode_color">彩色</string>
     <string name="color_mode_default">預設濾鏡</string>
     <string name="color_mode_grayscale">灰階</string>
+    <string name="color_mode_original">原始</string>
     <string name="contact">聯絡</string>
     <string name="copied_logs">記錄檔複製咗落剪貼簿</string>
     <string name="copy_logs">複製記錄檔</string>

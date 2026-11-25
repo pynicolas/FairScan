@@ -17,6 +17,7 @@
     <string name="color_mode_color">Cor</string>
     <string name="color_mode_default">Filtro predeterminado</string>
     <string name="color_mode_grayscale">Escala de grises</string>
+    <string name="color_mode_original">Orixinal</string>
     <string name="contact">Contacto</string>
     <string name="copied_logs">Rexistros copiados ao portapapeis</string>
     <string name="copy_logs">Copiar rexistros</string>

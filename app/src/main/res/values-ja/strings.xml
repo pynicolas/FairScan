@@ -18,6 +18,7 @@
     <string name="color_mode_color">カラー</string>
     <string name="color_mode_default">デフォルトフィルター</string>
     <string name="color_mode_grayscale">グレースケール</string>
+    <string name="color_mode_original">オリジナル</string>
     <string name="contact">連絡先</string>
     <string name="copied_logs">ログをクリップボードにコピーしました</string>
     <string name="copy_logs">ログをコピー</string>

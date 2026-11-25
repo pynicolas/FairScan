@@ -33,11 +33,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.FontDownload
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RotateLeft
 import androidx.compose.material.icons.filled.RotateRight
 import androidx.compose.material.icons.outlined.Add
@@ -64,7 +61,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -92,6 +88,7 @@ import org.fairscan.imageprocessing.ColorMode
 import org.fairscan.imageprocessing.ColorMode.BLACK_AND_WHITE
 import org.fairscan.imageprocessing.ColorMode.COLOR
 import org.fairscan.imageprocessing.ColorMode.GRAYSCALE
+import org.fairscan.imageprocessing.ColorMode.ORIGINAL
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -319,6 +316,7 @@ fun ColorModeButton(
 
 private val ColorMode.labelResource: Int
     get() = when (this) {
+        ORIGINAL -> R.string.color_mode_original
         COLOR -> R.string.color_mode_color
         GRAYSCALE -> R.string.color_mode_grayscale
         BLACK_AND_WHITE -> R.string.color_mode_black_and_white

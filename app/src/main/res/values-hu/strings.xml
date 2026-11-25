@@ -18,6 +18,7 @@
     <string name="color_mode_color">Színes</string>
     <string name="color_mode_default">Alapértelmezett szűrő</string>
     <string name="color_mode_grayscale">Szürkeárnyalatos</string>
+    <string name="color_mode_original">Eredeti</string>
     <string name="contact">Kapcsolat</string>
     <string name="copied_logs">A naplók a vágólapra másolva</string>
     <string name="copy_logs">Naplók másolása</string>

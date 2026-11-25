@@ -43,6 +43,9 @@
     <string name="color_mode_default">Default filter</string>
     <!-- Settings screen: value for "default filter". Document screen: dropdown menu for filter -->
     <string name="color_mode_grayscale">Grayscale</string>
+    <!-- Document screen: dropdown menu for filter.
+         "Original" means no white balance, no shadow reduction, no contrast enhancement... -->
+    <string name="color_mode_original">Original</string>
     <!-- About screen -->
     <string name="contact">Contact</string>
     <!-- About screen: appears as a toast -->
