@@ -260,12 +260,27 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
         return updated
     }
 
+    suspend fun hasUnexportedChanges(): Boolean = imageRepository.hasUnexportedChanges()
+
+    private suspend fun markExported(keys: List<PageViewKey>?) {
+        if (keys == null) return
+        try {
+            imageRepository.markExported(keys)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            logger.e("FairScan", "Failed to persist export state", e)
+        }
+    }
+
     fun onShareClicked() {
+        val exportedPages = lastPreparationKey?.pages
         viewModelScope.launch {
             try {
                 val result = applyRenaming()
                 _events.emit(ExportEvent.Share(result))
                 _uiState.update { it.copy(hasShared = true) }
+                markExported(exportedPages)
             } catch (e: Exception) {
                 val message = "Failed to prepare share"
                 logger.e("FairScan", message, e)
@@ -281,6 +296,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
     }
 
     fun onRequestSave(context: Context) {
+        val exportedPages = lastPreparationKey?.pages
         viewModelScope.launch {
             _uiState.update {it.copy(isSaving = true, error = null, savedBundle = null) }
             val exportFormat = uiState.value.format
@@ -291,6 +307,7 @@ class ExportViewModel(container: AppContainer, val imageRepository: ImageReposit
                 withContext(Dispatchers.IO) {
                     save(context, saveDir, exportFormat)
                 }
+                markExported(exportedPages)
             } catch (e: MissingExportDirPermissionException) {
                 logger.e("FairScan", "Missing export dir permission", e)
                 _uiState.update {
@@ -472,6 +489,7 @@ data class ExportActions(
     val save: () -> Unit,
     val open: (SavedItem) -> Unit,
     val cancelPreparationJob: () -> Unit,
+    val hasUnexportedChanges: suspend () -> Boolean,
 )
 
 class MissingExportDirPermissionException(

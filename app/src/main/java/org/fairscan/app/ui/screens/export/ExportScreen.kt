@@ -67,9 +67,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -93,9 +91,9 @@ import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.components.AppOverflowMenu
 import org.fairscan.app.ui.components.BackButton
 import org.fairscan.app.ui.components.MainActionButton
-import org.fairscan.app.ui.components.NewDocumentDialog
 import org.fairscan.app.ui.components.isLandscape
 import org.fairscan.app.ui.components.pageCountText
+import org.fairscan.app.ui.components.rememberConfirmedNewScan
 import org.fairscan.app.ui.dummyNavigation
 import org.fairscan.app.ui.fakeDocument
 import org.fairscan.app.ui.screens.settings.ExportFormat.PDF
@@ -114,8 +112,6 @@ fun ExportScreenWrapper(
 ) {
     BackHandler { navigation.back() }
 
-    val showConfirmationDialog = rememberSaveable { mutableStateOf(false) }
-
     LaunchedEffect(Unit) {
         exportActions.prepareExportIfNeeded()
     }
@@ -128,6 +124,8 @@ fun ExportScreenWrapper(
     val onFilenameChange = { newName:String ->
         exportActions.setFilename(newName)
     }
+
+    val requestCloseScan = rememberConfirmedNewScan(exportActions.hasUnexportedChanges, onCloseScan)
 
     ExportScreen(
         onFilenameChange = onFilenameChange,
@@ -145,19 +143,8 @@ fun ExportScreenWrapper(
             }
         },
         onOpen = exportActions.open,
-        onCloseScan = {
-            if (!uiState.isSaving) {
-                if (uiState.hasSavedOrShared)
-                    onCloseScan()
-                else
-                    showConfirmationDialog.value = true
-            }
-        },
+        onCloseScan = { if (!uiState.isSaving) requestCloseScan() },
     )
-
-    if (showConfirmationDialog.value) {
-        NewDocumentDialog(onCloseScan, showConfirmationDialog, stringResource(R.string.scan_new))
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -19,12 +19,40 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import kotlinx.coroutines.launch
 import org.fairscan.app.R
 
 @Composable
-fun NewDocumentDialog(onConfirm: () -> Unit, showDialog: MutableState<Boolean>, title: String) {
+fun rememberConfirmedNewScan(
+    hasUnexportedChanges: suspend () -> Boolean,
+    onNewScan: () -> Unit,
+): () -> Unit {
+    val showDialog = rememberSaveable { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val currentCheck by rememberUpdatedState(hasUnexportedChanges)
+    val currentOnNewScan by rememberUpdatedState(onNewScan)
+
+    if (showDialog.value) {
+        NewScanDialog(currentOnNewScan, showDialog, stringResource(R.string.scan_new))
+    }
+    return {
+        if (!showDialog.value) {
+            scope.launch {
+                if (currentCheck()) showDialog.value = true else currentOnNewScan()
+            }
+        }
+    }
+}
+
+@Composable
+fun NewScanDialog(onConfirm: () -> Unit, showDialog: MutableState<Boolean>, title: String) {
     ConfirmationDialog(title, stringResource(R.string.new_document_warning), showDialog, onConfirm)
 }
 
