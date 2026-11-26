@@ -383,6 +383,23 @@ class ImageRepositoryTest {
         assertThat(repo2.imageIds()).containsExactly(id)
     }
 
+    @Test
+    fun last_exported() = runTest {
+        val repo = repo()
+        assertThat(repo.hasUnexportedChanges()).isFalse()
+
+        repo.add(jpeg(101, 102, 103), jpeg(51), metadata1, COLOR)
+        assertThat(repo.hasUnexportedChanges()).isTrue()
+
+        repo.markExported(repo.pages().map { it.key() })
+        assertThat(repo.hasUnexportedChanges()).isFalse()
+
+        repo.add(jpeg(111, 112, 113), jpeg(51), metadata1, COLOR)
+        assertThat(repo.hasUnexportedChanges()).isTrue()
+        repo.delete(repo.pages().last().id)
+        assertThat(repo.hasUnexportedChanges()).isFalse()
+    }
+
     private fun processedDir(): File = File(getFilesDir(), PROCESSED_DIR_NAME)
     private fun sourceDir(): File = File(getFilesDir(), SOURCE_DIR_NAME)
 

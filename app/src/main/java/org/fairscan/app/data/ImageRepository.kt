@@ -41,6 +41,7 @@ import org.fairscan.imageprocessing.Point
 import org.fairscan.imageprocessing.Quad
 import org.fairscan.imageprocessing.cameraIntrinsics
 import java.io.File
+import java.security.MessageDigest
 import java.util.Collections.synchronizedMap
 
 const val SOURCE_DIR_NAME = "sources"
@@ -67,7 +68,9 @@ class ImageRepository(
 
     private val metadataFile = File(processedDir, "document.json")
     private val json = Json { prettyPrint = false; encodeDefaults = true }
-    private var pages: PageStore = PageStore(loadPages())
+    private val initialDocument = loadDocument()
+    private var pages: PageStore = PageStore(initialDocument.pages.toMutableList())
+    private var lastExportFingerprint: String? = initialDocument.lastExportFingerprint
 
     private val processingJobs = synchronizedMap(mutableMapOf<PageViewKey, Deferred<Unit>>())
     private val imageCache = createLruCache<PageViewKey, Deferred<EncodedImage?>>(maxEntries = 50)
@@ -80,7 +83,7 @@ class ImageRepository(
 
     // --- Metadata ---
 
-    private fun loadPages(): MutableList<PageV2> {
+    private fun loadDocument(): DocumentMetadataV2 {
         thumbnailDir.deleteRecursively() // clean up dir that was used in older versions
         normalizeLegacyFiles()
         val filesOnDisk = processedDir.listFiles()
@@ -89,32 +92,27 @@ class ImageRepository(
             ?.toSet()
             ?: emptySet()
 
-        val metadataPages = if (metadataFile.exists()) {
+        val metadata = if (metadataFile.exists()) {
             runCatching { loadMetadata() }.getOrNull()
         } else null
 
-        return when {
-            metadataPages != null ->
-                metadataPages
-                    .filter { processedImageFileName(it.id, it.colorMode, it.quadVersion) in filesOnDisk }
-                    .toMutableList()
-            else ->
-                filesOnDisk
-                    .sorted()
-                    .map { pageFromLegacyFileName(it) }
-                    .toMutableList()
+        return if (metadata != null) {
+            metadata.copy(pages = metadata.pages.filter {
+                processedImageFileName(it.id, it.colorMode, it.quadVersion) in filesOnDisk
+            })
+        } else {
+            DocumentMetadataV2(pages = filesOnDisk.sorted().map { pageFromLegacyFileName(it) })
         }
     }
 
-    private fun loadMetadata(): List<PageV2> {
+    private fun loadMetadata(): DocumentMetadataV2 {
         val json = metadataFile.readText()
-
         val jsonElement = Json.parseToJsonElement(json)
         val version = jsonElement.jsonObject["version"]?.jsonPrimitive?.int ?: 1
-
         return when (version) {
-            1 -> migrateFromV1(Json.decodeFromJsonElement<DocumentMetadataV1>(jsonElement))
-            2 -> Json.decodeFromJsonElement<DocumentMetadataV2>(jsonElement).pages
+            1 -> DocumentMetadataV2(
+                pages = migrateFromV1(Json.decodeFromJsonElement<DocumentMetadataV1>(jsonElement)))
+            2 -> Json.decodeFromJsonElement<DocumentMetadataV2>(jsonElement)
             else -> error("Unsupported metadata version: $version")
         }
     }
@@ -130,20 +128,21 @@ class ImageRepository(
     }
 
     private fun saveMetadata() {
-        val metadata = DocumentMetadataV2(pages = pages.pages())
+        val metadata = DocumentMetadataV2(2, pages.pages(), lastExportFingerprint)
         metadataFile.writeText(json.encodeToString(metadata))
     }
 
     // --- Main API ---
 
-    suspend fun pages(): List<ScanPage> = mutex.withLock {
+    private fun scanPages(): List<ScanPage> =
         pages.pages().mapNotNull {
             runCatching {
                 val manualRotation = Rotation.fromDegrees(it.manualRotationDegrees)
                 ScanPage(it.id, manualRotation, it.colorMode, it.quadVersion, it.toMetadata())
             }.getOrNull()
         }
-    }
+
+    suspend fun pages(): List<ScanPage> = mutex.withLock { scanPages() }
 
     suspend fun add(processed: EncodedImage, source: Jpeg, metadata: PageMetadata, colorMode: ColorMode) =
         mutex.withLock {
@@ -357,6 +356,25 @@ class ImageRepository(
         processedDir.listFiles()?.forEach { it.delete() }
         synchronized(imageCache) { imageCache.clear() }
         synchronized(thumbnailCache) { thumbnailCache.clear() }
+    }
+
+    suspend fun markExported(keys: List<PageViewKey>) = mutex.withLock {
+        lastExportFingerprint = keys.fingerprint()
+        saveMetadata()
+    }
+
+    suspend fun hasUnexportedChanges(): Boolean = mutex.withLock {
+        val current = scanPages().map { it.key() }
+        current.isNotEmpty() && current.fingerprint() != lastExportFingerprint
+    }
+
+    private fun List<PageViewKey>.fingerprint(): String {
+        val canonical = joinToString("\n") {
+            "${it.pageId}:${it.rotation.degrees}:${it.colorMode?.name}:${it.quadVersion}"
+        }
+        return MessageDigest.getInstance("SHA-256")
+            .digest(canonical.toByteArray())
+            .joinToString("") { "%02x".format(it) }
     }
 
     // --- Legacy migration ---

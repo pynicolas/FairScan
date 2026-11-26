@@ -54,6 +54,7 @@ import org.fairscan.app.data.ImageRepository
 import org.fairscan.app.ui.Navigation
 import org.fairscan.app.ui.Screen
 import org.fairscan.app.ui.components.rememberCameraPermissionState
+import org.fairscan.app.ui.components.rememberConfirmedNewScan
 import org.fairscan.app.ui.screens.LibrariesScreen
 import org.fairscan.app.ui.screens.ResumeScanScreen
 import org.fairscan.app.ui.screens.about.AboutEvent
@@ -166,13 +167,14 @@ class MainActivity : ComponentActivity() {
                         // waiting to load pages to get an initial screen
                     }
                     is Screen.Main.ResumeScan -> {
+                        val requestNewScan = rememberConfirmedNewScan(exportViewModel::hasUnexportedChanges) {
+                            viewModel.startNewDocument()
+                            navigation.toCameraScreen()
+                        }
                         ResumeScanScreen(
                             currentDocument = documentUiState,
                             onResumeScan = navigation.toCameraScreen,
-                            onStartNewScan = {
-                                viewModel.startNewDocument()
-                                navigation.toCameraScreen()
-                            }
+                            onStartNewScan = requestNewScan
                         )
                     }
                     is Screen.Main.Camera -> {
@@ -228,6 +230,7 @@ class MainActivity : ComponentActivity() {
                                 save = { exportViewModel.onSaveClicked() },
                                 open = { item -> openUri(item.uri, item.format.mimeType, logger) },
                                 cancelPreparationJob = exportViewModel::cancelPreparationJob,
+                                hasUnexportedChanges = exportViewModel::hasUnexportedChanges,
                             ),
                             onCloseScan = {
                                 exportViewModel.resetFilename()

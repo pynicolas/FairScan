@@ -31,7 +31,8 @@ data class PageV1(
 @Serializable
 data class DocumentMetadataV2(
     val version: Int = 2,
-    val pages: List<PageV2>
+    val pages: List<PageV2>,
+    val lastExportFingerprint: String? = null,
 )
 
 @Serializable
