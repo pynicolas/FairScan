@@ -1,0 +1,2 @@
+New feature: automatic white balance for more natural document colors
+New app translations: Hindi, Vietnamese and Basque
